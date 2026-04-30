@@ -251,7 +251,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold text-ink-300 uppercase tracking-widest">Endpoint Feeder</label>
-                    <input type="text" id="apiUrl" class="input-field w-full px-4 py-3 rounded-xl font-mono text-xs" value="http://localhost:3003/ws/live2.php">
+                    <input type="text" id="apiUrl" class="input-field w-full px-4 py-3 rounded-xl font-mono text-xs" value="http://localhost:3003">
                 </div>
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold text-ink-300 uppercase tracking-widest">Username</label>
@@ -481,7 +481,8 @@
         ============================================ */
 
         async function ambilTokenBaru() {
-            const endpoint = document.getElementById('apiUrl').value.trim();
+            const baseUrl = document.getElementById('apiUrl').value.trim();
+            const endpoint = `${baseUrl}/ws/live2.php`;
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value.trim();
 
