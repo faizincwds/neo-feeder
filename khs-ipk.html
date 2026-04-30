@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KHS & IPK Calculator — Neo Feeder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        surface: { 50: '#f8fafb', 100: '#eef2f5', 200: '#d8e0e6' },
+                        ink: { 900: '#0a0f1a', 700: '#1e2a3a', 500: '#4a5568', 300: '#8896a7', 100: '#c5cdd8' },
+                        accent: { DEFAULT: '#10b981', light: '#34d399', dark: '#059669', dim: '#064e3b' },
+                        flame: { DEFAULT: '#f59e0b', light: '#fbbf24', dark: '#d97706' },
+                        danger: { DEFAULT: '#ef4444', light: '#f87171', dark: '#dc2626' },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg: #0a0f1a;
+            --fg: #eef2f5;
+            --muted: #8896a7;
+            --accent: #10b981;
+            --card: rgba(255,255,255,0.04);
+            --border: rgba(255,255,255,0.07);
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            overflow-x: hidden;
+        }
+
+        /* Ambient background */
+        .ambient-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .ambient-bg::before {
+            content: '';
+            position: absolute;
+            width: 600px; height: 600px;
+            top: -200px; left: -100px;
+            background: radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%);
+            animation: drift1 20s ease-in-out infinite;
+        }
+        .ambient-bg::after {
+            content: '';
+            position: absolute;
+            width: 500px; height: 500px;
+            bottom: -150px; right: -100px;
+            background: radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 70%);
+            animation: drift2 25s ease-in-out infinite;
+        }
+        @keyframes drift1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(80px, 60px) scale(1.15); }
+        }
+        @keyframes drift2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-60px, -40px) scale(1.1); }
+        }
+
+        .glass {
+            background: var(--card);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+        }
+
+        .input-field {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--fg);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .input-field:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+            outline: none;
+        }
+        .input-field::placeholder { color: var(--muted); opacity: 0.5; }
+
+        /* Grade coloring */
+        .g-a { color: #34d399; }
+        .g-b { color: #60a5fa; }
+        .g-c { color: #fbbf24; }
+        .g-d { color: #f87171; }
+        .g-e { color: #f87171; }
+
+        /* IPK badge glow */
+        .ipk-badge {
+            background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05));
+            border: 1px solid rgba(16,185,129,0.25);
+            box-shadow: 0 0 20px rgba(16,185,129,0.08);
+        }
+
+        /* Progress bar */
+        .progress-fill {
+            background: linear-gradient(90deg, #10b981, #34d399);
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 12px rgba(16,185,129,0.4);
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Card entrance */
+        .card-enter {
+            animation: cardSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        @keyframes cardSlideUp {
+            from { opacity: 0; transform: translateY(24px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Table row hover */
+        .trow:hover { background: rgba(255,255,255,0.02); }
+
+        /* Button interactions */
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981, #059669);
+            transition: all 0.2s;
+        }
+        .btn-primary:hover:not(:disabled) {
+            box-shadow: 0 8px 30px rgba(16,185,129,0.3);
+            transform: translateY(-1px);
+        }
+        .btn-primary:active:not(:disabled) { transform: translateY(0); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-ghost {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.2s;
+        }
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.15);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* Toast */
+        .toast {
+            animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .toast-out {
+            animation: toastOut 0.3s ease-in both;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-12px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes toastOut {
+            to { opacity: 0; transform: translateY(-8px) scale(0.95); }
+        }
+
+        /* Print */
+        @media print {
+            body { background: #fff !important; color: #000 !important; padding: 0 !important; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .ambient-bg { display: none !important; }
+            .glass, .glass-panel { background: #fff !important; border: 1px solid #ccc !important; backdrop-filter: none !important; }
+            * { color: #000 !important; box-shadow: none !important; }
+            table { border-collapse: collapse !important; }
+            th, td { border: 1px solid #333 !important; padding: 1px 5px !important; }
+            .ipk-badge { background: #eee !important; border: 1px solid #999 !important; }
+            .g-a, .g-b, .g-c, .g-d, .g-e { color: #000 !important; }
+        }
+        .print-only { display: none; }
+
+        /* Pulse dot */
+        .pulse-dot {
+            width: 8px; height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <!-- Ambient background -->
+    <div class="ambient-bg"></div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed top-6 right-6 z-50 space-y-3 no-print"></div>
+
+    <div class="relative z-10 max-w-6xl mx-auto">
+
+        <!-- Header -->
+        <header class="no-print mb-10">
+            <div class="flex items-center gap-4 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-accent-dark flex items-center justify-center">
+                    <i class="fa-solid fa-bolt text-white text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Neo Feeder IPK Engine</h1>
+                    <p class="text-xs text-ink-300 font-mono tracking-wider uppercase">Client-Side GPA Calculator</p>
+                </div>
+            </div>
+            <div class="h-px bg-gradient-to-r from-accent/30 via-transparent to-transparent mt-4"></div>
+        </header>
+
+        <!-- Print Header -->
+        <div class="print-only mb-8 text-center border-b-2 border-black pb-4">
+            <h1 class="text-xl font-bold uppercase">Laporan Ringkasan Perhitungan IPK</h1>
+            <p class="text-sm mt-1">Dicetak: <span id="printDate"></span></p>
+        </div>
+
+        <!-- Konfigurasi Panel -->
+        <section class="glass p-6 md:p-8 mb-8 no-print">
+            <div class="flex items-center gap-2 mb-6">
+                <i class="fa-solid fa-plug text-accent text-sm"></i>
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-ink-300">Konfigurasi Koneksi</h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-ink-300 uppercase tracking-widest">Endpoint Feeder</label>
+                    <input type="text" id="apiUrl" class="input-field w-full px-4 py-3 rounded-xl font-mono text-xs" value="http://localhost:3003/ws/live2.php">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-ink-300 uppercase tracking-widest">Username</label>
+                    <input type="text" id="username" class="input-field w-full px-4 py-3 rounded-xl font-mono text-sm" placeholder="feeder_user">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-ink-300 uppercase tracking-widest">Password</label>
+                    <div class="relative">
+                        <input type="password" id="password" class="input-field w-full px-4 py-3 rounded-xl font-mono text-sm pr-10" placeholder="********">
+                        <button onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-300 hover:text-ink-100 transition-colors">
+                            <i id="eyeIcon" class="fa-solid fa-eye text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="h-px bg-white/5 mb-6"></div>
+
+            <div class="flex items-center gap-2 mb-3">
+                <i class="fa-solid fa-list-ol text-flame text-sm"></i>
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-ink-300">Daftar NIM</h2>
+                <span class="text-[10px] text-ink-300 bg-white/5 px-2 py-0.5 rounded-md font-mono">pisahkan koma / baris baru</span>
+            </div>
+            <textarea id="listNim" rows="3" placeholder="200101001, 200101002, 200101003" class="input-field w-full px-4 py-3 rounded-xl font-mono text-sm resize-none mb-4"></textarea>
+
+            <!-- Progress Bar (tersembunyi default) -->
+            <div id="progressWrap" class="hidden mb-4">
+                <div class="flex justify-between items-center mb-1.5">
+                    <span id="progressLabel" class="text-xs text-ink-300 font-mono">Memproses...</span>
+                    <span id="progressCount" class="text-xs text-accent font-mono font-bold">0/0</span>
+                </div>
+                <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div id="progressBar" class="progress-fill h-full rounded-full" style="width:0%"></div>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="prosesData()" id="btnProses" class="btn-primary flex-1 text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2.5">
+                    <i class="fa-solid fa-rocket"></i>
+                    <span>Tarik Data & Hitung IPK</span>
+                    <div id="loader" class="spinner hidden"></div>
+                </button>
+                <button onclick="resetSemua()" class="btn-ghost text-ink-300 px-5 py-3.5 rounded-xl font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span class="hidden sm:inline">Reset</span>
+                </button>
+            </div>
+
+            <p class="text-[10px] text-ink-300/60 mt-4 text-center">
+                <i class="fa-solid fa-shield-halved mr-1"></i>
+                Kredensial diproses sepenuhnya di browser — tidak ada data yang dikirim ke server pihak ketiga.
+            </p>
+        </section>
+
+        <!-- Container Hasil Individual -->
+        <div id="hasilContainer" class="space-y-5 no-print"></div>
+
+        <!-- Tabel Rekapitulasi -->
+        <section id="rekapContainer" class="mt-10 hidden">
+            <div class="overflow-hidden">
+                <!-- Header Rekap -->
+                <div class="p-5 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 no-print">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                            <i class="fa-solid fa-chart-bar text-accent text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold">Ringkasan Perhitungan</h2>
+                            <p class="text-[10px] text-ink-300 font-mono uppercase tracking-wider" id="rekapSubtitle">0 mahasiswa diproses</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button onclick="cetakSemuaPdf()" class="btn-ghost text-ink-100 px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-file-pdf text-danger"></i>
+                            <span>PDF Semua</span>
+                        </button>
+                        <button onclick="window.print()" class="btn-ghost text-ink-100 px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-print"></i>
+                            <span>Cetak</span>
+                        </button>
+                        <button onclick="exportToExcel()" class="btn-primary text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 !py-2">
+                            <i class="fa-solid fa-file-excel"></i>
+                            <span>Export Excel</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Print subheader -->
+                <div class="print-only p-4 font-bold text-center border-b text-sm">TABEL RINGKASAN IPK MAHASISWA</div>
+
+                <!-- Tabel -->
+                <div class="overflow-x-auto">
+                    <table id="tableUtama" class="w-full text-sm text-left">
+                        <thead>
+                            <tr class="border-b border-white/5 text-[10px] font-bold text-ink-300 uppercase tracking-wider">
+                                <th class="p-4 w-12">No</th>
+                                <th class="p-4">NIM</th>
+                                <th class="p-4">Nama Mahasiswa</th>
+                                <th class="p-4">Program Studi</th>
+                                <th class="p-4 text-center w-24">Total SKS</th>
+                                <th class="p-4 text-center w-24">IPK</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableRekap" class="divide-y divide-white/5"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tanda tangan print -->
+            <div class="print-only mt-16 grid grid-cols-2 text-center text-sm">
+                <div></div>
+                <div class="space-y-14">
+                    <p>Dicetak oleh Operator,</p>
+                    <div class="pt-3 border-t border-black w-40 mx-auto font-bold"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-16 mb-8 text-center no-print">
+            <div class="h-px bg-white/5 mb-6"></div>
+            <p class="text-[10px] text-ink-300/40 font-mono">Neo Feeder IPK Engine &mdash; Kalkulasi berdasarkan metode resmi bobot indeks nilai</p>
+        </footer>
+    </div>
+
+    <script>
+        /* ============================================
+           STATE GLOBAL
+        ============================================ */
+        let currentToken = null;
+        let globalRekapData = [];
+        const matkulCache = new Map();
+        const MAX_CACHE = 500; // Batas cache agar tidak membengkak
+        let isProcessing = false;
+
+        // Tanggal print otomatis
+        document.getElementById('printDate').textContent = new Date().toLocaleString('id-ID', {
+            dateStyle: 'full', timeStyle: 'short'
+        });
+
+        /* ============================================
+           UTILITAS
+        ============================================ */
+
+        // Sanitasi NIM — hapus karakter berbahaya
+        function sanitizeNim(raw) {
+            return raw.replace(/[^0-9a-zA-Z\-_.]/g, '').trim();
+        }
+
+        // Toggle visibility password
+        function togglePassword() {
+            const inp = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash text-sm';
+            } else {
+                inp.type = 'password';
+                icon.className = 'fa-solid fa-eye text-sm';
+            }
+        }
+
+        // Toast notification
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const colors = {
+                success: 'border-l-4 border-l-accent bg-accent-dim/80',
+                error: 'border-l-4 border-l-danger bg-danger-dark/80',
+                info: 'border-l-4 border-l-flame bg-flame-dark/80',
+            };
+            const icons = {
+                success: 'fa-circle-check text-accent-light',
+                error: 'fa-circle-xmark text-danger-light',
+                info: 'fa-circle-info text-flame-light',
+            };
+            const el = document.createElement('div');
+            el.className = `toast ${colors[type]} backdrop-blur-md rounded-xl px-4 py-3 flex items-center gap-3 min-w-[280px] shadow-2xl`;
+            el.innerHTML = `
+                <i class="fa-solid ${icons[type]}"></i>
+                <span class="text-sm text-white font-medium">${message}</span>
+            `;
+            container.appendChild(el);
+            setTimeout(() => {
+                el.classList.add('toast-out');
+                setTimeout(() => el.remove(), 300);
+            }, 3500);
+        }
+
+        // Progress bar update
+        function updateProgress(current, total, label) {
+            const wrap = document.getElementById('progressWrap');
+            const bar = document.getElementById('progressBar');
+            const count = document.getElementById('progressCount');
+            const lbl = document.getElementById('progressLabel');
+            wrap.classList.remove('hidden');
+            bar.style.width = `${total > 0 ? ((current / total) * 100) : 0}%`;
+            count.textContent = `${current}/${total}`;
+            if (label) lbl.textContent = label;
+        }
+        function hideProgress() {
+            document.getElementById('progressWrap').classList.add('hidden');
+        }
+
+        // Class CSS berdasarkan nilai huruf
+        function gradeClass(huruf) {
+            if (!huruf) return '';
+            if (huruf.startsWith('A')) return 'g-a';
+            if (huruf.startsWith('B')) return 'g-b';
+            if (huruf.startsWith('C')) return 'g-c';
+            return 'g-d';
+        }
+
+        // Reset seluruh tampilan
+        function resetSemua() {
+            if (isProcessing) return showToast('Proses sedang berjalan, tunggu hingga selesai.', 'error');
+            document.getElementById('hasilContainer').innerHTML = '';
+            document.getElementById('tableRekap').innerHTML = '';
+            document.getElementById('rekapContainer').classList.add('hidden');
+            globalRekapData = [];
+            matkulCache.clear();
+            hideProgress();
+            showToast('Semua data telah direset.', 'info');
+        }
+
+        /* ============================================
+           KOMUNIKASI NEO FEEDER
+        ============================================ */
+
+        async function ambilTokenBaru() {
+            const endpoint = document.getElementById('apiUrl').value.trim();
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+
+            if (!user || !pass) throw new Error("Username dan Password wajib diisi.");
+            if (!endpoint) throw new Error("Endpoint Feeder wajib diisi.");
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ act: "GetToken", username: user, password: pass })
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}: Gagal terhubung ke endpoint.`);
+            const json = await response.json();
+            if (json.error_code !== 0) throw new Error(json.error_desc || "Login gagal.");
+            currentToken = json.data.token;
+            return currentToken;
+        }
+
+        // Request dengan auto-retry jika token expired
+        async function requestWithRetry(act, params) {
+            try {
+                return await requestNeo(act, { token: currentToken, ...params });
+            } catch (err) {
+                const msg = (err.message || '').toLowerCase();
+                if (msg.includes('token') || msg.includes('expired') || msg.includes('unauthorized')) {
+                    await ambilTokenBaru();
+                    return await requestNeo(act, { token: currentToken, ...params });
+                }
+                throw err;
+            }
+        }
+
+        async function requestNeo(act, params) {
+            const endpoint = document.getElementById('apiUrl').value.trim();
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ act, ...params })
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const json = await response.json();
+            if (json.error_code !== 0) throw new Error(json.error_desc || `Error API: ${json.error_code}`);
+            return json.data;
+        }
+
+        // Lookup kode MK asli dari id_matkul (dengan cache terbatas)
+        async function getRealKodeMK(itemNilai) {
+            const rawKode = itemNilai.kode_mata_kuliah || itemNilai.kode_mk || '';
+            const idMatkul = itemNilai.id_matkul;
+
+            // Jika kode sudah bersih, pakai langsung
+            if (rawKode && rawKode.length < 20 && !rawKode.includes('-')) {
+                return rawKode;
+            }
+
+            // Cek cache
+            if (matkulCache.has(idMatkul)) return matkulCache.get(idMatkul);
+
+            // Jika cache penuh, kosongkan setengahnya (LRU sederhana)
+            if (matkulCache.size >= MAX_CACHE) {
+                const keys = [...matkulCache.keys()];
+                for (let i = 0; i < MAX_CACHE / 2; i++) matkulCache.delete(keys[i]);
+            }
+
+            try {
+                const res = await requestWithRetry("GetListMataKuliah", {
+                    filter: `id_matkul='${idMatkul}'`,
+                    limit: 1
+                });
+                if (res && res.length > 0) {
+                    const kode = res[0].kode_mata_kuliah;
+                    matkulCache.set(idMatkul, kode);
+                    return kode;
+                }
+            } catch (e) {
+                console.warn(`Lookup MK ${idMatkul} gagal:`, e);
+            }
+            return rawKode || 'N/A';
+        }
+
+        /* ============================================
+           KALKULASI IPK
+        ============================================ */
+
+        function hitungKalkulasi(dataNilai) {
+            if (!dataNilai || dataNilai.length === 0) {
+                return { ipk: '0.00', totalSks: 0, jumlahMatkul: 0 };
+            }
+            let totalSks = 0;
+            let totalBobot = 0;
+            dataNilai.forEach(n => {
+                const sks = parseFloat(n.sks_mata_kuliah) || 0;
+                const indeks = parseFloat(n.nilai_indeks) || 0;
+                totalSks += sks;
+                totalBobot += (sks * indeks);
+            });
+            return {
+                ipk: totalSks > 0 ? (totalBobot / totalSks).toFixed(2) : '0.00',
+                totalSks,
+                jumlahMatkul: dataNilai.length
+            };
+        }
+
+        /* ============================================
+           PROSES UTAMA
+        ============================================ */
+
+        async function prosesData() {
+            if (isProcessing) return;
+            const textNim = document.getElementById('listNim').value;
+            const btn = document.getElementById('btnProses');
+            const loader = document.getElementById('loader');
+
+            if (!textNim.trim()) {
+                showToast('Masukkan minimal satu NIM.', 'error');
+                return;
+            }
+
+            // Parse & sanitasi NIM
+            const rawNims = textNim.split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+            const nims = [...new Set(rawNims.map(sanitizeNim))]; // Dedup + sanitasi
+
+            if (nims.length === 0) {
+                showToast('Tidak ada NIM valid yang ditemukan.', 'error');
+                return;
+            }
+
+            // Reset tampilan
+            document.getElementById('hasilContainer').innerHTML = '';
+            document.getElementById('tableRekap').innerHTML = '';
+            document.getElementById('rekapContainer').classList.add('hidden');
+            globalRekapData = [];
+            matkulCache.clear();
+
+            loader.classList.remove('hidden');
+            btn.disabled = true;
+            isProcessing = true;
+            updateProgress(0, nims.length, 'Menghubungi Feeder...');
+
+            try {
+                await ambilTokenBaru();
+                showToast(`Terhubung. Memproses ${nims.length} NIM...`, 'success');
+
+                for (let i = 0; i < nims.length; i++) {
+                    const nim = nims[i];
+                    updateProgress(i, nims.length, `Memproses ${nim}...`);
+
+                    try {
+                        // Ambil data mahasiswa
+                        const resMhs = await requestWithRetry("GetListRiwayatPendidikanMahasiswa", {
+                            filter: `nim='${nim}'`
+                        });
+
+                        if (!resMhs || resMhs.length === 0) {
+                            throw new Error(`NIM "${nim}" tidak ditemukan dalam database.`);
+                        }
+
+                        const profil = resMhs[0];
+
+                        // Ambil riwayat nilai
+                        const nilai = await requestWithRetry("GetRiwayatNilaiMahasiswa", {
+                            filter: `id_registrasi_mahasiswa='${profil.id_registrasi_mahasiswa}'`
+                        });
+
+                        // Lookup kode MK asli secara paralel
+                        const kodePromises = nilai.map(item => getRealKodeMK(item));
+                        const kodeResults = await Promise.allSettled(kodePromises);
+                        kodeResults.forEach((result, idx) => {
+                            if (result.status === 'fulfilled') {
+                                nilai[idx].kode_bersih = result.value;
+                            } else {
+                                nilai[idx].kode_bersih = nilai[idx].kode_mata_kuliah || 'N/A';
+                            }
+                        });
+
+                        const stats = hitungKalkulasi(nilai);
+                        renderKartu(profil, nilai, stats, i);
+                        globalRekapData.push({ ...profil, ...stats });
+
+                    } catch (e) {
+                        renderError(nim, e.message, i);
+                    }
+                }
+
+                updateProgress(nims.length, nims.length, 'Selesai.');
+                showToast(`${globalRekapData.length} dari ${nims.length} NIM berhasil diproses.`, 'success');
+
+                if (globalRekapData.length > 0) {
+                    renderRekapTable(globalRekapData);
+                }
+
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                loader.classList.add('hidden');
+                btn.disabled = false;
+                isProcessing = false;
+                setTimeout(hideProgress, 2000);
+            }
+        }
+
+        /* ============================================
+           RENDER UI
+        ============================================ */
+
+        function renderKartu(mhs, nilai, stats, index) {
+            const delay = index * 80;
+            let rows = '';
+
+            if (!nilai || nilai.length === 0) {
+                rows = `<tr><td colspan="6" class="p-8 text-center text-ink-300 text-sm italic">Tidak ada riwayat nilai untuk mahasiswa ini.</td></tr>`;
+            } else {
+                nilai.forEach((n, i) => {
+                    const gc = gradeClass(n.nilai_huruf);
+                    rows += `
+                        <tr class="trow border-b border-white/[0.03] text-xs transition-colors">
+                            <td class="p-3 text-ink-300 font-mono">${i + 1}</td>
+                            <td class="p-3 font-mono font-semibold text-accent">${n.kode_bersih}</td>
+                            <td class="p-3">${n.nama_mata_kuliah}</td>
+                            <td class="p-3 text-center font-mono">${n.sks_mata_kuliah}</td>
+                            <td class="p-3 text-center font-bold ${gc}">${n.nilai_huruf || '-'}</td>
+                            <td class="p-3 text-center text-ink-300 font-mono">${n.nilai_indeks ?? '0'}</td>
+                        </tr>`;
+                });
+            }
+
+            // Predikat berdasarkan IPK
+            let predikat = '';
+            const ipkNum = parseFloat(stats.ipk);
+            if (ipkNum >= 3.75) predikat = 'Cum Laude';
+            else if (ipkNum >= 3.50) predikat = 'Sangat Memuaskan';
+            else if (ipkNum >= 3.00) predikat = 'Memuaskan';
+            else if (ipkNum >= 2.50) predikat = 'Cukup';
+            else if (ipkNum > 0) predikat = 'Kurang';
+            else predikat = 'Belum Ada';
+
+            const html = `
+                <article class="overflow-hidden card-enter" style="animation-delay:${delay}ms">
+                    <!-- Header Kartu -->
+                    <div class="p-5 md:p-6 border-b border-white/5">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1.5">
+                                    <div class="pulse-dot flex-shrink-0"></div>
+                                    <span class="text-[10px] font-bold text-accent uppercase tracking-widest">Data Tersinkronisasi</span>
+                                </div>
+                                <h3 class="text-lg md:text-xl font-bold truncate">${mhs.nama_mahasiswa}</h3>
+                                <p class="text-xs text-ink-300 font-mono mt-0.5">${mhs.nim} &mdash; ${mhs.nama_program_studi}</p>
+                            </div>
+                            <div class="flex items-center gap-4 flex-shrink-0">
+                                <!-- Statistik IPK -->
+                                <div class="ipk-badge rounded-xl px-5 py-3 text-center">
+                                    <p class="text-[9px] font-bold text-accent/70 uppercase tracking-widest">IPK</p>
+                                    <p class="text-2xl font-black text-accent-light leading-tight">${stats.ipk}</p>
+                                    <p class="text-[10px] text-ink-300 mt-0.5">${predikat}</p>
+                                </div>
+                                <!-- Statistik SKS -->
+                                <div class="text-center">
+                                    <p class="text-[9px] font-bold text-ink-300 uppercase tracking-widest">SKS</p>
+                                    <p class="text-xl font-bold text-ink-100 leading-tight">${stats.totalSks}</p>
+                                    <p class="text-[10px] text-ink-300 mt-0.5">${stats.jumlahMatkul} matkul</p>
+                                </div>
+                                <!-- Aksi -->
+                                <button onclick="cetakPdfIndividu('${mhs.nim}')" class="btn-ghost w-10 h-10 rounded-xl flex items-center justify-center group" title="Download PDF KHS">
+                                    <i class="fa-solid fa-file-pdf text-danger group-hover:scale-110 transition-transform"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabel Nilai -->
+                    <div class="overflow-x-auto">
+                        <table id="table-${mhs.nim}" class="w-full text-left">
+                            <thead>
+                                <tr class="text-[9px] font-bold text-ink-300/60 uppercase tracking-widest border-b border-white/[0.03]">
+                                    <th class="p-3 w-10">No</th>
+                                    <th class="p-3 w-24">Kode</th>
+                                    <th class="p-3">Mata Kuliah</th>
+                                    <th class="p-3 w-14 text-center">SKS</th>
+                                    <th class="p-3 w-14 text-center">Huruf</th>
+                                    <th class="p-3 w-14 text-center">Bobot</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                </article>
+            `;
+            document.getElementById('hasilContainer').insertAdjacentHTML('beforeend', html);
+        }
+
+        function renderRekapTable(data) {
+            const tbody = document.getElementById('tableRekap');
+            document.getElementById('rekapSubtitle').textContent = `${data.length} mahasiswa diproses`;
+
+            data.forEach((d, i) => {
+                const ipkNum = parseFloat(d.ipk);
+                let ipkColor = 'text-accent-light';
+                if (ipkNum < 2.5) ipkColor = 'text-danger-light';
+                else if (ipkNum < 3.0) ipkColor = 'text-flame-light';
+                else if (ipkNum < 3.5) ipkColor = 'text-ink-100';
+
+                tbody.innerHTML += `
+                    <tr class="trow transition-colors">
+                        <td class="p-4 text-ink-300 font-mono text-xs">${i + 1}</td>
+                        <td class="p-4 font-mono font-bold text-accent text-xs">${d.nim}</td>
+                        <td class="p-4 font-semibold text-sm">${d.nama_mahasiswa}</td>
+                        <td class="p-4 text-xs text-ink-300">${d.nama_program_studi}</td>
+                        <td class="p-4 text-center font-mono text-sm">${d.totalSks}</td>
+                        <td class="p-4 text-center">
+                            <span class="no-print ipk-badge px-3 py-1 rounded-full font-bold text-xs ${ipkColor}">${d.ipk}</span>
+                            <span class="print-only font-bold">${d.ipk}</span>
+                        </td>
+                    </tr>`;
+            });
+            document.getElementById('rekapContainer').classList.remove('hidden');
+        }
+
+        function renderError(nim, msg, index) {
+            const delay = index * 80;
+            const html = `
+                <div class="glass rounded-2xl p-5 flex items-start gap-4 card-enter border-l-2 border-l-danger" style="animation-delay:${delay}ms">
+                    <div class="w-9 h-9 rounded-lg bg-danger/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fa-solid fa-triangle-exclamation text-danger text-sm"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-xs font-bold text-danger-light">Gagal: NIM ${nim}</p>
+                        <p class="text-xs text-ink-300 mt-0.5">${msg}</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('hasilContainer').insertAdjacentHTML('beforeend', html);
+        }
+
+        /* ============================================
+           EXPORT FUNCTIONS
+        ============================================ */
+
+        // PDF Individu
+        function cetakPdfIndividu(nim) {
+            const mhs = globalRekapData.find(d => d.nim === nim);
+            if (!mhs) return showToast('Data mahasiswa tidak ditemukan.', 'error');
+
+            const containerId = `table-${nim}`;
+            const tableEl = document.getElementById(containerId);
+            if (!tableEl) return showToast('Tabel nilai tidak ditemukan.', 'error');
+
+            const rows = Array.from(tableEl.querySelectorAll('tbody tr')).map(tr => {
+                const cells = tr.querySelectorAll('td');
+                return [
+                    cells[0]?.innerText?.trim() || '',
+                    cells[1]?.innerText?.trim() || '',
+                    cells[2]?.innerText?.trim() || '',
+                    cells[3]?.innerText?.trim() || '',
+                    cells[4]?.innerText?.trim() || '',
+                    cells[5]?.innerText?.trim() || ''
+                ];
+            });
+
+            // Abaikan baris "tidak ada data"
+            if (rows.length === 1 && rows[0].length === 1 && rows[0][0].includes('Tidak ada')) {
+                showToast('Tidak ada riwayat nilai untuk mahasiswa ini.', 'info');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('KARTU HASIL STUDI (KHS)', 105, 18, { align: 'center' });
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Dicetak secara otomatis oleh Neo Feeder IPK Engine', 105, 24, { align: 'center' });
+
+            // Info mahasiswa
+            doc.setLineWidth(0.3);
+            doc.line(14, 28, 196, 28);
+
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Nama', 14, 35);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`: ${mhs.nama_mahasiswa}`, 50, 35);
+
+            doc.setFont('helvetica', 'bold');
+            doc.text('NIM', 14, 41);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`: ${mhs.nim}`, 50, 41);
+
+            doc.setFont('helvetica', 'bold');
+            doc.text('Prodi', 14, 47);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`: ${mhs.nama_program_studi}`, 50, 47);
+
+            doc.setFont('helvetica', 'bold');
+            doc.text('Total SKS / IPK', 120, 35);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`: ${mhs.totalSks} / ${mhs.ipk}`, 155, 35);
+
+            // Tabel
+            doc.autoTable({
+                startY: 53,
+                head: [['No', 'Kode MK', 'Mata Kuliah', 'SKS', 'Nilai', 'Bobot']],
+                body: rows,
+                theme: 'grid',
+                headStyles: { fillColor: [16, 185, 129], textColor: 255, fontSize: 9, fontStyle: 'bold' },
+                bodyStyles: { fontSize: 8 },
+                columnStyles: {
+                    0: { cellWidth: 10, halign: 'center' },
+                    1: { cellWidth: 22 },
+                    3: { cellWidth: 14, halign: 'center' },
+                    4: { cellWidth: 16, halign: 'center' },
+                    5: { cellWidth: 16, halign: 'center' },
+                },
+                margin: { left: 14, right: 14 }
+            });
+
+            // Footer
+            const finalY = doc.lastAutoTable.finalY + 12;
+            doc.setFontSize(8);
+            doc.setTextColor(120);
+            doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, finalY);
+
+            doc.save(`KHS_${mhs.nim}_${mhs.nama_mahasiswa.replace(/\s+/g, '_')}.pdf`);
+            showToast(`PDF KHS ${mhs.nim} berhasil diunduh.`, 'success');
+        }
+
+        // PDF Semua Mahasiswa
+        function cetakSemuaPdf() {
+            if (globalRekapData.length === 0) return showToast('Tidak ada data.', 'error');
+            showToast(`Membuat ${globalRekapData.length} PDF...`, 'info');
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Halaman 1: Ringkasan
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text('REKAPITULASI IPK MAHASISWA', 105, 18, { align: 'center' });
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, 105, 24, { align: 'center' });
+
+            const rekapRows = globalRekapData.map((d, i) => [
+                i + 1, d.nim, d.nama_mahasiswa, d.nama_program_studi || '-', d.totalSks, d.ipk
+            ]);
+
+            doc.autoTable({
+                startY: 30,
+                head: [['No', 'NIM', 'Nama', 'Prodi', 'SKS', 'IPK']],
+                body: rekapRows,
+                theme: 'grid',
+                headStyles: { fillColor: [16, 185, 129], textColor: 255, fontSize: 9, fontStyle: 'bold' },
+                bodyStyles: { fontSize: 8 },
+                columnStyles: {
+                    0: { cellWidth: 10, halign: 'center' },
+                    1: { cellWidth: 25 },
+                    4: { cellWidth: 14, halign: 'center' },
+                    5: { cellWidth: 16, halign: 'center' },
+                },
+                margin: { left: 14, right: 14 }
+            });
+
+            // Per-mahasiswa KHS
+            globalRekapData.forEach((mhs, idx) => {
+                doc.addPage();
+
+                doc.setFontSize(13);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`KHS: ${mhs.nama_mahasiswa}`, 14, 18);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`NIM: ${mhs.nim} | Prodi: ${mhs.nama_program_studi} | SKS: ${mhs.totalSks} | IPK: ${mhs.ipk}`, 14, 25);
+
+                const containerId = `table-${mhs.nim}`;
+                const tableEl = document.getElementById(containerId);
+                if (!tableEl) return;
+
+                const rows = Array.from(tableEl.querySelectorAll('tbody tr')).map(tr => {
+                    const cells = tr.querySelectorAll('td');
+                    return [
+                        cells[0]?.innerText?.trim() || '',
+                        cells[1]?.innerText?.trim() || '',
+                        cells[2]?.innerText?.trim() || '',
+                        cells[3]?.innerText?.trim() || '',
+                        cells[4]?.innerText?.trim() || '',
+                        cells[5]?.innerText?.trim() || ''
+                    ];
+                });
+
+                doc.autoTable({
+                    startY: 30,
+                    head: [['No', 'Kode MK', 'Mata Kuliah', 'SKS', 'Nilai', 'Bobot']],
+                    body: rows,
+                    theme: 'grid',
+                    headStyles: { fillColor: [16, 185, 129], textColor: 255, fontSize: 9, fontStyle: 'bold' },
+                    bodyStyles: { fontSize: 8 },
+                    columnStyles: {
+                        0: { cellWidth: 10, halign: 'center' },
+                        1: { cellWidth: 22 },
+                        3: { cellWidth: 14, halign: 'center' },
+                        4: { cellWidth: 16, halign: 'center' },
+                        5: { cellWidth: 16, halign: 'center' },
+                    },
+                    margin: { left: 14, right: 14 }
+                });
+            });
+
+            doc.save(`Rekap_KHS_IPK_${new Date().getTime()}.pdf`);
+            showToast('PDF gabungan berhasil diunduh.', 'success');
+        }
+
+        // Export Excel
+        function exportToExcel() {
+            if (globalRekapData.length === 0) return showToast('Tidak ada data untuk diekspor.', 'error');
+
+            const excelData = globalRekapData.map((d, i) => ({
+                'No': i + 1,
+                'NIM': d.nim,
+                'Nama Mahasiswa': d.nama_mahasiswa,
+                'Program Studi': d.nama_program_studi,
+                'Angkatan': d.nama_periode_masuk || '-',
+                'Total SKS': d.totalSks,
+                'IPK': d.ipk
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Rekap IPK');
+
+            worksheet['!cols'] = [
+                { wch: 5 }, { wch: 16 }, { wch: 32 }, { wch: 28 }, { wch: 16 }, { wch: 10 }, { wch: 10 }
+            ];
+
+            XLSX.writeFile(workbook, `Rekap_IPK_${new Date().getTime()}.xlsx`);
+            showToast('File Excel berhasil diunduh.', 'success');
+        }
+
+        /* ============================================
+           KEYBOARD SHORTCUT
+        ============================================ */
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+Enter untuk proses
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                if (!isProcessing) prosesData();
+            }
+        });
+    </script>
+</body>
+</html>
