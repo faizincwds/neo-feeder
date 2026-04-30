@@ -481,8 +481,7 @@
         ============================================ */
 
         async function ambilTokenBaru() {
-            const baseUrl = document.getElementById('apiUrl').value.trim();
-            const endpoint = `${baseUrl}/ws/live2.php`;
+            const endpoint = `${document.getElementById('apiUrl').value.trim()}/ws/live2.php`;
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value.trim();
 
@@ -516,7 +515,7 @@
         }
 
         async function requestNeo(act, params) {
-            const endpoint = document.getElementById('apiUrl').value.trim();
+            const endpoint = `${document.getElementById('apiUrl').value.trim()}/ws/live2.php`;
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
