@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neo Feeder WS Documentation & Explorer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
@@ -47,13 +47,34 @@
         .dark .noise-overlay::before{opacity:.03}
         .sidebar-active{background:var(--accent-subtle);color:var(--accent)!important;box-shadow:inset 0 0 0 1px rgba(99,102,241,.15)}
         .method-get{color:var(--success)}.method-insert{color:#22d3ee}.method-update{color:var(--warning)}.method-delete{color:var(--error)}.method-export{color:var(--accent-light)}
+        #sidebar{transition:transform .3s cubic-bezier(.4,0,.2,1)}
+        @media(max-width:767px){
+            #sidebar{position:fixed;left:0;top:0;bottom:0;z-index:40;transform:translateX(-100%);width:280px}
+            #sidebar.open{transform:translateX(0)}
+            #sidebarOverlay{display:none;position:fixed;inset:0;z-index:35;background:rgba(0,0,0,.4);backdrop-filter:blur(2px)}
+            #sidebarOverlay.open{display:block}
+        }
+        @media(max-width:767px){
+            #contentArea{padding:1rem}
+            #welcomeView{padding-top:1.5rem;padding-bottom:1.5rem}
+            #welcomeView h2{font-size:1.75rem!important;line-height:1.2!important}
+            #detailAct{font-size:1.25rem!important}
+            .resp-payload{height:120px!important}
+            .resp-container{min-height:200px!important}
+        }
+        @media(min-width:768px) and (max-width:1023px){
+            #detailAct{font-size:1.5rem!important}
+            .resp-payload{height:140px!important}
+        }
     </style>
 </head>
 <body class="noise-overlay">
 <div class="flex h-screen overflow-hidden">
 
+    <div id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
     <!-- SIDEBAR -->
-    <aside class="w-[280px] flex-shrink-0 flex flex-col border-r transition-colors duration-300" style="background:var(--bg-surface);border-color:var(--border-subtle)">
+    <aside id="sidebar" class="w-[280px] flex-shrink-0 flex flex-col border-r transition-colors duration-300 md:relative md:transform-none" style="background:var(--bg-surface);border-color:var(--border-subtle)">
         <div class="px-5 py-5 border-b" style="border-color:var(--border-subtle)">
             <div class="flex items-center gap-3">
                 <div class="relative">
@@ -64,6 +85,7 @@
                     <h1 class="font-bold text-[15px] tracking-tight leading-none">NeoDocs</h1>
                     <span class="text-[10px] font-semibold uppercase tracking-[.15em]" style="color:var(--accent)">Web Service</span>
                 </div>
+                <button onclick="toggleSidebar()" class="md:hidden ml-auto w-7 h-7 rounded-lg flex items-center justify-center" style="color:var(--text-tertiary)"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             <div class="relative mt-4">
                 <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color:var(--text-tertiary)"></i>
@@ -80,57 +102,99 @@
     </aside>
 
     <!-- MAIN -->
-    <main class="flex-grow flex flex-col overflow-hidden relative" style="background:var(--bg-base)">
-        <header class="h-14 flex items-center justify-between px-6 border-b z-10" style="background:var(--bg-surface);border-color:var(--border-subtle)">
-            <button id="configBtn" class="flex items-center gap-2 px-3 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-200" style="background:var(--bg-elevated);color:var(--text-secondary)"><i data-lucide="settings" class="w-3.5 h-3.5"></i>Konfigurasi API</button>
+    <main class="flex-grow flex flex-col overflow-hidden relative min-w-0" style="background:var(--bg-base)">
+        <header class="h-14 flex items-center justify-between px-4 md:px-6 border-b z-10 flex-shrink-0" style="background:var(--bg-surface);border-color:var(--border-subtle)">
+            <div class="flex items-center gap-2 md:gap-3">
+                <button onclick="toggleSidebar()" class="md:hidden w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="color:var(--text-secondary)"><i data-lucide="menu" class="w-5 h-5"></i></button>
+                <button id="configBtn" class="flex items-center gap-2 px-3 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-200" style="background:var(--bg-elevated);color:var(--text-secondary)"><i data-lucide="settings" class="w-3.5 h-3.5"></i><span class="hidden sm:inline">Konfigurasi API</span><span class="sm:hidden">Config</span></button>
+            </div>
             <div id="statsInfo" class="hidden md:flex gap-5 text-[11px] font-medium" style="color:var(--text-tertiary)"></div>
         </header>
 
-        <div id="contentArea" class="flex-grow overflow-y-auto thin-scroll p-8">
+        <div id="contentArea" class="flex-grow overflow-y-auto thin-scroll p-4 md:p-8">
             <!-- WELCOME -->
-            <div id="welcomeView" class="max-w-4xl mx-auto pt-16 pb-10 mesh-gradient rounded-3xl">
-                <div class="text-center space-y-5 mb-14">
-                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-wider" style="background:var(--accent-subtle);color:var(--accent)"><span class="w-1.5 h-1.5 rounded-full pulse-soft" style="background:var(--accent)"></span>Documentation Explorer v2.0</div>
-                    <h2 class="text-5xl font-extrabold tracking-tight leading-[1.1]">Selamat Datang<br>di <span style="color:var(--accent)">NeoDocs</span></h2>
-                    <p class="text-base max-w-lg mx-auto leading-relaxed" style="color:var(--text-secondary)">Sistem dokumentasi interaktif untuk Web Service Neo Feeder. Kelola token, eksplorasi dictionary, dan uji coba endpoint langsung dari browser.</p>
+            <div id="welcomeView" class="max-w-4xl mx-auto pt-8 md:pt-16 pb-6 md:pb-10 mesh-gradient rounded-2xl md:rounded-3xl">
+                <div class="text-center space-y-4 md:space-y-5 mb-8 md:mb-14 px-2">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] md:text-[11px] font-semibold uppercase tracking-wider" style="background:var(--accent-subtle);color:var(--accent)"><span class="w-1.5 h-1.5 rounded-full pulse-soft" style="background:var(--accent)"></span>Documentation Explorer v2.0</div>
+                    <h2 class="text-3xl md:text-5xl font-extrabold tracking-tight leading-[1.15] md:leading-[1.1]">Selamat Datang<br>di <span style="color:var(--accent)">NeoDocs</span></h2>
+                    <p class="text-sm md:text-base max-w-lg mx-auto leading-relaxed" style="color:var(--text-secondary)">Sistem dokumentasi interaktif untuk Web Service Neo Feeder. Kelola token, eksplorasi dictionary, dan uji coba endpoint langsung dari browser.</p>
                 </div>
-                <div class="grid md:grid-cols-3 gap-5">
-                    <div class="glass rounded-2xl p-6 hover:shadow-lg transition-all duration-300"><div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 float-anim" style="background:rgba(99,102,241,.1)"><i data-lucide="shield-check" class="w-5 h-5" style="color:var(--accent)"></i></div><h3 class="font-bold text-[15px] mb-1.5">Manajemen Token</h3><p class="text-[13px] leading-relaxed" style="color:var(--text-secondary)">Dapatkan token akses otomatis dan simpan dengan aman di local storage.</p></div>
-                    <div class="glass rounded-2xl p-6 hover:shadow-lg transition-all duration-300"><div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 float-anim-d1" style="background:rgba(16,185,129,.1)"><i data-lucide="database" class="w-5 h-5" style="color:var(--success)"></i></div><h3 class="font-bold text-[15px] mb-1.5">Auto Dictionary</h3><p class="text-[13px] leading-relaxed" style="color:var(--text-secondary)">Mengambil struktur parameter langsung dari server Neo Feeder.</p></div>
-                    <div class="glass rounded-2xl p-6 hover:shadow-lg transition-all duration-300"><div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 float-anim-d2" style="background:rgba(245,158,11,.1)"><i data-lucide="zap" class="w-5 h-5" style="color:var(--warning)"></i></div><h3 class="font-bold text-[15px] mb-1.5">Uji Coba Langsung</h3><p class="text-[13px] leading-relaxed" style="color:var(--text-secondary)">Kirim request ke server dan lihat response secara realtime.</p></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 px-2">
+                    <div class="glass rounded-2xl p-5 md:p-6 hover:shadow-lg transition-all duration-300"><div class="w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center mb-4 float-anim" style="background:rgba(99,102,241,.1)"><i data-lucide="shield-check" class="w-5 h-5" style="color:var(--accent)"></i></div><h3 class="font-bold text-[14px] md:text-[15px] mb-1.5">Manajemen Token</h3><p class="text-[12px] md:text-[13px] leading-relaxed" style="color:var(--text-secondary)">Dapatkan token akses otomatis dan simpan dengan aman di local storage.</p></div>
+                    <div class="glass rounded-2xl p-5 md:p-6 hover:shadow-lg transition-all duration-300"><div class="w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center mb-4 float-anim-d1" style="background:rgba(16,185,129,.1)"><i data-lucide="database" class="w-5 h-5" style="color:var(--success)"></i></div><h3 class="font-bold text-[14px] md:text-[15px] mb-1.5">Auto Dictionary</h3><p class="text-[12px] md:text-[13px] leading-relaxed" style="color:var(--text-secondary)">Mengambil struktur parameter langsung dari server Neo Feeder.</p></div>
+                    <div class="glass rounded-2xl p-5 md:p-6 hover:shadow-lg transition-all duration-300"><div class="w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center mb-4 float-anim-d2" style="background:rgba(245,158,11,.1)"><i data-lucide="zap" class="w-5 h-5" style="color:var(--warning)"></i></div><h3 class="font-bold text-[14px] md:text-[15px] mb-1.5">Uji Coba Langsung</h3><p class="text-[12px] md:text-[13px] leading-relaxed" style="color:var(--text-secondary)">Kirim request ke server dan lihat response secara realtime.</p></div>
                 </div>
             </div>
 
             <!-- DETAIL -->
-            <div id="detailView" class="hidden max-w-5xl mx-auto space-y-7">
-                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6" style="border-bottom:1px solid var(--border-subtle)">
-                    <div class="space-y-2">
-                        <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider" style="color:var(--accent)"><i data-lucide="folder" class="w-3 h-3"></i><span id="detailCategory">KATEGORI</span></div>
-                        <div class="flex items-center gap-3"><h2 id="detailAct" class="text-3xl font-extrabold tracking-tight code-font">GetListMahasiswa</h2><span id="detailMethod" class="hidden px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider"></span></div>
-                        <p id="detailDesc" class="text-sm leading-relaxed" style="color:var(--text-secondary)">Deskripsi fungsi.</p>
+            <div id="detailView" class="hidden max-w-5xl mx-auto space-y-5 md:space-y-6">
+                <!-- Header -->
+                <div class="flex flex-col gap-3 pb-5 md:pb-6" style="border-bottom:1px solid var(--border-subtle)">
+                    <div class="space-y-1.5 md:space-y-2">
+                        <div class="flex items-center gap-2 text-[10px] md:text-[11px] font-semibold uppercase tracking-wider" style="color:var(--accent)"><i data-lucide="folder" class="w-3 h-3"></i><span id="detailCategory">KATEGORI</span></div>
+                        <div class="flex flex-wrap items-center gap-2 md:gap-3"><h2 id="detailAct" class="text-xl md:text-3xl font-extrabold tracking-tight code-font break-all">GetListMahasiswa</h2><span id="detailMethod" class="hidden px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider flex-shrink-0"></span></div>
+                        <p id="detailDesc" class="text-[13px] md:text-sm leading-relaxed" style="color:var(--text-secondary)">Deskripsi fungsi.</p>
                     </div>
                 </div>
-                <div class="grid lg:grid-cols-2 gap-6">
-                    <div class="glass rounded-2xl overflow-hidden">
-                        <div class="px-5 py-3.5 flex items-center gap-2" style="background:var(--bg-elevated);border-bottom:1px solid var(--border-subtle)"><i data-lucide="list" class="w-4 h-4" style="color:var(--accent)"></i><h4 class="font-semibold text-[13px]">Parameter Request</h4></div>
-                        <div class="overflow-x-auto"><table class="w-full text-[13px]"><thead><tr style="background:var(--bg-elevated)"><th class="px-5 py-2.5 text-left font-semibold text-[11px] uppercase tracking-wider" style="color:var(--text-tertiary)">Field</th><th class="px-5 py-2.5 text-left font-semibold text-[11px] uppercase tracking-wider" style="color:var(--text-tertiary)">Tipe</th><th class="px-5 py-2.5 text-left font-semibold text-[11px] uppercase tracking-wider" style="color:var(--text-tertiary)">Ket</th></tr></thead><tbody id="paramsTableBody"></tbody></table></div>
-                    </div>
-                    <div class="glass rounded-2xl flex flex-col">
-                        <div class="px-5 py-3.5 flex items-center justify-between" style="background:var(--bg-elevated);border-bottom:1px solid var(--border-subtle)">
-                            <div class="flex items-center gap-2"><i data-lucide="play-circle" class="w-4 h-4" style="color:var(--accent)"></i><h4 class="font-semibold text-[13px]">Try API</h4></div>
-                            <button id="sendRequestBtn" class="px-4 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 hover:shadow-md" style="background:var(--accent);color:white">Kirim</button>
+
+                <!-- Grid: Kiri (Params + Payload) | Kanan (Response) -->
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-5 md:gap-6">
+
+                    <!-- KOLOM KIRI: Parameter + Payload -->
+                    <div class="lg:col-span-2 space-y-5 md:space-y-6">
+
+                        <!-- Parameter Request -->
+                        <div class="glass rounded-2xl overflow-hidden">
+                            <div class="px-4 md:px-5 py-3 md:py-3.5 flex items-center gap-2" style="background:var(--bg-elevated);border-bottom:1px solid var(--border-subtle)">
+                                <i data-lucide="list" class="w-4 h-4" style="color:var(--accent)"></i>
+                                <h4 class="font-semibold text-[12px] md:text-[13px]">Parameter Request</h4>
+                            </div>
+                            <div class="overflow-x-auto -mx-1">
+                                <table class="w-full text-[12px] md:text-[13px] min-w-[400px]">
+                                    <thead>
+                                        <tr style="background:var(--bg-elevated)">
+                                            <th class="px-4 md:px-5 py-2 md:py-2.5 text-left font-semibold text-[10px] md:text-[11px] uppercase tracking-wider" style="color:var(--text-tertiary)">Field</th>
+                                            <th class="px-4 md:px-5 py-2 md:py-2.5 text-left font-semibold text-[10px] md:text-[11px] uppercase tracking-wider" style="color:var(--text-tertiary)">Tipe</th>
+                                            <th class="px-4 md:px-5 py-2 md:py-2.5 text-left font-semibold text-[10px] md:text-[11px] uppercase tracking-wider" style="color:var(--text-tertiary)">Ket</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="paramsTableBody"></tbody>
+                                </table>
+                            </div>
                         </div>
-                        <div class="p-5 space-y-4 flex-grow flex flex-col">
-                            <div><label class="text-[10px] font-bold uppercase tracking-[.12em] mb-2 block" style="color:var(--text-tertiary)">Payload JSON</label><textarea id="requestPayload" spellcheck="false" class="code-font w-full h-[165px] p-4 rounded-xl text-[12px] leading-relaxed outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/20 resize-none" style="background:var(--bg-elevated);color:var(--text-primary);border:1px solid var(--border-subtle)"></textarea></div>
-                            <div class="flex-grow flex flex-col">
-                                <div class="flex items-center justify-between mb-2">
-                                    <label class="text-[10px] font-bold uppercase tracking-[.12em]" style="color:var(--text-tertiary)">Response</label>
-                                    <div class="flex items-center gap-1.5">
-                                        <span id="responseStatusBadge" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider" style="background:rgba(100,116,139,.15);color:var(--text-tertiary)"><span class="w-1.5 h-1.5 rounded-full" style="background:currentColor"></span>Waiting</span>
-                                        <button id="copyResponseBtn" onclick="copyResponse()" title="Salin JSON mentah" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider transition-all duration-200" style="background:rgba(100,116,139,.15);color:var(--text-tertiary)"><i data-lucide="clipboard" class="w-3 h-3"></i>Salin</button>
-                                    </div>
+
+                        <!-- Payload JSON (dipindahkan ke sini) -->
+                        <div class="glass rounded-2xl overflow-hidden">
+                            <div class="px-4 md:px-5 py-3 md:py-3.5 flex items-center gap-2" style="background:var(--bg-elevated);border-bottom:1px solid var(--border-subtle)">
+                                <i data-lucide="braces" class="w-4 h-4" style="color:var(--accent)"></i>
+                                <h4 class="font-semibold text-[12px] md:text-[13px]">Payload JSON</h4>
+                            </div>
+                            <div class="p-4 md:p-5">
+                                <textarea id="requestPayload" spellcheck="false" class="code-font w-full h-[160px] md:h-[200px] resp-payload p-3 md:p-4 rounded-xl text-[11px] md:text-[12px] leading-relaxed outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/20 resize-none" style="background:var(--bg-elevated);color:var(--text-primary);border:1px solid var(--border-subtle)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KOLOM KANAN: Try API Response -->
+                    <div class="lg:col-span-3">
+                        <div class="glass rounded-2xl flex flex-col h-full">
+                            <div class="px-4 md:px-5 py-3 md:py-3.5 flex items-center justify-between flex-shrink-0" style="background:var(--bg-elevated);border-bottom:1px solid var(--border-subtle)">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="play-circle" class="w-4 h-4" style="color:var(--accent)"></i>
+                                    <h4 class="font-semibold text-[12px] md:text-[13px]">Response</h4>
                                 </div>
-                                <div id="responseContainer" class="code-font w-full flex-grow min-h-[240px] p-4 rounded-xl text-[11px] leading-relaxed overflow-auto thin-scroll whitespace-pre tab-size-2" style="background:#0c0c14;color:#94a3b8;border:1px solid #1e1e2e"></div>
+                                <div class="flex items-center gap-1.5 md:gap-2">
+                                    <span id="responseStatusBadge" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[8px] md:text-[9px] font-bold uppercase tracking-wider" style="background:rgba(100,116,139,.15);color:var(--text-tertiary)">
+                                        <span class="w-1.5 h-1.5 rounded-full" style="background:currentColor"></span>Waiting
+                                    </span>
+                                    <button id="copyResponseBtn" onclick="copyResponse()" title="Salin JSON mentah" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] md:text-[9px] font-bold uppercase tracking-wider transition-all duration-200" style="background:rgba(100,116,139,.15);color:var(--text-tertiary)">
+                                        <i data-lucide="clipboard" class="w-3 h-3"></i><span class="hidden sm:inline">Salin</span>
+                                    </button>
+                                    <button id="sendRequestBtn" class="px-3 md:px-4 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 hover:shadow-md active:scale-95" style="background:var(--accent);color:white">Kirim</button>
+                                </div>
+                            </div>
+                            <div class="p-4 md:p-5 flex-grow min-h-0">
+                                <div id="responseContainer" class="code-font w-full h-full min-h-[320px] md:min-h-[440px] resp-container p-3 md:p-4 rounded-xl text-[10px] md:text-[11px] leading-relaxed overflow-auto thin-scroll whitespace-pre tab-size-2" style="background:#0c0c14;color:#94a3b8;border:1px solid #1e1e2e"></div>
                             </div>
                         </div>
                     </div>
@@ -141,9 +205,9 @@
 </div>
 
 <!-- CONFIG MODAL -->
-<div id="configModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,.5);backdrop-filter:blur(8px)">
-    <div class="w-full max-w-md rounded-3xl shadow-2xl overflow-hidden" style="background:var(--bg-surface);border:1px solid var(--border-subtle)">
-        <div class="p-7 space-y-5">
+<div id="configModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" style="background:rgba(0,0,0,.5);backdrop-filter:blur(8px)">
+    <div class="w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto" style="background:var(--bg-surface);border:1px solid var(--border-subtle)">
+        <div class="p-5 md:p-7 space-y-5">
             <div class="flex items-center justify-between"><h3 class="text-lg font-bold tracking-tight">Pengaturan API</h3><button id="closeConfig" class="w-8 h-8 rounded-lg flex items-center justify-center" style="color:var(--text-tertiary)"><i data-lucide="x" class="w-4 h-4"></i></button></div>
             <div class="space-y-3.5">
                 <div><label class="text-[12px] font-medium mb-1.5 block" style="color:var(--text-secondary)">WS URL</label><input type="text" id="wsUrlInput" placeholder="http://localhost:3003/ws/live2.php" class="w-full px-4 py-2.5 rounded-xl text-[13px] outline-none focus:ring-2 focus:ring-indigo-500/30 code-font" style="background:var(--bg-elevated);color:var(--text-primary)"></div>
@@ -153,22 +217,20 @@
                 </div>
                 <button id="saveConfigBtn" class="w-full py-3 rounded-xl font-semibold text-[13px] transition-all duration-200 hover:shadow-lg flex items-center justify-center gap-2" style="background:var(--accent);color:white"><i data-lucide="save" class="w-4 h-4"></i>Simpan & Ambil Token</button>
             </div>
-            <div class="p-4 rounded-xl" style="background:var(--bg-elevated)"><div class="flex items-center justify-between text-[11px]"><span style="color:var(--text-tertiary)">Current Token:</span><span id="tokenStatus" class="code-font truncate ml-4 max-w-[200px]" style="color:var(--accent)">Tidak ada token</span></div></div>
+            <div class="p-4 rounded-xl" style="background:var(--bg-elevated)"><div class="flex items-center justify-between text-[11px]"><span style="color:var(--text-tertiary)">Current Token:</span><span id="tokenStatus" class="code-font truncate ml-4 max-w-[180px] sm:max-w-[200px]" style="color:var(--accent)">Tidak ada token</span></div></div>
         </div>
     </div>
 </div>
 
 <!-- TOAST -->
-<div id="toast" class="fixed bottom-6 right-6 z-[100] toast-hide transition-all duration-300">
-    <div class="flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-2xl text-[13px] font-medium" style="background:var(--text-primary);color:var(--bg-surface)"><i data-lucide="info" class="w-4 h-4" style="color:var(--accent-light)"></i><span id="toastMessage">Message</span></div>
+<div id="toast" class="fixed bottom-4 right-4 md:bottom-6 md:right-6 left-4 md:left-auto z-[100] toast-hide transition-all duration-300">
+    <div class="flex items-center gap-2.5 px-4 md:px-5 py-3 rounded-2xl shadow-2xl text-[12px] md:text-[13px] font-medium max-w-full" style="background:var(--text-primary);color:var(--bg-surface)"><i data-lucide="info" class="w-4 h-4 flex-shrink-0" style="color:var(--accent-light)"></i><span id="toastMessage" class="truncate">Message</span></div>
 </div>
 
 <script>
 var E=[
-// ── Utility ──
 {act:"GetToken",desc:"Mendapatkan token",cat:"Utility"},
 {act:"GetDictionary",desc:"Mendapatkan dictionary fungsi ws",cat:"Utility"},
-// ── Referensi PT ──
 {act:"GetAllPT",desc:"Mendapatkan semua data perguruan tinggi",cat:"Referensi PT"},
 {act:"GetProfilPT",desc:"Mendapatkan profil PT",cat:"Referensi PT"},
 {act:"GetAllProdi",desc:"Mendapatkan semua data program studi",cat:"Referensi PT"},
@@ -176,7 +238,6 @@ var E=[
 {act:"GetPeriode",desc:"Mendapatkan periode aktif",cat:"Referensi PT"},
 {act:"GetFakultas",desc:"Mendapatkan fakultas",cat:"Referensi PT"},
 {act:"GetPeriodeLampau",desc:"Mendapatkan pembukaan periode lampau",cat:"Referensi PT"},
-// ── Biodata Mahasiswa ──
 {act:"GetListMahasiswa",desc:"Mendapatkan daftar mahasiswa",cat:"Biodata Mahasiswa"},
 {act:"GetListDaftarLampau",desc:"Mendapatkan daftar mahasiswa periode lampau",cat:"Biodata Mahasiswa"},
 {act:"GetBiodataMahasiswa",desc:"Mendapatkan biodata mahasiswa",cat:"Biodata Mahasiswa"},
@@ -187,7 +248,6 @@ var E=[
 {act:"GetDataTerhapus",desc:"Mendapatkan biodata mahasiswa yang sudah terhapus",cat:"Biodata Mahasiswa"},
 {act:"GetListBidangMinat",desc:"Mendapatkan data bidang minat PT",cat:"Biodata Mahasiswa"},
 {act:"GetCountBiodataMahasiswa",desc:"Menghitung jumlah data biodata mahasiswa",cat:"Biodata Mahasiswa"},
-// ── Riwayat Mahasiswa ──
 {act:"GetListRiwayatPendidikanMahasiswa",desc:"Mendapatkan daftar riwayat pendidikan mahasiswa",cat:"Riwayat Mahasiswa"},
 {act:"InsertRiwayatPendidikanMahasiswa",desc:"Menambah riwayat pendidikan mahasiswa",cat:"Riwayat Mahasiswa"},
 {act:"UpdateRiwayatPendidikanMahasiswa",desc:"Mengubah riwayat pendidikan mahasiswa",cat:"Riwayat Mahasiswa"},
@@ -201,7 +261,6 @@ var E=[
 {act:"DeleteNilaiTransferPendidikanMahasiswa",desc:"Menghapus nilai transfer mahasiswa",cat:"Riwayat Mahasiswa"},
 {act:"GetCountRiwayatPendidikanMahasiswa",desc:"Menghitung jumlah data riwayat pendidikan mahasiswa",cat:"Riwayat Mahasiswa"},
 {act:"GetCountNilaiTransferPendidikanMahasiswa",desc:"Menghitung jumlah data nilai transfer mahasiswa",cat:"Riwayat Mahasiswa"},
-// ── Akademik Mahasiswa ──
 {act:"GetKRSMahasiswa",desc:"Mendapatkan KRS mahasiswa",cat:"Akademik Mahasiswa"},
 {act:"GetRiwayatNilaiMahasiswa",desc:"Mendapatkan riwayat nilai mahasiswa",cat:"Akademik Mahasiswa"},
 {act:"GetAktivitasKuliahMahasiswa",desc:"Mendapatkan aktivitas kuliah mahasiswa",cat:"Akademik Mahasiswa"},
@@ -210,14 +269,12 @@ var E=[
 {act:"DeleteTranskripMahasiswa",desc:"Menghapus transkrip mahasiswa",cat:"Akademik Mahasiswa"},
 {act:"HitungTranskripAngkatan",desc:"Menghitung transkrip mahasiswa per angkatan pada tiap program studi",cat:"Akademik Mahasiswa"},
 {act:"GetCountRiwayatNilaiMahasiswa",desc:"Menghitung jumlah data riwayat nilai mahasiswa",cat:"Akademik Mahasiswa"},
-// ── Lulus / DO ──
 {act:"GetListMahasiswaLulusDO",desc:"Mendapatkan daftar mahasiswa lulus / DO",cat:"Lulus / DO"},
 {act:"GetDetailMahasiswaLulusDO",desc:"Mendapatkan detail mahasiswa lulus / DO",cat:"Lulus / DO"},
 {act:"InsertMahasiswaLulusDO",desc:"Menambah mahasiswa lulus / DO",cat:"Lulus / DO"},
 {act:"UpdateMahasiswaLulusDO",desc:"Mengubah data mahasiswa lulus / DO",cat:"Lulus / DO"},
 {act:"DeleteMahasiswaLulusDO",desc:"Menghapus mahasiswa lulus / DO",cat:"Lulus / DO"},
 {act:"GetCountMahasiswaLulusDO",desc:"Menghitung jumlah data mahasiswa lulus / DO",cat:"Lulus / DO"},
-// ── Dosen ──
 {act:"GetListDosen",desc:"Mendapatkan daftar dosen",cat:"Dosen"},
 {act:"DetailBiodataDosen",desc:"Mendapatkan detail biodata dosen",cat:"Dosen"},
 {act:"GetListPenugasanDosen",desc:"Mendapatkan daftar penugasan dosen",cat:"Dosen"},
@@ -238,7 +295,6 @@ var E=[
 {act:"GetCountAktivitasMengajarDosen",desc:"Menghitung jumlah data aktivitas mengajar dosen",cat:"Dosen"},
 {act:"GetCountMahasiswaBimbinganDosen",desc:"Menghitung jumlah data mahasiswa bimbingan dosen",cat:"Dosen"},
 {act:"GetCountDosenPembimbing",desc:"Menghitung jumlah data dosen pembimbing",cat:"Dosen"},
-// ── Mata Kuliah ──
 {act:"GetListMataKuliah",desc:"Mendapatkan daftar mata kuliah",cat:"Mata Kuliah"},
 {act:"GetDetailMataKuliah",desc:"Mendapatkan detail mata kuliah",cat:"Mata Kuliah"},
 {act:"InsertMataKuliah",desc:"Menambah mata kuliah",cat:"Mata Kuliah"},
@@ -250,7 +306,6 @@ var E=[
 {act:"DeleteSubstansiKuliah",desc:"Menghapus substansi kuliah",cat:"Mata Kuliah"},
 {act:"GetCountMataKuliah",desc:"Menghitung jumlah data mata kuliah",cat:"Mata Kuliah"},
 {act:"GetCountSubstansiKuliah",desc:"Menghitung jumlah data substansi kuliah",cat:"Mata Kuliah"},
-// ── Rencana Pembelajaran ──
 {act:"GetListRencanaPembelajaran",desc:"Mendapatkan daftar rencana pembelajaran",cat:"Rencana Pembelajaran"},
 {act:"InsertRencanaPembelajaran",desc:"Menambah rencana pembelajaran",cat:"Rencana Pembelajaran"},
 {act:"UpdateRencanaPembelajaran",desc:"Mengubah rencana pembelajaran",cat:"Rencana Pembelajaran"},
@@ -261,7 +316,6 @@ var E=[
 {act:"DeleteRencanaEvaluasi",desc:"Menghapus rencana evaluasi",cat:"Rencana Pembelajaran"},
 {act:"GetCountRencanaPembelajaran",desc:"Menghitung jumlah data rencana pembelajaran",cat:"Rencana Pembelajaran"},
 {act:"GetCountRencanaEvaluasi",desc:"Menghitung jumlah data rencana evaluasi",cat:"Rencana Pembelajaran"},
-// ── Kurikulum ──
 {act:"GetListKurikulum",desc:"Mendapatkan daftar kurikulum",cat:"Kurikulum"},
 {act:"GetDetailKurikulum",desc:"Mendapatkan detail kurikulum",cat:"Kurikulum"},
 {act:"InsertKurikulum",desc:"Menambah kurikulum",cat:"Kurikulum"},
@@ -272,7 +326,6 @@ var E=[
 {act:"DeleteMatkulKurikulum",desc:"Menghapus mata kuliah kurikulum",cat:"Kurikulum"},
 {act:"GetCountKurikulum",desc:"Menghitung jumlah data kurikulum perkuliahan",cat:"Kurikulum"},
 {act:"GetCountMatkulKurikulum",desc:"Menghitung jumlah data mata kuliah kurikulum",cat:"Kurikulum"},
-// ── Kelas Kuliah ──
 {act:"GetListKelasKuliah",desc:"Mendapatkan daftar kelas kuliah",cat:"Kelas Kuliah"},
 {act:"GetDetailKelasKuliah",desc:"Mendapatkan detail kelas kuliah",cat:"Kelas Kuliah"},
 {act:"InsertKelasKuliah",desc:"Menambah kelas kuliah",cat:"Kelas Kuliah"},
@@ -291,7 +344,6 @@ var E=[
 {act:"GetCountKelasKuliah",desc:"Menghitung jumlah data kelas kuliah",cat:"Kelas Kuliah"},
 {act:"GetCountDosenPengajarKelasKuliah",desc:"Menghitung jumlah data dosen pengajar kelas kuliah",cat:"Kelas Kuliah"},
 {act:"GetCountPesertaKelasKuliah",desc:"Menghitung jumlah data peserta kelas kuliah",cat:"Kelas Kuliah"},
-// ── Nilai & Perkuliahan ──
 {act:"GetListNilaiPerkuliahanKelas",desc:"Mendapatkan daftar nilai kelas perkuliahan",cat:"Nilai & Perkuliahan"},
 {act:"GetDetailNilaiPerkuliahanKelas",desc:"Mendapatkan detail nilai kelas perkuliahan",cat:"Nilai & Perkuliahan"},
 {act:"UpdateNilaiPerkuliahanKelas",desc:"Menambahkan nilai kelas perkuliahan",cat:"Nilai & Perkuliahan"},
@@ -302,7 +354,6 @@ var E=[
 {act:"UpdatePerkuliahanMahasiswa",desc:"Mengubah aktivitas kuliah mahasiswa",cat:"Nilai & Perkuliahan"},
 {act:"DeletePerkuliahanMahasiswa",desc:"Menghapus aktivitas kuliah mahasiswa",cat:"Nilai & Perkuliahan"},
 {act:"GetCountPerkuliahanMahasiswa",desc:"Menghitung jumlah data perkuliahan mahasiswa",cat:"Nilai & Perkuliahan"},
-// ── Skala & Periode ──
 {act:"GetListSkalaNilaiProdi",desc:"Mendapatkan daftar skala nilai prodi",cat:"Skala & Periode"},
 {act:"GetDetailSkalaNilaiProdi",desc:"Mendapatkan detail skala nilai prodi",cat:"Skala & Periode"},
 {act:"InsertSkalaNilaiProdi",desc:"Menambah skala nilai prodi",cat:"Skala & Periode"},
@@ -315,7 +366,6 @@ var E=[
 {act:"UpdatePeriodePerkuliahan",desc:"Mengubah periode perkuliahan",cat:"Skala & Periode"},
 {act:"DeletePeriodePerkuliahan",desc:"Menghapus periode perkuliahan",cat:"Skala & Periode"},
 {act:"GetCountPeriodePerkuliahan",desc:"Menghitung jumlah data periode perkuliahan",cat:"Skala & Periode"},
-// ── Prestasi & Kampus Merdeka ──
 {act:"GetListPrestasiMahasiswa",desc:"Mendapatkan daftar prestasi mahasiswa",cat:"Prestasi & KM"},
 {act:"InsertPrestasiMahasiswa",desc:"Menambah data prestasi mahasiswa",cat:"Prestasi & KM"},
 {act:"UpdatePrestasiMahasiswa",desc:"Mengubah data prestasi mahasiswa",cat:"Prestasi & KM"},
@@ -326,7 +376,6 @@ var E=[
 {act:"UpdateKonversiKampusMerdeka",desc:"Mengubah data konversi nilai aktivitas kampus merdeka",cat:"Prestasi & KM"},
 {act:"DeleteKonversiKampusMerdeka",desc:"Menghapus data konversi nilai aktivitas kampus merdeka",cat:"Prestasi & KM"},
 {act:"GetCountKonversiKampusMerdeka",desc:"Menghitung jumlah data pemadanan mata kuliah dengan aktivitas kampus merdeka",cat:"Prestasi & KM"},
-// ── Aktivitas Mahasiswa ──
 {act:"GetListAktivitasMahasiswa",desc:"Mendapatkan daftar aktivitas mahasiswa",cat:"Aktivitas Mahasiswa"},
 {act:"InsertAktivitasMahasiswa",desc:"Menambah data aktivitas mahasiswa",cat:"Aktivitas Mahasiswa"},
 {act:"UpdateAktivitasMahasiswa",desc:"Mengubah data aktivitas mahasiswa",cat:"Aktivitas Mahasiswa"},
@@ -343,14 +392,12 @@ var E=[
 {act:"InsertUjiMahasiswa",desc:"Menambah data uji mahasiswa",cat:"Aktivitas Mahasiswa"},
 {act:"UpdateUjiMahasiswa",desc:"Mengubah data uji mahasiswa",cat:"Aktivitas Mahasiswa"},
 {act:"DeleteUjiMahasiswa",desc:"Menghapus data uji mahasiswa",cat:"Aktivitas Mahasiswa"},
-// ── Rekap ──
 {act:"GetRekapLaporan",desc:"Mendapatkan rekapitulasi pelaporan",cat:"Rekap"},
 {act:"GetRekapJumlahDosen",desc:"Mendapatkan rekapitulasi pelaporan jumlah dosen",cat:"Rekap"},
 {act:"GetRekapJumlahMahasiswa",desc:"Mendapatkan rekapitulasi pelaporan jumlah mahasiswa",cat:"Rekap"},
 {act:"GetRekapIPSMahasiswa",desc:"Mendapatkan rekapitulasi pelaporan ips mahasiswa",cat:"Rekap"},
 {act:"GetRekapKRSMahasiswa",desc:"Mendapatkan rekapitulasi pelaporan krs mahasiswa",cat:"Rekap"},
 {act:"GetRekapKHSMahasiswa",desc:"Mendapatkan rekapitulasi pelaporan khs mahasiswa",cat:"Rekap"},
-// ── Export ──
 {act:"ExportDataMahasiswa",desc:"Mengekspor data mahasiswa pt",cat:"Export"},
 {act:"ExportDataNilaiTransfer",desc:"Mengekspor data nilai transfer mahasiswa",cat:"Export"},
 {act:"ExportDataPenugasanDosenProdi",desc:"Mengekspor daftar penugasan dosen per prodi",cat:"Export"},
@@ -360,7 +407,6 @@ var E=[
 {act:"ExportDataMengajarDosen",desc:"Mengekspor data mengajar dosen",cat:"Export"},
 {act:"ExportDataAktivitasKuliah",desc:"Mengekspor data aktivitas kuliah mahasiswa",cat:"Export"},
 {act:"ExportDataMahasiswaLulus",desc:"Mengekspor data mahasiswa lulus",cat:"Export"},
-// ── Referensi Master ──
 {act:"GetAgama",desc:"Mendapatkan agama",cat:"Referensi Master"},
 {act:"GetBentukPendidikan",desc:"Mendapatkan bentuk pendidikan",cat:"Referensi Master"},
 {act:"GetIkatanKerjaSdm",desc:"Mendapatkan ikatan kerja sdm",cat:"Referensi Master"},
@@ -393,13 +439,14 @@ var E=[
 {act:"GetTingkatPrestasi",desc:"Mendapatkan tingkat prestasi",cat:"Referensi Master"},
 {act:"GetJenisAktivitasMahasiswa",desc:"Mendapatkan jenis aktivitas mahasiswa",cat:"Referensi Master"},
 {act:"GetKategoriKegiatan",desc:"Mendapatkan kategori kegiatan",cat:"Referensi Master"},
-// ── Statistik ──
 {act:"GetCountMahasiswa",desc:"Menghitung jumlah data mahasiswa",cat:"Statistik"},
 {act:"GetCountPerguruanTinggi",desc:"Menghitung jumlah data semua perguruan tinggi",cat:"Statistik"},
 {act:"GetCountProdi",desc:"Menghitung jumlah data semua program studi",cat:"Statistik"}
 ];
 
 var appState={config:{url:'http://localhost:3003/ws/live2.php',user:'',pass:'',token:localStorage.getItem('neo_token')||''},currentAct:null,isOnline:false,darkMode:localStorage.getItem('theme')==='dark',lastRawResponse:''};
+
+function toggleSidebar(){var s=document.getElementById('sidebar'),o=document.getElementById('sidebarOverlay');s.classList.toggle('open');o.classList.toggle('open')}
 
 window.addEventListener('DOMContentLoaded',function(){lucide.createIcons();initTheme();renderEndpoints(E);updateStats(E);if(appState.config.token)checkConnection();document.getElementById('requestPayload').value=JSON.stringify({fungsi:"",filter:"",order:"",limit:10,offset:0},null,2)});
 
@@ -471,7 +518,7 @@ function renderEndpoints(data){
             btn.onmouseover=function(){if(!active)this.style.background='var(--bg-elevated)'};
             btn.onmouseout=function(){if(!active)this.style.background='transparent'};
             btn.innerHTML='<span class="w-[42px] text-[9px] font-bold code-font '+m.cls+' opacity-70 flex-shrink-0">'+m.label+'</span><span class="truncate code-font text-[11px] flex-grow">'+item.act+'</span>';
-            btn.onclick=function(){selectEndpoint(item)};
+            btn.onclick=function(){selectEndpoint(item);if(window.innerWidth<768)toggleSidebar()};
             g.appendChild(btn);
         });
         c.appendChild(g);
@@ -495,24 +542,17 @@ function selectEndpoint(item){
 
 function renderParams(){
     var tb=document.getElementById('paramsTableBody');tb.innerHTML='';
-    [
-        {n:'token',t:'string',d:'Token akses'},
-        {n:'act',t:'string',d:'Nama fungsi'},
-        {n:'fungsi',t:'string',d:'Mendapatkan dictionary character WS '},
-        {n:'filter',t:'string',d:'Filter data (SQL Like)'},
-        {n:'order',t:'string',d:'Pengurutan data'},
-        {n:'limit',t:'int',d:'Jumlah data per page'},
-        {n:'offset',t:'int',d:'Start data'}
-    ].forEach(function(p){
+    [{n:'token',t:'string',d:'Token akses'},{n:'act',t:'string',d:'Nama fungsi'},{n:'fungsi',t:'string',d:'Mendapatkan dictionary character WS'},{n:'filter',t:'string',d:'Filter data (SQL Like)'},{n:'order',t:'string',d:'Pengurutan data'},{n:'limit',t:'int',d:'Jumlah data per page'},{n:'offset',t:'int',d:'Start data'}].forEach(function(p){
         var tr=document.createElement('tr');tr.style.borderBottom='1px solid var(--border-faint)';
-        tr.innerHTML='<td class="px-5 py-2.5 code-font text-[11px]" style="color:var(--accent)">'+p.n+'</td><td class="px-5 py-2.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider" style="background:var(--bg-elevated);color:var(--text-tertiary)">'+p.t+'</span></td><td class="px-5 py-2.5 text-[12px]" style="color:var(--text-secondary)">'+p.d+'</td>';
+        tr.innerHTML='<td class="px-4 md:px-5 py-2 md:py-2.5 code-font text-[11px]" style="color:var(--accent)">'+p.n+'</td><td class="px-4 md:px-5 py-2 md:py-2.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider" style="background:var(--bg-elevated);color:var(--text-tertiary)">'+p.t+'</span></td><td class="px-4 md:px-5 py-2 md:py-2.5 text-[11px] md:text-[12px]" style="color:var(--text-secondary)">'+p.d+'</td>';
         tb.appendChild(tr);
     });
 }
 
 function updateStats(data){
     var el=document.getElementById('statsInfo');el.classList.remove('hidden');
-    el.innerHTML='<span>Total: <b style="color:var(--text-primary)">'+data.length+'</b> endpoint</span><span>Kategori: <b style="color:var(--text-primary)">'+(function(){var c=[];data.forEach(function(i){if(c.indexOf(i.cat)===-1)c.push(i.cat)});return c.length})()+'</b></span>';
+    var catCount=0,seen={};data.forEach(function(i){if(!seen[i.cat]){seen[i.cat]=true;catCount++}});
+    el.innerHTML='<span>Total: <b style="color:var(--text-primary)">'+data.length+'</b></span><span>Kategori: <b style="color:var(--text-primary)">'+catCount+'</b></span>';
 }
 
 function getFilteredEndpoints(){var t=document.getElementById('searchInput').value.toLowerCase();return E.filter(function(i){return i.act.toLowerCase().indexOf(t)!==-1||i.desc.toLowerCase().indexOf(t)!==-1})}
@@ -525,6 +565,7 @@ document.getElementById('themeToggle').onclick=function(){appState.darkMode=!app
 var cm=document.getElementById('configModal');
 document.getElementById('configBtn').onclick=function(){document.getElementById('wsUrlInput').value=appState.config.url;document.getElementById('wsUserInput').value=appState.config.user;document.getElementById('wsPassInput').value=appState.config.pass;cm.classList.remove('hidden')};
 document.getElementById('closeConfig').onclick=function(){cm.classList.add('hidden')};
+cm.addEventListener('click',function(e){if(e.target===cm)cm.classList.add('hidden')});
 document.getElementById('saveConfigBtn').onclick=async function(){appState.config.url=document.getElementById('wsUrlInput').value;appState.config.user=document.getElementById('wsUserInput').value;appState.config.pass=document.getElementById('wsPassInput').value;if(await getToken())cm.classList.add('hidden')};
 
 document.getElementById('sendRequestBtn').onclick=async function(){
@@ -536,7 +577,6 @@ document.getElementById('sendRequestBtn').onclick=async function(){
     btn.disabled=false;btn.innerHTML='Kirim';renderResponse(result);
     if(result&&(result.error_code==0||result.error_code=="0")){setResponseStatus('success');showToast("Request Berhasil")}else{setResponseStatus('error');showToast("Request Gagal: "+((result&&result.error_desc)||"Unknown error"),"error")}
 };
-
 </script>
 </body>
 </html>
