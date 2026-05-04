@@ -252,20 +252,10 @@
                             <h2 id="detailAct" class="text-3xl font-extrabold tracking-tight code-font">GetListMahasiswa</h2>
                             <p id="detailDesc" class="text-sm leading-relaxed" style="color:var(--text-secondary);">Deskripsi fungsi akan tampil di sini.</p>
                         </div>
-                        <div class="flex gap-2 flex-shrink-0">
-                            <button onclick="downloadExcel()" class="flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200 hover:shadow-md"
-                                style="background:var(--success); color:white;">
-                                <i data-lucide="download" class="w-3.5 h-3.5"></i> Excel
-                            </button>
-                            <button onclick="copyEndpoint()" class="flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200 hover:shadow-md"
-                                style="background:var(--text-primary); color:var(--bg-surface);">
-                                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin JSON
-                            </button>
-                        </div>
                     </div>
 
                     <!-- Grid: Params + Try API -->
-                    <div class="grid lg:grid-cols-2 gap-6">
+                    <div class="grid lg:grid-cols-1 gap-6">
 
                         <!-- Params Card -->
                         <div class="glass rounded-2xl overflow-hidden">
@@ -331,6 +321,7 @@
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </main>
@@ -750,22 +741,7 @@
             }
         };
 
-        // ============================================================
-        //  UTILITIES
-        // ============================================================
-        function copyEndpoint() {
-            var obj = { act: appState.currentAct, token: appState.config.token || "YOUR_TOKEN_HERE", filter: "", order: "", limit: 10, offset: 0 };
-            navigator.clipboard.writeText(JSON.stringify(obj, null, 2));
-            showToast("JSON disalin ke clipboard");
-        }
 
-        function downloadExcel() {
-            var csv = "data:text/csv;charset=utf-8,Field,Type,Description\ntoken,string,Token akses\nact,string,Nama fungsi\nfilter,string,Filter SQL Like\n";
-            var a = document.createElement("a");
-            a.href = encodeURI(csv); a.download = "neo_feeder_" + appState.currentAct + ".csv";
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            showToast("Dokumentasi CSV diunduh");
-        }
     </script>
 </body>
 </html>
