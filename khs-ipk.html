@@ -1,1037 +1,1510 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KHS & IPK Calculator — Neo Feeder</title>
+    <title>SIA Terpadu — Neo Feeder IPK Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Space Grotesk', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
+                    fontFamily: { sans:['Space Grotesk','sans-serif'], mono:['JetBrains Mono','monospace'] },
                     colors: {
-                        surface: { 50: '#f8fafb', 100: '#eef2f5', 200: '#d8e0e6' },
-                        ink: { 900: '#0a0f1a', 700: '#1e2a3a', 500: '#4a5568', 300: '#8896a7', 100: '#c5cdd8' },
-                        accent: { DEFAULT: '#10b981', light: '#34d399', dark: '#059669', dim: '#064e3b' },
-                        flame: { DEFAULT: '#f59e0b', light: '#fbbf24', dark: '#d97706' },
-                        danger: { DEFAULT: '#ef4444', light: '#f87171', dark: '#dc2626' },
+                        ink:{ 900:'#060a12', 800:'#0b1018', 700:'#111a28', 600:'#1a2538', 500:'#263550', 400:'#3e5570', 300:'#6b829c', 200:'#99afc4', 100:'#cdd8e4' },
+                        em:{ DEFAULT:'#10b981', light:'#34d399', dark:'#059669', dim:'#064e3b' },
+                        gold:{ DEFAULT:'#f59e0b', light:'#fbbf24', dark:'#d97706', dim:'#78350f' },
+                        rose:{ DEFAULT:'#f43f5e', light:'#fb7185', dark:'#e11d48' },
                     }
                 }
             }
         }
     </script>
     <style>
+        /* =========================================================
+           THEME SYSTEM - LIGHT/DARK MODE
+        ========================================================= */
         :root {
-            --bg: #0a0f1a;
-            --fg: #eef2f5;
-            --muted: #8896a7;
-            --accent: #10b981;
-            --card: rgba(255,255,255,0.04);
-            --border: rgba(255,255,255,0.07);
+            /* Dark Mode (Default) */
+            --bg:#060a12;
+            --bg-secondary:#0b1018;
+            --fg:#e2e9f1;
+            --fg-secondary:#cdd8e4;
+            --muted:#6b829c;
+            --muted-dim:#3e5570;
+            --accent:#10b981;
+            --accent-light:#34d399;
+            --accent-dark:#059669;
+            --card:rgba(255,255,255,0.03);
+            --card-hover:rgba(255,255,255,0.06);
+            --border:rgba(255,255,255,0.055);
+            --border-hover:rgba(255,255,255,0.12);
+            --input-bg:rgba(255,255,255,0.025);
+            --shadow: rgba(0,0,0,0.5);
+            --glass-bg: rgba(11,16,24,0.97);
+            
+            /* Transition */
+            --theme-transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
         }
-
+        
+        /* Light Mode */
+        [data-theme="light"] {
+            --bg:#f8fafc;
+            --bg-secondary:#f1f5f9;
+            --fg:#0f172a;
+            --fg-secondary:#334155;
+            --muted:#64748b;
+            --muted-dim:#94a3b8;
+            --accent:#059669;
+            --accent-light:#10b981;
+            --accent-dark:#047857;
+            --card:rgba(255,255,255,0.8);
+            --card-hover:rgba(255,255,255,0.95);
+            --border:rgba(0,0,0,0.08);
+            --border-hover:rgba(0,0,0,0.15);
+            --input-bg:rgba(255,255,255,0.9);
+            --shadow: rgba(0,0,0,0.1);
+            --glass-bg: rgba(255,255,255,0.97);
+        }
+        
         body {
-            font-family: 'Space Grotesk', sans-serif;
-            background: var(--bg);
-            color: var(--fg);
-            overflow-x: hidden;
+            font-family:'Space Grotesk',sans-serif;
+            background:var(--bg);
+            color:var(--fg);
+            overflow-x:hidden;
+            transition: var(--theme-transition);
         }
+        .amb { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+        .amb::before { content:''; position:absolute; width:750px; height:750px; top:-300px; left:-200px; background:radial-gradient(circle,rgba(16,185,129,.06) 0%,transparent 70%); animation:d1 24s ease-in-out infinite; transition:opacity 0.3s ease; }
+        .amb::after { content:''; position:absolute; width:550px; height:550px; bottom:-120px; right:-180px; background:radial-gradient(circle,rgba(245,158,11,.04) 0%,transparent 70%); animation:d2 30s ease-in-out infinite; transition:opacity 0.3s ease; }
+        
+        /* Light mode - reduce ambient effects */
+        [data-theme="light"] .amb::before {
+            background: radial-gradient(circle,rgba(16,185,129,.08) 0%,transparent 70%);
+        }
+        [data-theme="light"] .amb::after {
+            background: radial-gradient(circle,rgba(245,158,11,.06) 0%,transparent 70%);
+        }
+        
+        @keyframes d1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(100px,80px) scale(1.2)} }
+        @keyframes d2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-80px,-60px) scale(1.15)} }
+        .grid-bg { position:fixed; inset:0; z-index:0; pointer-events:none; background-image:linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px); background-size:60px 60px; transition:opacity 0.3s ease; }
+        [data-theme="light"] .grid-bg {
+            background-image: linear-gradient(rgba(0,0,0,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.04) 1px,transparent 1px);
+        }
+        .glass { background:var(--card); border:1px solid var(--border); backdrop-filter:blur(14px); transition: var(--theme-transition); }
+        .inp { background:var(--input-bg); border:1px solid var(--border); color:var(--fg); transition:border-color .2s,box-shadow .2s, background-color .2s; }
+        .inp:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(16,185,129,.15); outline:none; }
+        .inp::placeholder { color:var(--muted); opacity:.5; }
+        
+        /* Light mode specific adjustments */
+        [data-theme="light"] .inp:focus {
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.12);
+        }
+        [data-theme="light"] .glass {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+        
+        .g-a{color:#34d399} .g-b{color:#60a5fa} .g-c{color:#fbbf24} .g-d{color:#fb7185} .g-e{color:#fb7185}
+        .ipk-glow { background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(16,185,129,.03)); border:1px solid rgba(16,185,129,.18); }
+        .prog-fill { background:linear-gradient(90deg,#10b981,#34d399); transition:width .4s cubic-bezier(.4,0,.2,1); box-shadow:0 0 10px rgba(16,185,129,.35); }
+        .spinner { width:16px;height:16px;border:2px solid rgba(255,255,255,.12);border-top-color:#fff;border-radius:50%;animation:sp .65s linear infinite; }
+        @keyframes sp { to{transform:rotate(360deg)} }
+        .card-in { animation:cu .4s cubic-bezier(.16,1,.3,1) both; }
+        @keyframes cu { from{opacity:0;transform:translateY(18px) scale(.98)} to{opacity:1;transform:translateY(0) scale(1)} }
+        .toast { animation:ti .3s cubic-bezier(.16,1,.3,1) both; }
+        .toast-out { animation:to .2s ease-in both; }
+        @keyframes ti { from{opacity:0;transform:translateX(20px) scale(.96)} to{opacity:1;transform:translateX(0) scale(1)} }
+        @keyframes to { to{opacity:0;transform:translateX(20px) scale(.96)} }
+        .pdot { width:6px;height:6px;background:#10b981;border-radius:50%;animation:pd 2s ease-in-out infinite; }
+        @keyframes pd { 0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.35)} 50%{box-shadow:0 0 0 6px rgba(16,185,129,0)} }
+        .trow:hover { background:var(--card-hover); }
+        [data-theme="light"] .trow:hover {
+            background: rgba(0,0,0,0.02);
+        }
+        .btn-p { background:linear-gradient(135deg,#10b981,#059669); transition:all .2s; }
+        .btn-p:hover:not(:disabled) { box-shadow:0 6px 22px rgba(16,185,129,.22); transform:translateY(-1px); }
+        .btn-p:disabled { opacity:.4; cursor:not-allowed; }
+        .btn-g { background:var(--input-bg); border:1px solid var(--border); transition:all .2s, background-color .2s; }
+        .btn-g:hover { background:var(--card-hover); border-color:var(--border-hover); }
+        [data-theme="light"] .btn-g {
+            background: rgba(0,0,0,0.03);
+            border-color: rgba(0,0,0,0.08);
+        }
+        [data-theme="light"] .btn-g:hover {
+            background: rgba(0,0,0,0.06);
+            border-color: rgba(0,0,0,0.15);
+        }
+        .tab-active { background:rgba(16,185,129,.1); color:#34d399; border-color:rgba(16,185,129,.2); }
+        .dd-wrap { position:relative; }
+        .dd-list { position:absolute; top:100%; left:0; right:0; z-index:40; max-height:260px; overflow-y:auto; background:var(--glass-bg); border:1px solid var(--border); border-radius:12px; margin-top:4px; backdrop-filter:blur(16px); box-shadow:0 12px 40px var(--shadow); display:none; transition: var(--theme-transition); }
+        .dd-list.open { display:block; animation:ddIn .2s ease-out; }
+        @keyframes ddIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+        .dd-item { padding:10px 14px; cursor:pointer; transition:background .12s; border-bottom:1px solid rgba(255,255,255,.03); }
+        .dd-item:last-child { border-bottom:none; }
+        .dd-item:hover { background:rgba(16,185,129,.08); }
+        .dd-item.active { background:rgba(16,185,129,.12); }
+        [data-theme="light"] .dd-item:hover {
+            background: rgba(16,185,129,0.06);
+        }
+        [data-theme="light"] .dd-item.active {
+            background: rgba(16,185,129,0.1);
+        }
+        .dd-item .dd-sub { font-size:9px; color:#6b829c; margin-top:1px; }
+        .dd-empty { padding:20px 14px; text-align:center; color:#6b829c; font-size:12px; }
+        .dd-loading { padding:16px 14px; text-align:center; }
+        ::-webkit-scrollbar { width:5px; height:5px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:rgba(255,255,255,.06); border-radius:4px; }
+        @media print {
+            body { background:#fff!important; color:#000!important; padding:0!important; }
+            .no-print { display:none!important; }
+            .print-only { display:block!important; }
+            .amb,.grid-bg { display:none!important; }
+            .glass { background:#fff!important; border:1px solid #bbb!important; backdrop-filter:none!important; }
+            * { color:#000!important; box-shadow:none!important; }
+            table { border-collapse:collapse!important; }
+            th,td { border:1px solid #333!important; padding:2px 5px!important; }
+            .g-a,.g-b,.g-c,.g-d,.g-e,.ipk-glow { color:#000!important; background:#eee!important; border:1px solid #aaa!important; }
+            /* Force light mode for printing */
+            [data-theme="dark"] body,
+            [data-theme="dark"] *,
+            [data-theme="dark"] .glass,
+            [data-theme="dark"] .inp { color:#000!important; background:#fff!important; }
+        }
+        .print-only { display:none; }
+        @media (max-width:768px) { .hide-mobile { display:none!important; } }
 
-        /* Ambient background */
-        .ambient-bg {
+        /* =========================================================
+           THEME TOGGLE BUTTON STYLES
+        ========================================================= */
+        .theme-toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+        
+        .theme-toggle:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+        }
+        
+        .theme-toggle-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-radius: 50%;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        [data-theme="light"] .theme-toggle-thumb {
+            transform: translateX(20px);
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        
+        .theme-toggle-icon {
+            font-size: 10px;
+            color: white;
+            transition: opacity 0.2s ease;
+        }
+        
+        .theme-toggle .icon-moon {
+            opacity: 1;
+        }
+        
+        .theme-toggle .icon-sun {
+            position: absolute;
+            opacity: 0;
+        }
+        
+        [data-theme="light"] .theme-toggle .icon-moon {
+            opacity: 0;
+        }
+        
+        [data-theme="light"] .theme-toggle .icon-sun {
+            opacity: 1;
+        }
+        
+        /* Theme transition overlay */
+        .theme-transition-overlay {
             position: fixed;
             inset: 0;
-            z-index: 0;
-            overflow: hidden;
+            background: var(--bg);
+            z-index: 9999;
             pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
-        .ambient-bg::before {
-            content: '';
-            position: absolute;
-            width: 600px; height: 600px;
-            top: -200px; left: -100px;
-            background: radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%);
-            animation: drift1 20s ease-in-out infinite;
+        
+        .theme-transition-overlay.active {
+            opacity: 1;
         }
-        .ambient-bg::after {
-            content: '';
-            position: absolute;
-            width: 500px; height: 500px;
-            bottom: -150px; right: -100px;
-            background: radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 70%);
-            animation: drift2 25s ease-in-out infinite;
+        
+        /* =========================================================
+           LIGHT MODE SPECIFIC ENHANCEMENTS
+        ========================================================= */
+        [data-theme="light"] {
+            color-scheme: light;
         }
-        @keyframes drift1 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(80px, 60px) scale(1.15); }
+        
+        [data-theme="dark"] {
+            color-scheme: dark;
         }
-        @keyframes drift2 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(-60px, -40px) scale(1.1); }
+        
+        /* Header adjustments for light mode */
+        [data-theme="light"] header {
+            background: rgba(248,250,252,0.92) !important;
+            border-bottom-color: rgba(0,0,0,0.08) !important;
         }
-
-        .glass {
-            background: var(--card);
-            border: 1px solid var(--border);
-            backdrop-filter: blur(12px);
+        
+        /* Text colors in light mode */
+        [data-theme="light"] .text-ink-900,
+        [data-theme="light"] .text-ink-800,
+        [data-theme="light"] .text-ink-700,
+        [data-theme="light"] .text-ink-600 { color: var(--fg); }
+        [data-theme="light"] .text-ink-500 { color: var(--muted); }
+        [data-theme="light"] .text-ink-400 { color: var(--muted-dim); }
+        [data-theme="light"] .text-ink-300 { color: var(--muted-dim); }
+        [data-theme="light"] .text-ink-200 { color: var(--fg-secondary); }
+        [data-theme="light"] .text-ink-100 { color: var(--fg); }
+        
+        /* IPK Glow in light mode */
+        [data-theme="light"] .ipk-glow {
+            background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.03));
+            border: 1px solid rgba(16,185,129,0.2);
         }
-
-        .input-field {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08);
-            color: var(--fg);
-            transition: border-color 0.2s, box-shadow 0.2s;
+        
+        /* Progress bar in light mode */
+        [data-theme="light"] .prog-fill {
+            box-shadow: 0 0 8px rgba(16,185,129,0.25);
         }
-        .input-field:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
-            outline: none;
+        
+        /* Spinner in light mode */
+        [data-theme="light"] .spinner {
+            border-color: rgba(0,0,0,0.1);
+            border-top-color: #059669;
         }
-        .input-field::placeholder { color: var(--muted); opacity: 0.5; }
-
-        /* Grade coloring */
-        .g-a { color: #34d399; }
-        .g-b { color: #60a5fa; }
-        .g-c { color: #fbbf24; }
-        .g-d { color: #f87171; }
-        .g-e { color: #f87171; }
-
-        /* IPK badge glow */
-        .ipk-badge {
-            background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05));
-            border: 1px solid rgba(16,185,129,0.25);
-            box-shadow: 0 0 20px rgba(16,185,129,0.08);
+        
+        /* Toast notifications in light mode */
+        [data-theme="light"] .toast {
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
         }
-
-        /* Progress bar */
-        .progress-fill {
-            background: linear-gradient(90deg, #10b981, #34d399);
-            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 0 12px rgba(16,185,129,0.4);
+        
+        /* Table styles in light mode */
+        [data-theme="light"] table {
+            border-color: var(--border) !important;
         }
-
-        /* Spinner */
-        .spinner {
-            width: 18px; height: 18px;
-            border: 2px solid rgba(255,255,255,0.2);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
+        [data-theme="light"] th {
+            background: rgba(248,250,252,0.5) !important;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Card entrance */
-        .card-enter {
-            animation: cardSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        [data-theme="light"] td {
+            border-bottom-color: var(--border) !important;
         }
-        @keyframes cardSlideUp {
-            from { opacity: 0; transform: translateY(24px) scale(0.97); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+        
+        /* Scrollbar in light mode */
+        [data-theme="light"] ::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.15);
         }
-
-        /* Table row hover */
-        .trow:hover { background: rgba(255,255,255,0.02); }
-
-        /* Button interactions */
-        .btn-primary {
-            background: linear-gradient(135deg, #10b981, #059669);
-            transition: all 0.2s;
+        
+        /* Footer in light mode */
+        [data-theme="light"] footer .h-px {
+            background: rgba(0,0,0,0.08) !important;
         }
-        .btn-primary:hover:not(:disabled) {
-            box-shadow: 0 8px 30px rgba(16,185,129,0.3);
-            transform: translateY(-1px);
+        
+        /* Config panel in light mode */
+        [data-theme="light"] #configPanel .glass {
+            background: rgba(245,158,11,0.04) !important;
+            border-color: rgba(245,158,11,0.15) !important;
         }
-        .btn-primary:active:not(:disabled) { transform: translateY(0); }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .btn-ghost {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            transition: all 0.2s;
+        
+        /* Mobile nav in light mode */
+        [data-theme="light"] #mobileNav {
+            background: rgba(248,250,252,0.98);
+            border-top-color: rgba(0,0,0,0.08);
         }
-        .btn-ghost:hover {
-            background: rgba(255,255,255,0.08);
-            border-color: rgba(255,255,255,0.15);
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
-
-        /* Toast */
-        .toast {
-            animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
-        .toast-out {
-            animation: toastOut 0.3s ease-in both;
-        }
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateY(-12px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        @keyframes toastOut {
-            to { opacity: 0; transform: translateY(-8px) scale(0.95); }
-        }
-
-        /* Print */
-        @media print {
-            body { background: #fff !important; color: #000 !important; padding: 0 !important; }
-            .no-print { display: none !important; }
-            .print-only { display: block !important; }
-            .ambient-bg { display: none !important; }
-            .glass, .glass-panel { background: #fff !important; border: 1px solid #ccc !important; backdrop-filter: none !important; }
-            * { color: #000 !important; box-shadow: none !important; }
-            table { border-collapse: collapse !important; }
-            th, td { border: 1px solid #333 !important; padding: 1px 5px !important; }
-            .ipk-badge { background: #eee !important; border: 1px solid #999 !important; }
-            .g-a, .g-b, .g-c, .g-d, .g-e { color: #000 !important; }
-        }
-        .print-only { display: none; }
-
-        /* Pulse dot */
-        .pulse-dot {
-            width: 8px; height: 8px;
-            background: #10b981;
-            border-radius: 50%;
-            animation: pulse 2s ease-in-out infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
-            50% { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
+        
+        /* Global loader in light mode */
+        [data-theme="light"] #globalLoader {
+            background: rgba(248,250,252,0.95) !important;
         }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8">
-    <!-- Ambient background -->
-    <div class="ambient-bg"></div>
+<body class="min-h-screen pb-12">
+    <div class="amb"></div>
+    <div class="grid-bg"></div>
+    <div id="toastBox" class="fixed top-4 right-4 z-[70] space-y-2 no-print"></div>
 
-    <!-- Toast Container -->
-    <div id="toastContainer" class="fixed top-6 right-6 z-50 space-y-3 no-print"></div>
+    <div class="relative z-10">
 
-    <div class="relative z-10 max-w-6xl mx-auto">
-
-        <!-- Header -->
-        <header class="no-print mb-10">
-            <div class="flex items-center gap-4 mb-2">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-accent-dark flex items-center justify-center">
-                    <i class="fa-solid fa-bolt text-white text-sm"></i>
+        <header class="sticky top-0 z-50 no-print border-b border-white/[.04]" style="background:rgba(6,10,18,.88);backdrop-filter:blur(18px)">
+            <div class="max-w-7xl mx-auto px-4 py-2.5 flex justify-between items-center">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-em to-em-dark flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-bolt text-white text-xs"></i></div>
+                    <div class="min-w-0">
+                        <h1 class="text-sm font-bold tracking-tight truncate">Neo Feeder IPK Engine</h1>
+                        <p class="text-[8px] text-ink-300 font-mono uppercase tracking-[.18em] hide-mobile">SIA Terpadu — STIT Tunas Bangsa</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Neo Feeder IPK Engine</h1>
-                    <p class="text-xs text-ink-300 font-mono tracking-wider uppercase">Client-Side GPA Calculator</p>
-                </div>
+                <nav class="hidden lg:flex items-center gap-1">
+                    <button onclick="switchTab('batchNim')" data-tab="batchNim" class="tab-btn tab-active px-3.5 py-1.5 rounded-lg text-[11px] font-bold border border-transparent transition-all"><i class="fa-solid fa-layer-group mr-1.5 text-[9px]"></i>Batch NIM</button>
+                    <button onclick="switchTab('transkrip')" data-tab="transkrip" class="tab-btn px-3.5 py-1.5 rounded-lg text-[11px] font-bold text-ink-300 border border-transparent hover:text-ink-100 transition-all"><i class="fa-solid fa-scroll mr-1.5 text-[9px]"></i>Transkrip</button>
+                    <button onclick="switchTab('angkatan')" data-tab="angkatan" class="tab-btn px-3.5 py-1.5 rounded-lg text-[11px] font-bold text-ink-300 border border-transparent hover:text-ink-100 transition-all"><i class="fa-solid fa-users mr-1.5 text-[9px]"></i>Angkatan</button>
+                    <button onclick="switchTab('matkul')" data-tab="matkul" class="tab-btn px-3.5 py-1.5 rounded-lg text-[11px] font-bold text-ink-300 border border-transparent hover:text-ink-100 transition-all"><i class="fa-solid fa-book mr-1.5 text-[9px]"></i>Katalog MK</button>
+                    <div class="w-px h-5 bg-white/8 mx-1"></div>
+                    <!-- Theme Toggle Button -->
+                    <button 
+                        onclick="toggleTheme()" 
+                        class="theme-toggle flex items-center justify-center"
+                        title="Ganti Tema (Light/Dark)"
+                        id="themeToggleBtn"
+                        aria-label="Toggle theme"
+                    >
+                        <div class="theme-toggle-thumb">
+                            <i class="fa-solid fa-moon theme-toggle-icon icon-moon"></i>
+                            <i class="fa-solid fa-sun theme-toggle-icon icon-sun"></i>
+                        </div>
+                    </button>
+                    <button onclick="toggleConfig()" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-gold hover:bg-gold/10 transition-all" title="Konfigurasi API"><i class="fa-solid fa-gear"></i></button>
+                </nav>
+                <button onclick="toggleMobile()" class="lg:hidden btn-g px-2.5 py-1.5 rounded-lg text-ink-300 text-xs"><i class="fa-solid fa-bars"></i></button>
             </div>
-            <div class="h-px bg-gradient-to-r from-accent/30 via-transparent to-transparent mt-4"></div>
+            <div id="mobileNav" class="lg:hidden hidden border-t border-white/5 px-4 py-2.5 space-y-0.5">
+                <button onclick="switchTab('batchNim');toggleMobile()" class="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-ink-200 hover:bg-white/5"><i class="fa-solid fa-layer-group mr-2 text-em w-4"></i>Batch NIM</button>
+                <button onclick="switchTab('transkrip');toggleMobile()" class="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-ink-200 hover:bg-white/5"><i class="fa-solid fa-scroll mr-2 text-em w-4"></i>Transkrip Individual</button>
+                <button onclick="switchTab('angkatan');toggleMobile()" class="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-ink-200 hover:bg-white/5"><i class="fa-solid fa-users mr-2 text-em w-4"></i>Analisis Angkatan</button>
+                <button onclick="switchTab('matkul');toggleMobile()" class="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-ink-200 hover:bg-white/5"><i class="fa-solid fa-book mr-2 text-em w-4"></i>Katalog Mata Kuliah</button>
+                <div class="h-px bg-white/5 my-1"></div>
+                <button onclick="toggleTheme();toggleMobile()" class="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-gold hover:bg-gold/10"><i class="fa-solid fa-circle-half-stroke mr-2 w-4"></i>Ganti Tema (Light/Dark)</button>
+                <button onclick="toggleConfig();toggleMobile()" class="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-gold hover:bg-gold/10"><i class="fa-solid fa-gear mr-2 w-4"></i>Konfigurasi API</button>
+            </div>
         </header>
 
-        <!-- Print Header -->
-        <div class="print-only mb-8 text-center border-b-2 border-black pb-4">
-            <h1 class="text-xl font-bold uppercase">Laporan Ringkasan Perhitungan IPK</h1>
-            <p class="text-sm mt-1">Dicetak: <span id="printDate"></span></p>
+        <div id="configPanel" class="max-w-3xl mx-auto mt-4 px-4 hidden no-print">
+            <div class="glass rounded-2xl p-5" style="background:rgba(245,158,11,.02);border-color:rgba(245,158,11,.12)">
+                <div class="flex items-center gap-2 mb-4"><i class="fa-solid fa-server text-gold text-xs"></i><h2 class="text-[10px] font-bold text-gold uppercase tracking-[.15em]">Konfigurasi API Web Service</h2></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                    <div class="space-y-1"><label class="text-[8px] font-bold text-ink-400 uppercase tracking-widest">Endpoint Feeder</label><input type="text" id="apiUrl" class="inp w-full px-3 py-2 rounded-xl font-mono text-[10px]" value="http://localhost:3003/ws/live2.php"></div>
+                    <div class="space-y-1"><label class="text-[8px] font-bold text-ink-400 uppercase tracking-widest">Username</label><input type="text" id="username" class="inp w-full px-3 py-2 rounded-xl text-xs"></div>
+                    <div class="space-y-1"><label class="text-[8px] font-bold text-ink-400 uppercase tracking-widest">Password</label><div class="relative"><input type="password" id="password" class="inp w-full px-3 py-2 rounded-xl text-xs pr-8"><button onclick="togglePw()" class="absolute right-2 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-200 transition-colors"><i id="eyeIcon" class="fa-solid fa-eye text-[10px]"></i></button></div></div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <p class="text-[8px] text-ink-400/40 italic"><i class="fa-solid fa-lock mr-1"></i>Password tidak disimpan secara permanen.</p>
+                    <button onclick="simpanConfig()" class="btn-p text-white px-4 py-1.5 rounded-lg text-[10px] font-bold"><i class="fa-solid fa-floppy-disk mr-1"></i>SIMPAN</button>
+                </div>
+            </div>
         </div>
 
-        <!-- Konfigurasi Panel -->
-        <section class="glass p-6 md:p-8 mb-8 no-print">
-            <div class="flex items-center gap-2 mb-6">
-                <i class="fa-solid fa-plug text-accent text-sm"></i>
-                <h2 class="text-sm font-semibold uppercase tracking-wider text-ink-300">Konfigurasi Koneksi</h2>
-            </div>
+        <main class="max-w-7xl mx-auto px-4 mt-6">
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-ink-300 uppercase tracking-widest">Endpoint Feeder</label>
-                    <input type="text" id="apiUrl" class="input-field w-full px-4 py-3 rounded-xl font-mono text-xs" value="http://localhost:3003">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-ink-300 uppercase tracking-widest">Username</label>
-                    <input type="text" id="username" class="input-field w-full px-4 py-3 rounded-xl font-mono text-sm" placeholder="feeder_user">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-ink-300 uppercase tracking-widest">Password</label>
-                    <div class="relative">
-                        <input type="password" id="password" class="input-field w-full px-4 py-3 rounded-xl font-mono text-sm pr-10" placeholder="********">
-                        <button onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-300 hover:text-ink-100 transition-colors">
-                            <i id="eyeIcon" class="fa-solid fa-eye text-sm"></i>
-                        </button>
+            <!-- BATCH NIM -->
+            <section id="tab-batchNim" class="tab-content">
+                <div class="glass rounded-2xl p-5 md:p-7 mb-6">
+                    <div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-layer-group text-em text-xs"></i><h2 class="text-lg font-bold">Batch Calculator</h2><span class="text-[8px] bg-em/10 text-em-light px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">IPK Engine</span></div>
+                    <p class="text-xs text-ink-400 mb-4">Masukkan beberapa NIM sekaligus untuk menghitung IPK secara massal</p>
+                    <textarea id="listNim" rows="3" placeholder="200101001, 200101002, 200101003&#10;atau satu NIM per baris..." class="inp w-full px-4 py-3 rounded-xl font-mono text-xs resize-none mb-3" onkeydown="if(event.ctrlKey&&event.key==='Enter'){event.preventDefault();prosesBatchNim()}"></textarea>
+                    <div id="batchNimProg" class="hidden mb-3"><div class="flex justify-between items-center mb-1"><span id="bnProgText" class="text-[10px] text-ink-400 font-mono">Memproses...</span><span id="bnProgPct" class="text-[10px] text-em font-mono font-bold">0%</span></div><div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"><div id="bnProgBar" class="prog-fill h-full rounded-full" style="width:0%"></div></div></div>
+                    <div class="flex gap-2">
+                        <button onclick="prosesBatchNim()" id="btnBatchNim" class="btn-p text-white px-6 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2"><i class="fa-solid fa-rocket"></i><span>TARIK DATA & HITUNG IPK</span><div id="spinBN" class="spinner hidden"></div></button>
+                        <button onclick="resetBatchNim()" class="btn-g text-ink-300 px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2"><i class="fa-solid fa-rotate-left"></i><span class="hide-mobile">Reset</span></button>
                     </div>
                 </div>
-            </div>
-
-            <div class="h-px bg-white/5 mb-6"></div>
-
-            <div class="flex items-center gap-2 mb-3">
-                <i class="fa-solid fa-list-ol text-flame text-sm"></i>
-                <h2 class="text-sm font-semibold uppercase tracking-wider text-ink-300">Daftar NIM</h2>
-                <span class="text-[10px] text-ink-300 bg-white/5 px-2 py-0.5 rounded-md font-mono">pisahkan koma / baris baru</span>
-            </div>
-            <textarea id="listNim" rows="3" placeholder="200101001, 200101002, 200101003" class="input-field w-full px-4 py-3 rounded-xl font-mono text-sm resize-none mb-4"></textarea>
-
-            <!-- Progress Bar (tersembunyi default) -->
-            <div id="progressWrap" class="hidden mb-4">
-                <div class="flex justify-between items-center mb-1.5">
-                    <span id="progressLabel" class="text-xs text-ink-300 font-mono">Memproses...</span>
-                    <span id="progressCount" class="text-xs text-accent font-mono font-bold">0/0</span>
-                </div>
-                <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                    <div id="progressBar" class="progress-fill h-full rounded-full" style="width:0%"></div>
-                </div>
-            </div>
-
-            <div class="flex gap-3">
-                <button onclick="prosesData()" id="btnProses" class="btn-primary flex-1 text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2.5">
-                    <i class="fa-solid fa-rocket"></i>
-                    <span>Tarik Data & Hitung IPK</span>
-                    <div id="loader" class="spinner hidden"></div>
-                </button>
-                <button onclick="resetSemua()" class="btn-ghost text-ink-300 px-5 py-3.5 rounded-xl font-bold text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-rotate-left"></i>
-                    <span class="hidden sm:inline">Reset</span>
-                </button>
-            </div>
-
-            <p class="text-[10px] text-ink-300/60 mt-4 text-center">
-                <i class="fa-solid fa-shield-halved mr-1"></i>
-                Kredensial diproses sepenuhnya di browser — tidak ada data yang dikirim ke server pihak ketiga.
-            </p>
-        </section>
-
-        <!-- Container Hasil Individual -->
-        <div id="hasilContainer" class="space-y-5 no-print"></div>
-
-        <!-- Tabel Rekapitulasi -->
-        <section id="rekapContainer" class="mt-10 hidden">
-            <div class="overflow-hidden">
-                <!-- Header Rekap -->
-                <div class="p-5 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 no-print">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
-                            <i class="fa-solid fa-chart-bar text-accent text-sm"></i>
+                <div id="bnCards" class="space-y-4 mb-6"></div>
+                <div id="bnRekap" class="hidden">
+                    <div class="glass rounded-2xl overflow-hidden">
+                        <div class="p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-white/5">
+                            <div class="flex items-center gap-2.5"><div class="w-7 h-7 rounded-lg bg-em/10 flex items-center justify-center"><i class="fa-solid fa-chart-bar text-em text-xs"></i></div><div><h3 class="text-sm font-bold">Ringkasan Hasil Perhitungan</h3><p id="bnRekapSub" class="text-[9px] text-ink-400 font-mono">0 mahasiswa</p></div></div>
+                            <div class="flex gap-2 flex-wrap">
+                                <button onclick="exportBN_PdfAll()" class="btn-g text-ink-200 px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-pdf text-rose"></i><span class="hide-mobile">PDF Semua</span></button>
+                                <button onclick="window.print()" class="btn-g text-ink-200 px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1.5"><i class="fa-solid fa-print"></i><span class="hide-mobile">Cetak</span></button>
+                                <button onclick="exportBN_Excel()" class="btn-p text-white px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1.5 !py-1.5"><i class="fa-solid fa-file-excel"></i><span>Excel</span></button>
+                            </div>
                         </div>
+                        <div class="print-only p-3 font-bold text-center border-b text-xs">TABEL RINGKASAN IPK MAHASISWA</div>
+                        <div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr class="text-[8px] font-bold text-ink-400 uppercase tracking-widest border-b border-white/5"><th class="p-3 w-10">No</th><th class="p-3">NIM</th><th class="p-3">Nama</th><th class="p-3">Prodi</th><th class="p-3 w-16 text-center">SKS</th><th class="p-3 w-16 text-center">IPK</th></tr></thead><tbody id="bnRekapBody" class="divide-y divide-white/[.03]"></tbody></table></div>
+                    </div>
+                    <div class="print-only mt-14 grid grid-cols-2 text-center text-sm"><div></div><div class="space-y-14"><p>Dicetak oleh Operator,</p><div class="pt-3 border-t border-black w-36 mx-auto font-bold"></div></div></div>
+                </div>
+            </section>
+
+            <!-- TRANSKRIP -->
+            <section id="tab-transkrip" class="tab-content hidden">
+                <div class="max-w-2xl mx-auto text-center mb-8 no-print">
+                    <h2 class="text-2xl font-bold mb-1">Transkrip Mahasiswa</h2>
+                    <p class="text-ink-400 text-xs">Sinkronisasi transkrip resmi dan nilai berjalan secara real-time</p>
+                    <div class="mt-5 flex gap-2">
+                        <input type="text" id="nimTranskrip" class="inp flex-1 px-5 py-3 rounded-2xl font-mono text-sm font-semibold" placeholder="Masukkan NIM..." onkeydown="if(event.key==='Enter')prosesTranskrip()">
+                        <button onclick="prosesTranskrip()" id="btnTranskrip" class="btn-p text-white px-6 py-3 rounded-2xl font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-magnifying-glass"></i><span>CARI</span><div id="spinTr" class="spinner hidden"></div></button>
+                    </div>
+                </div>
+                <div id="transkripResult" class="hidden"></div>
+            </section>
+
+            <!-- ANALISIS ANGKATAN -->
+            <section id="tab-angkatan" class="tab-content hidden">
+                <div class="glass rounded-2xl p-5 md:p-7">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-5 mb-6">
                         <div>
-                            <h2 class="text-base font-bold">Ringkasan Perhitungan</h2>
-                            <p class="text-[10px] text-ink-300 font-mono uppercase tracking-wider" id="rekapSubtitle">0 mahasiswa diproses</p>
+                            <h2 class="text-xl font-bold mb-0.5">Analisis Angkatan</h2>
+                            <p class="text-ink-400 text-xs">Hitung IPK rata-rata seluruh mahasiswa dalam satu angkatan</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2.5 items-end">
+                            <div class="space-y-1 w-full sm:w-auto" style="min-width:270px">
+                                <label class="text-[8px] font-bold text-ink-400 uppercase tracking-widest">Program Studi</label>
+                                <div class="dd-wrap" id="prodiDdWrap">
+                                    <div class="relative">
+                                        <input type="text" id="prodiSearch" class="inp w-full px-3 py-2 rounded-xl text-xs pr-16" placeholder="Ketik nama prodi..." autocomplete="off" onfocus="openProdiDd()" oninput="debounceFilterProdi()">
+                                        <button onclick="clearProdi()" id="prodiClearBtn" class="hidden absolute right-8 top-1/2 -translate-y-1/2 text-ink-400 hover:text-rose transition-colors px-1" title="Hapus pilihan"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                                        <div class="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-400 pointer-events-none" id="prodiDdIcon"><i class="fa-solid fa-chevron-down text-[9px]"></i></div>
+                                    </div>
+                                    <div class="dd-list" id="prodiDdList"></div>
+                                </div>
+                                <input type="hidden" id="angProdi" value="">
+                            </div>
+                            <div class="space-y-1 w-full sm:w-auto" style="min-width:200px">
+                                <label class="text-[8px] font-bold text-ink-400 uppercase tracking-widest">Tahun Masuk</label>
+                                <div class="dd-wrap" id="periodeDdWrap">
+                                    <div class="relative">
+                                        <input type="text" id="periodeSearch" class="inp w-full px-3 py-2 rounded-xl text-xs pr-16" placeholder="Pilih periode..." autocomplete="off" onfocus="openPeriodeDd()" oninput="debounceFilterPeriode()">
+                                        <button onclick="clearPeriode()" id="periodeClearBtn" class="hidden absolute right-8 top-1/2 -translate-y-1/2 text-ink-400 hover:text-rose transition-colors px-1" title="Hapus pilihan"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                                        <div class="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-400 pointer-events-none" id="periodeDdIcon"><i class="fa-solid fa-chevron-down text-[9px]"></i></div>
+                                    </div>
+                                    <div class="dd-list" id="periodeDdList"></div>
+                                </div>
+                                <input type="hidden" id="angPeriode" value="">
+                            </div>
+                            <button onclick="prosesAngkatan()" id="btnAngkatan" class="btn-p text-white px-5 py-2 rounded-xl font-bold text-xs flex items-center gap-2"><i class="fa-solid fa-chart-line"></i><span>PROSES</span><div id="spinAng" class="spinner hidden"></div></button>
                         </div>
                     </div>
-                    <div class="flex gap-2 flex-wrap">
-                        <button onclick="cetakSemuaPdf()" class="btn-ghost text-ink-100 px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2">
-                            <i class="fa-solid fa-file-pdf text-danger"></i>
-                            <span>PDF Semua</span>
-                        </button>
-                        <button onclick="window.print()" class="btn-ghost text-ink-100 px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2">
-                            <i class="fa-solid fa-print"></i>
-                            <span>Cetak</span>
-                        </button>
-                        <button onclick="exportToExcel()" class="btn-primary text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 !py-2">
-                            <i class="fa-solid fa-file-excel"></i>
-                            <span>Export Excel</span>
-                        </button>
+                    <div id="angProg" class="hidden mb-5">
+                        <div class="flex justify-between items-center mb-1"><span id="angProgText" class="text-[10px] text-ink-400 font-mono">Menunggu...</span><span id="angProgPct" class="text-[10px] text-em font-mono font-bold">0%</span></div>
+                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden"><div id="angProgBar" class="prog-fill h-full rounded-full" style="width:0%"></div></div>
+                    </div>
+                    <div id="angActions" class="hidden flex gap-2 mb-4 no-print flex-wrap">
+                        <button onclick="exportAng_Excel()" class="btn-g text-ink-200 px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-excel text-em"></i>Excel</button>
+                        <button onclick="exportAng_PdfAll()" class="btn-g text-ink-200 px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1.5"><i class="fa-solid fa-file-pdf text-rose"></i>PDF Semua Transkrip</button>
+                        <div class="flex-1"></div>
+                        <span id="angSummary" class="text-[9px] text-ink-400 font-mono self-center"></span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead><tr class="text-[8px] font-bold text-ink-400 uppercase tracking-widest border-b border-white/5"><th class="p-3 w-10">No</th><th class="p-3">Mahasiswa</th><th class="p-3 w-16 text-center">SKS</th><th class="p-3 w-16 text-center">IPK</th><th class="p-3 w-12 text-center"></th></tr></thead>
+                            <tbody id="angBody" class="divide-y divide-white/[.03]"><tr><td colspan="5" class="p-10 text-center text-ink-400 text-xs italic">Pilih Program Studi dan Tahun Masuk untuk memulai.</td></tr></tbody>
+                        </table>
                     </div>
                 </div>
+            </section>
 
-                <!-- Print subheader -->
-                <div class="print-only p-4 font-bold text-center border-b text-sm">TABEL RINGKASAN IPK MAHASISWA</div>
-
-                <!-- Tabel -->
-                <div class="overflow-x-auto">
-                    <table id="tableUtama" class="w-full text-sm text-left">
-                        <thead>
-                            <tr class="border-b border-white/5 text-[10px] font-bold text-ink-300 uppercase tracking-wider">
-                                <th class="p-4 w-12">No</th>
-                                <th class="p-4">NIM</th>
-                                <th class="p-4">Nama Mahasiswa</th>
-                                <th class="p-4">Program Studi</th>
-                                <th class="p-4 text-center w-24">Total SKS</th>
-                                <th class="p-4 text-center w-24">IPK</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableRekap" class="divide-y divide-white/5"></tbody>
-                    </table>
+            <!-- KATALOG MK -->
+            <section id="tab-matkul" class="tab-content hidden">
+                <div class="glass rounded-2xl p-5 md:p-7">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                        <div><h2 class="text-xl font-bold mb-0.5">Katalog Mata Kuliah</h2><p class="text-ink-400 text-xs">Jelajahi daftar mata kuliah dari database Feeder</p></div>
+                        <div class="flex gap-2">
+                            <input type="text" id="searchMk" class="inp px-3 py-2 rounded-xl text-xs w-52" placeholder="Kode / Nama MK..." onkeydown="if(event.key==='Enter')loadMatkul()">
+                            <button onclick="loadMatkul()" id="btnMk" class="btn-p text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2"><span>CARI</span><div id="spinMk" class="spinner hidden"></div></button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead><tr class="text-[8px] font-bold text-ink-400 uppercase tracking-widest border-b border-white/5"><th class="p-3 w-28">Kode</th><th class="p-3">Nama Mata Kuliah</th><th class="p-3 w-14 text-center">SKS</th><th class="p-3 w-24">Jenis</th></tr></thead>
+                            <tbody id="mkBody" class="divide-y divide-white/[.03]"><tr><td colspan="4" class="p-10 text-center text-ink-400 text-xs italic">Ketik kata kunci lalu klik Cari.</td></tr></tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- Tanda tangan print -->
-            <div class="print-only mt-16 grid grid-cols-2 text-center text-sm">
-                <div></div>
-                <div class="space-y-14">
-                    <p>Dicetak oleh Operator,</p>
-                    <div class="pt-3 border-t border-black w-40 mx-auto font-bold"></div>
-                </div>
-            </div>
-        </section>
+        </main>
 
-        <!-- Footer -->
-        <footer class="mt-16 mb-8 text-center no-print">
-            <div class="h-px bg-white/5 mb-6"></div>
-            <p class="text-[10px] text-ink-300/40 font-mono">Neo Feeder IPK Engine &mdash; Kalkulasi berdasarkan metode resmi bobot indeks nilai</p>
+        <footer class="mt-14 mb-6 text-center no-print">
+            <div class="h-px bg-white/5 mb-4 max-w-sm mx-auto"></div>
+            <p class="text-[8px] text-ink-400/25 font-mono">STIT Tunas Bangsa — Neo Feeder IPK Engine</p>
+            <p class="text-[7px] text-ink-400/20 font-mono mt-1">
+                <span class="opacity-60">Tekan </span>
+                <kbd class="px-1.5 py-0.5 rounded text-[8px] bg-white/5 border border-white/10 font-mono">Ctrl+Shift+D</kbd>
+                <span class="opacity-60"> untuk ganti tema</span>
+            </p>
         </footer>
     </div>
 
+    <!-- Theme Transition Overlay -->
+    <div id="themeOverlay" class="theme-transition-overlay"></div>
+
+    <div id="globalLoader" class="fixed inset-0 z-[100] hidden items-center justify-center" style="background:rgba(6,10,18,.88);backdrop-filter:blur(8px)">
+        <div class="text-center"><div class="spinner mx-auto mb-3" style="width:32px;height:32px;border-width:3px"></div><p id="loaderText" class="text-[9px] text-ink-300 font-mono uppercase tracking-[.2em]">Processing...</p></div>
+    </div>
+
     <script>
-        /* ============================================
-           STATE GLOBAL
-        ============================================ */
-        let currentToken = null;
-        let globalRekapData = [];
-        const matkulCache = new Map();
-        const MAX_CACHE = 500; // Batas cache agar tidak membengkak
-        let isProcessing = false;
+    /* =========================================================
+       THEME MANAGEMENT
+    ========================================================= */
+    let currentTheme = 'dark'; // Default theme
 
-        // Tanggal print otomatis
-        document.getElementById('printDate').textContent = new Date().toLocaleString('id-ID', {
-            dateStyle: 'full', timeStyle: 'short'
+    function initTheme() {
+        // Check localStorage first
+        const savedTheme = localStorage.getItem('nf_theme');
+        if (savedTheme) {
+            currentTheme = savedTheme;
+        } else {
+            // Check system preference
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            currentTheme = prefersDark ? 'dark' : 'light';
+        }
+        applyTheme(currentTheme);
+        
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (!localStorage.getItem('nf_theme')) {
+                currentTheme = e.matches ? 'dark' : 'light';
+                applyTheme(currentTheme);
+            }
         });
+    }
 
-        /* ============================================
-           UTILITAS
-        ============================================ */
-
-        // Sanitasi NIM — hapus karakter berbahaya
-        function sanitizeNim(raw) {
-            return raw.replace(/[^0-9a-zA-Z\-_.]/g, '').trim();
-        }
-
-        // Toggle visibility password
-        function togglePassword() {
-            const inp = document.getElementById('password');
-            const icon = document.getElementById('eyeIcon');
-            if (inp.type === 'password') {
-                inp.type = 'text';
-                icon.className = 'fa-solid fa-eye-slash text-sm';
-            } else {
-                inp.type = 'password';
-                icon.className = 'fa-solid fa-eye text-sm';
-            }
-        }
-
-        // Toast notification
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            const colors = {
-                success: 'border-l-4 border-l-accent bg-accent-dim/80',
-                error: 'border-l-4 border-l-danger bg-danger-dark/80',
-                info: 'border-l-4 border-l-flame bg-flame-dark/80',
-            };
-            const icons = {
-                success: 'fa-circle-check text-accent-light',
-                error: 'fa-circle-xmark text-danger-light',
-                info: 'fa-circle-info text-flame-light',
-            };
-            const el = document.createElement('div');
-            el.className = `toast ${colors[type]} backdrop-blur-md rounded-xl px-4 py-3 flex items-center gap-3 min-w-[280px] shadow-2xl`;
-            el.innerHTML = `
-                <i class="fa-solid ${icons[type]}"></i>
-                <span class="text-sm text-white font-medium">${message}</span>
-            `;
-            container.appendChild(el);
+    function toggleTheme() {
+        // Add transition overlay effect
+        const overlay = document.getElementById('themeOverlay');
+        overlay.classList.add('active');
+        
+        setTimeout(() => {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(currentTheme);
+            localStorage.setItem('nf_theme', currentTheme);
+            
             setTimeout(() => {
-                el.classList.add('toast-out');
-                setTimeout(() => el.remove(), 300);
-            }, 3500);
+                overlay.classList.remove('active');
+            }, 150);
+        }, 150);
+    }
+
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        
+        // Update meta theme-color for mobile browsers
+        let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+        if (!metaThemeColor) {
+            metaThemeColor = document.createElement('meta');
+            metaThemeColor.name = 'theme-color';
+            document.head.appendChild(metaThemeColor);
         }
+        metaThemeColor.content = theme === 'dark' ? '#060a12' : '#f8fafc';
+        
+        console.log(`[Theme] Applied: ${theme}`);
+    }
 
-        // Progress bar update
-        function updateProgress(current, total, label) {
-            const wrap = document.getElementById('progressWrap');
-            const bar = document.getElementById('progressBar');
-            const count = document.getElementById('progressCount');
-            const lbl = document.getElementById('progressLabel');
-            wrap.classList.remove('hidden');
-            bar.style.width = `${total > 0 ? ((current / total) * 100) : 0}%`;
-            count.textContent = `${current}/${total}`;
-            if (label) lbl.textContent = label;
+    /* =========================================================
+       STATE GLOBAL
+    ========================================================= */
+    let currentToken = null;
+    let isProcessing = false;
+    const mkCache = new Map();
+    const MAX_CACHE = 400;
+    let bnData = [];
+    let angData = [];
+
+    let prodiCache = [];
+    let prodiLoaded = false;
+    let selectedProdi = null;
+
+    let periodeCache = [];
+    let periodeLoaded = false;
+    let selectedPeriode = null;
+
+    /* =========================================================
+       UTILITAS
+    ========================================================= */
+    const sanitize = s => s.replace(/[^0-9a-zA-Z\-_.]/g, '').trim();
+    /* FIX: tambah sanitizeId untuk UUID/ID dari API */
+    const sanitizeId = s => String(s).replace(/[^a-zA-Z0-9\-_.]/g, '').trim();
+    const sanitizeLike = s => s.replace(/['"\\;%]/g, '').trim();
+    const gradeCls = h => { if(!h) return ''; if(h.startsWith('A')) return 'g-a'; if(h.startsWith('B')) return 'g-b'; if(h.startsWith('C')) return 'g-c'; return 'g-d'; };
+    const predikat = ipk => { const n=parseFloat(ipk); if(n>=3.75) return 'Cum Laude'; if(n>=3.50) return 'Sangat Memuaskan'; if(n>=3.00) return 'Memuaskan'; if(n>=2.50) return 'Cukup'; if(n>0) return 'Kurang'; return 'Belum Ada'; };
+    const ipkColor = ipk => { const n=parseFloat(ipk); if(n<2.5) return 'text-rose-light'; if(n<3.0) return 'text-gold-light'; if(n<3.5) return 'text-ink-100'; return 'text-em-light'; };
+    const escapeHtml = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const escapeRegex = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const highlightMatch = (text, query) => { if(!query) return escapeHtml(text); return escapeHtml(text).replace(new RegExp('('+escapeRegex(query)+')','gi'), '<span class="text-em-light font-semibold">$1</span>'); };
+
+    /* FIX: debounce untuk dropdown search */
+    function debounce(fn, ms) {
+        let timer;
+        return function(...args) { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), ms); };
+    }
+    const debounceFilterProdi = debounce(() => filterProdiDd(), 150);
+    const debounceFilterPeriode = debounce(() => filterPeriodeDd(), 150);
+
+    /* FIX: normalisasi respons API ke array */
+    function normalizeToArray(data) {
+        if (Array.isArray(data)) return data;
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+            // Cek kalau objek mirip array (punya numeric keys)
+            const keys = Object.keys(data);
+            if (keys.length > 0 && keys.every(k => /^\d+$/.test(k))) {
+                return Object.values(data);
+            }
+            return [data];
         }
-        function hideProgress() {
-            document.getElementById('progressWrap').classList.add('hidden');
+        return [];
+    }
+
+    function togglePw() {
+        const i=document.getElementById('password'), ic=document.getElementById('eyeIcon');
+        if(i.type==='password'){i.type='text';ic.className='fa-solid fa-eye-slash text-[10px]';}else{i.type='password';ic.className='fa-solid fa-eye text-[10px]';}
+    }
+    function toggleMobile() { document.getElementById('mobileNav').classList.toggle('hidden'); }
+
+    function toast(msg, type='info') {
+        const box=document.getElementById('toastBox');
+        const c={success:'border-l-em bg-em-dim/70',error:'border-l-rose bg-rose-dark/70',info:'border-l-gold bg-gold-dim/70'};
+        const ic={success:'fa-circle-check text-em-light',error:'fa-circle-xmark text-rose-light',info:'fa-circle-info text-gold-light'};
+        const el=document.createElement('div');
+        el.className=`toast border-l-4 ${c[type]} backdrop-blur-md rounded-xl px-4 py-2.5 flex items-center gap-2.5 min-w-[240px] shadow-2xl`;
+        el.innerHTML=`<i class="fa-solid ${ic[type]} text-sm"></i><span class="text-xs text-white font-medium">${escapeHtml(msg)}</span>`;
+        box.appendChild(el);
+        setTimeout(()=>{el.classList.add('toast-out');setTimeout(()=>el.remove(),200);},3200);
+    }
+
+    function showLoader(on, txt='Processing...') {
+        const l=document.getElementById('globalLoader');
+        document.getElementById('loaderText').textContent=txt;
+        if(on){l.classList.remove('hidden');l.classList.add('flex');}else{l.classList.add('hidden');l.classList.remove('flex');}
+    }
+
+    function setProg(prefix, text, pct) {
+        const t=document.getElementById(prefix+'ProgText'), p=document.getElementById(prefix+'ProgPct'), b=document.getElementById(prefix+'ProgBar'), w=document.getElementById(prefix+'Prog');
+        if(w) w.classList.remove('hidden'); if(t) t.textContent=text; if(p) p.textContent=pct+'%'; if(b) b.style.width=pct+'%';
+    }
+    function hideProg(prefix) { const w=document.getElementById(prefix+'Prog'); if(w) w.classList.add('hidden'); }
+
+    /* =========================================================
+       TAB & CONFIG
+    ========================================================= */
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(c=>c.classList.add('hidden'));
+        document.getElementById('tab-'+tab).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(b=>{
+            const active = b.dataset.tab === tab;
+            b.className = `tab-btn px-3.5 py-1.5 rounded-lg text-[11px] font-bold border transition-all ${active ? 'tab-active' : 'text-ink-300 border-transparent hover:text-ink-100'}`;
+        });
+    }
+    function toggleConfig(force) {
+        const p=document.getElementById('configPanel');
+        if(force===true) p.classList.remove('hidden'); else if(force===false) p.classList.add('hidden'); else p.classList.toggle('hidden');
+    }
+    function simpanConfig() {
+        localStorage.setItem('nf_url',document.getElementById('apiUrl').value.trim());
+        localStorage.setItem('nf_user',document.getElementById('username').value.trim());
+        toast('Konfigurasi tersimpan.','success'); toggleConfig(false);
+        /* FIX: reset cache agar data baru diambil setelah ganti konfigurasi */
+        prodiCache=[]; prodiLoaded=false; selectedProdi=null;
+        periodeCache=[]; periodeLoaded=false; selectedPeriode=null;
+        document.getElementById('prodiSearch').value='';
+        document.getElementById('periodeSearch').value='';
+        document.getElementById('prodiClearBtn').classList.add('hidden');
+        document.getElementById('periodeClearBtn').classList.add('hidden');
+        document.getElementById('prodiDdIcon').classList.remove('hidden');
+        document.getElementById('periodeDdIcon').classList.remove('hidden');
+    }
+    window.addEventListener('DOMContentLoaded',()=>{
+        /* Initialize Theme */
+        initTheme();
+        
+        const u=localStorage.getItem('nf_url'), n=localStorage.getItem('nf_user');
+        if(u) document.getElementById('apiUrl').value=u;
+        if(n) document.getElementById('username').value=n;
+    });
+
+    /* =========================================================
+       API HANDLERS
+    ========================================================= */
+    async function getToken() {
+        const url=document.getElementById('apiUrl').value.trim(), u=document.getElementById('username').value.trim(), p=document.getElementById('password').value.trim();
+        if(!url||!u||!p){toggleConfig(true);throw new Error('Konfigurasi API belum lengkap.');}
+        const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({act:'GetToken',username:u,password:p})});
+        if(!r.ok) throw new Error(`HTTP ${r.status}: Gagal terhubung ke server Feeder.`);
+        const j=await r.json();
+        if(j.error_code!==0) throw new Error(j.error_desc||'Login gagal.');
+        currentToken=j.data.token; return currentToken;
+    }
+
+    /* FIX: tambah _retry counter untuk mencegah infinite loop saat token terus expire */
+    async function api(act, params={}, _retry=0) {
+        if(!currentToken) await getToken();
+        const url=document.getElementById('apiUrl').value.trim();
+        const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({act,token:currentToken,...params})});
+        if(!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j=await r.json();
+        if(j.error_code===100){
+            if(_retry>=1) throw new Error('Token kadaluarsa dan gagal diperbarui. Periksa konfigurasi API.');
+            currentToken=null;
+            await getToken();
+            return await api(act,params,_retry+1);
         }
+        if(j.error_code!==0) throw new Error(j.error_desc||`Error ${j.error_code}`);
+        return j.data;
+    }
 
-        // Class CSS berdasarkan nilai huruf
-        function gradeClass(huruf) {
-            if (!huruf) return '';
-            if (huruf.startsWith('A')) return 'g-a';
-            if (huruf.startsWith('B')) return 'g-b';
-            if (huruf.startsWith('C')) return 'g-c';
-            return 'g-d';
+    async function getRealKode(item) {
+        const raw=item.kode_mata_kuliah||item.kode_mk||'', id=item.id_matkul;
+        if(raw&&raw.length<20&&!raw.includes('-')) return raw;
+        if(mkCache.has(id)) return mkCache.get(id);
+        if(mkCache.size>=MAX_CACHE){const k=[...mkCache.keys()];for(let i=0;i<MAX_CACHE/2;i++) mkCache.delete(k[i]);}
+        try{const r=await api('GetListMataKuliah',{filter:`id_matkul='${sanitizeId(id)}'`,limit:1});if(r&&r.length>0){const k=r[0].kode_mata_kuliah;mkCache.set(id,k);return k;}}catch(e){}
+        return raw||'N/A';
+    }
+
+    async function getTranskrip(id_reg) {
+        try {
+            const safeId = sanitizeId(id_reg);
+            const [resmi, berjalan] = await Promise.all([
+                api('GetTranskripMahasiswa',{filter:`id_registrasi_mahasiswa='${safeId}'`}).catch(()=>[]),
+                api('GetRiwayatNilaiMahasiswa',{filter:`id_registrasi_mahasiswa='${safeId}'`}).catch(()=>[])
+            ]);
+            const combined = [...normalizeToArray(resmi)];
+            const existIds = new Set(combined.map(t=>t.id_matkul));
+            normalizeToArray(berjalan).forEach(r=>{if(!existIds.has(r.id_matkul)) combined.push(r);});
+            const kodeRes = await Promise.allSettled(combined.map(i=>getRealKode(i)));
+            kodeRes.forEach((r,i)=>{ combined[i].kode_bersih = r.status==='fulfilled'?r.value:(combined[i].kode_mata_kuliah||'N/A'); });
+            let totalSks=0, totalMutu=0;
+            combined.forEach(n=>{ const sks=parseFloat(n.sks_mata_kuliah)||0, bobot=parseFloat(n.nilai_indeks)||0; totalSks+=sks; totalMutu+=sks*bobot; });
+            return { totalSks, ipk: totalSks>0?(totalMutu/totalSks).toFixed(2):'0.00', data:combined };
+        } catch(e) { return { totalSks:0, ipk:'0.00', data:[] }; }
+    }
+
+    /* =========================================================
+       DROPDOWN PRODI — FIX: event delegation + data-id
+    ========================================================= */
+    async function loadProdiData() {
+        if (prodiLoaded) return true;
+        try {
+            let data = await api('GetProdi');
+            if (!Array.isArray(data) || !data.length) data = await api('GetAllProdi');
+            data = normalizeToArray(data);
+            if (data.length) {
+                prodiCache = data.map(p => ({
+                    id_prodi: p.id_prodi,
+                    nama: p.nama_program_studi || 'Tidak tersedia',
+                    jenjang: p.nama_jenjang_pendidikan || '',
+                    kode: p.kode_program_studi || ''
+                })).sort((a,b) => a.nama.localeCompare(b.nama));
+                prodiLoaded = true;
+                return true;
+            }
+            return false;
+        } catch(e) {
+            console.error('Gagal load prodi:', e);
+            toast('Gagal memuat Prodi: ' + e.message, 'error');
+            return false;
         }
+    }
 
-        // Reset seluruh tampilan
-        function resetSemua() {
-            if (isProcessing) return showToast('Proses sedang berjalan, tunggu hingga selesai.', 'error');
-            document.getElementById('hasilContainer').innerHTML = '';
-            document.getElementById('tableRekap').innerHTML = '';
-            document.getElementById('rekapContainer').classList.add('hidden');
-            globalRekapData = [];
-            matkulCache.clear();
-            hideProgress();
-            showToast('Semua data telah direset.', 'info');
+    /* FIX: select-all teks saat fokus, bukan menghapus */
+    function openProdiDd() {
+        const list = document.getElementById('prodiDdList');
+        if (list.classList.contains('open')) return;
+        if (selectedProdi) {
+            const input = document.getElementById('prodiSearch');
+            input.value = selectedProdi.nama;
+            setTimeout(() => input.select(), 0);
         }
+        renderProdiList();
+        list.classList.add('open');
+    }
 
-        /* ============================================
-           KOMUNIKASI NEO FEEDER
-        ============================================ */
-
-        async function ambilTokenBaru() {
-            const endpoint = `${document.getElementById('apiUrl').value.trim()}/ws/live2.php`;
-            const user = document.getElementById('username').value.trim();
-            const pass = document.getElementById('password').value.trim();
-
-            if (!user || !pass) throw new Error("Username dan Password wajib diisi.");
-            if (!endpoint) throw new Error("Endpoint Feeder wajib diisi.");
-
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ act: "GetToken", username: user, password: pass })
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}: Gagal terhubung ke endpoint.`);
-            const json = await response.json();
-            if (json.error_code !== 0) throw new Error(json.error_desc || "Login gagal.");
-            currentToken = json.data.token;
-            return currentToken;
+    async function renderProdiList() {
+        const list = document.getElementById('prodiDdList');
+        const query = document.getElementById('prodiSearch').value.trim().toLowerCase();
+        if (!prodiLoaded) {
+            list.innerHTML = '<div class="dd-loading"><div class="spinner mx-auto mb-2" style="width:14px;height:14px;border-width:2px"></div><span class="text-[10px] text-ink-400">Memuat daftar prodi...</span></div>';
+            list.classList.add('open');
+            if (!await loadProdiData()) { list.innerHTML = '<div class="dd-empty">Gagal memuat data prodi.<br><button onclick="prodiLoaded=false;renderProdiList()" class="text-em text-[10px] underline mt-1">Coba lagi</button></div>'; return; }
         }
+        if (!prodiCache.length) { list.innerHTML = '<div class="dd-empty">Tidak ada data program studi.</div>'; return; }
+        const filtered = query ? prodiCache.filter(p => p.nama.toLowerCase().includes(query) || p.jenjang.toLowerCase().includes(query) || p.kode.toLowerCase().includes(query)) : prodiCache;
+        if (!filtered.length) { list.innerHTML = '<div class="dd-empty">Tidak ditemukan untuk "' + escapeHtml(query) + '"</div>'; return; }
+        /* FIX: gunakan data-id alih-alih inline onclick */
+        list.innerHTML = filtered.map(p => {
+            const isActive = selectedProdi && selectedProdi.id_prodi === p.id_prodi;
+            const sub = (p.jenjang || p.kode) ? `<div class="dd-sub">${escapeHtml(p.jenjang)}${p.kode ? ' &middot; ' + escapeHtml(p.kode) : ''}</div>` : '';
+            return `<div class="dd-item${isActive?' active':''}" data-id="${escapeHtml(p.id_prodi)}"><div class="text-xs font-medium text-ink-100">${highlightMatch(p.nama, query)}</div>${sub}</div>`;
+        }).join('');
+    }
 
-        // Request dengan auto-retry jika token expired
-        async function requestWithRetry(act, params) {
+    function filterProdiDd() {
+        if (!document.getElementById('prodiDdList').classList.contains('open')) document.getElementById('prodiDdList').classList.add('open');
+        selectedProdi = null; document.getElementById('angProdi').value = '';
+        document.getElementById('prodiClearBtn').classList.add('hidden');
+        document.getElementById('prodiDdIcon').classList.remove('hidden');
+        renderProdiList();
+    }
+
+    async function selectProdi(id) {
+        const found = prodiCache.find(p => p.id_prodi === id);
+        if (!found) return;
+        selectedProdi = found;
+        document.getElementById('angProdi').value = found.id_prodi;
+        document.getElementById('prodiSearch').value = found.nama;
+        document.getElementById('prodiClearBtn').classList.remove('hidden');
+        document.getElementById('prodiDdIcon').classList.add('hidden');
+        document.getElementById('prodiDdList').classList.remove('open');
+        
+        /* FIX: reset periode dan LOAD ULANG data periode */
+        resetPeriodeQuiet();
+        
+        // FIX: Otomatis load periode data setelah pilih prodi
+        await loadAndRenderPeriode();
+    }
+    
+    /* FIX: Fungsi baru untuk load dan render periode secara otomatis */
+    async function loadAndRenderPeriode() {
+        const list = document.getElementById('periodeDdList');
+        
+        // Tampilkan loading state
+        list.innerHTML = '<div class="dd-loading"><div class="spinner mx-auto mb-2" style="width:14px;height:14px;border-width:2px"></div><span class="text-[10px] text-ink-400">Memuat daftar Tahun Masuk...</span></div>';
+        list.classList.add('open');
+        
+        try {
+            const success = await loadPeriodeData();
+            if (success && periodeCache.length > 0) {
+                renderPeriodeList();
+                // FIX: Auto-select item pertama sebagai default (opsional)
+                // selectPeriode(periodeCache[0].id_periode);
+            } else {
+                // FIX: Tampilkan pesan yang lebih informatif + opsi manual input
+                list.innerHTML = `<div class="dd-empty">
+                    <i class="fa-solid fa-info-circle text-gold mb-2 text-sm block"></i>
+                    <p class="text-xs text-ink-300 mb-2">Tidak dapat memuat daftar Tahun Masuk secara otomatis.</p>
+                    <p class="text-[9px] text-ink-500 mb-3">Anda bisa mengetik manual (contoh: 20231, 20232, 20241)</p>
+                    <div class="space-y-1">
+                        ${['20241', '20232', '20231', '20222', '20221'].map(year => `
+                            <button onclick="manualSelectPeriode('${year}')" class="block w-full text-left px-3 py-2 rounded-lg text-xs text-ink-200 hover:bg-em/10 hover:text-em transition-colors border border-white/5">
+                                <i class="fa-solid fa-calendar mr-2 text-[9px]"></i>${year}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <button onclick="loadAndRenderPeriode()" class="mt-3 text-em text-[10px] underline"><i class="fa-solid fa-rotate mr-1"></i>Coba Lagi</button>
+                </div>`;
+            }
+        } catch (e) {
+            console.error('[Periode] Error saat load:', e);
+            list.innerHTML = `<div class="dd-empty">
+                <i class="fa-solid fa-triangle-exclamation text-rose mb-1 text-xs"></i><br>
+                <span class="text-ink-300 text-xs">Error: ${escapeHtml(e.message)}</span><br>
+                <button onclick="loadAndRenderPeriode()" class="text-em text-[10px] underline mt-2 inline-block">Coba Lagi</button>
+            </div>`;
+        }
+    }
+    
+    /* FIX: Fungsi untuk manual selection dari quick-pick buttons */
+    function manualSelectPeriode(value) {
+        // Simulasi seleksi manual - buat object periode sementara
+        selectedPeriode = { 
+            id_periode: value, 
+            nama: value,
+            semester: '',
+            tahun: value
+        };
+        document.getElementById('angPeriode').value = value;
+        document.getElementById('periodeSearch').value = value;
+        document.getElementById('periodeClearBtn').classList.remove('hidden');
+        document.getElementById('periodeDdIcon').classList.add('hidden');
+        document.getElementById('periodeDdList').classList.remove('open');
+        
+        toast(`Tahun Masuk dipilih: ${value}`, 'success');
+    }
+
+    function clearProdi() {
+        selectedProdi = null; document.getElementById('angProdi').value = '';
+        document.getElementById('prodiSearch').value = '';
+        document.getElementById('prodiClearBtn').classList.add('hidden');
+        document.getElementById('prodiDdIcon').classList.remove('hidden');
+        document.getElementById('prodiSearch').focus();
+    }
+
+    /* =========================================================
+       DROPDOWN PERIODE — FIX: event delegation + retry + normalizeToArray
+    ========================================================= */
+    async function loadPeriodeData() {
+        if (periodeLoaded && periodeCache.length > 0) return true;
+        
+        // Reset flag jika cache kosong untuk retry
+        if (periodeLoaded && periodeCache.length === 0) {
+            periodeLoaded = false;
+        }
+        
+        const endpoints = [
+            { act: 'GetPeriode', label: 'GetPeriode' },
+            { act: 'GetListPeriodePerkuliahan', label: 'GetListPeriodePerkuliahan' },
+            // FIX: Tambahkan endpoint alternatif
+            { act: 'GetSemester', label: 'GetSemester' },
+        ];
+        
+        let lastError = null;
+        for (const ep of endpoints) {
             try {
-                return await requestNeo(act, { token: currentToken, ...params });
-            } catch (err) {
-                const msg = (err.message || '').toLowerCase();
-                if (msg.includes('token') || msg.includes('expired') || msg.includes('unauthorized')) {
-                    await ambilTokenBaru();
-                    return await requestNeo(act, { token: currentToken, ...params });
-                }
-                throw err;
-            }
-        }
-
-        async function requestNeo(act, params) {
-            const endpoint = `${document.getElementById('apiUrl').value.trim()}/ws/live2.php`;
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ act, ...params })
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const json = await response.json();
-            if (json.error_code !== 0) throw new Error(json.error_desc || `Error API: ${json.error_code}`);
-            return json.data;
-        }
-
-        // Lookup kode MK asli dari id_matkul (dengan cache terbatas)
-        async function getRealKodeMK(itemNilai) {
-            const rawKode = itemNilai.kode_mata_kuliah || itemNilai.kode_mk || '';
-            const idMatkul = itemNilai.id_matkul;
-
-            // Jika kode sudah bersih, pakai langsung
-            if (rawKode && rawKode.length < 20 && !rawKode.includes('-')) {
-                return rawKode;
-            }
-
-            // Cek cache
-            if (matkulCache.has(idMatkul)) return matkulCache.get(idMatkul);
-
-            // Jika cache penuh, kosongkan setengahnya (LRU sederhana)
-            if (matkulCache.size >= MAX_CACHE) {
-                const keys = [...matkulCache.keys()];
-                for (let i = 0; i < MAX_CACHE / 2; i++) matkulCache.delete(keys[i]);
-            }
-
-            try {
-                const res = await requestWithRetry("GetListMataKuliah", {
-                    filter: `id_matkul='${idMatkul}'`,
-                    limit: 1
-                });
-                if (res && res.length > 0) {
-                    const kode = res[0].kode_mata_kuliah;
-                    matkulCache.set(idMatkul, kode);
-                    return kode;
-                }
-            } catch (e) {
-                console.warn(`Lookup MK ${idMatkul} gagal:`, e);
-            }
-            return rawKode || 'N/A';
-        }
-
-        /* ============================================
-           KALKULASI IPK
-        ============================================ */
-
-        function hitungKalkulasi(dataNilai) {
-            if (!dataNilai || dataNilai.length === 0) {
-                return { ipk: '0.00', totalSks: 0, jumlahMatkul: 0 };
-            }
-            let totalSks = 0;
-            let totalBobot = 0;
-            dataNilai.forEach(n => {
-                const sks = parseFloat(n.sks_mata_kuliah) || 0;
-                const indeks = parseFloat(n.nilai_indeks) || 0;
-                totalSks += sks;
-                totalBobot += (sks * indeks);
-            });
-            return {
-                ipk: totalSks > 0 ? (totalBobot / totalSks).toFixed(2) : '0.00',
-                totalSks,
-                jumlahMatkul: dataNilai.length
-            };
-        }
-
-        /* ============================================
-           PROSES UTAMA
-        ============================================ */
-
-        async function prosesData() {
-            if (isProcessing) return;
-            const textNim = document.getElementById('listNim').value;
-            const btn = document.getElementById('btnProses');
-            const loader = document.getElementById('loader');
-
-            if (!textNim.trim()) {
-                showToast('Masukkan minimal satu NIM.', 'error');
-                return;
-            }
-
-            // Parse & sanitasi NIM
-            const rawNims = textNim.split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
-            const nims = [...new Set(rawNims.map(sanitizeNim))]; // Dedup + sanitasi
-
-            if (nims.length === 0) {
-                showToast('Tidak ada NIM valid yang ditemukan.', 'error');
-                return;
-            }
-
-            // Reset tampilan
-            document.getElementById('hasilContainer').innerHTML = '';
-            document.getElementById('tableRekap').innerHTML = '';
-            document.getElementById('rekapContainer').classList.add('hidden');
-            globalRekapData = [];
-            matkulCache.clear();
-
-            loader.classList.remove('hidden');
-            btn.disabled = true;
-            isProcessing = true;
-            updateProgress(0, nims.length, 'Menghubungi Feeder...');
-
-            try {
-                await ambilTokenBaru();
-                showToast(`Terhubung. Memproses ${nims.length} NIM...`, 'success');
-
-                for (let i = 0; i < nims.length; i++) {
-                    const nim = nims[i];
-                    updateProgress(i, nims.length, `Memproses ${nim}...`);
-
-                    try {
-                        // Ambil data mahasiswa
-                        const resMhs = await requestWithRetry("GetListRiwayatPendidikanMahasiswa", {
-                            filter: `nim='${nim}'`
-                        });
-
-                        if (!resMhs || resMhs.length === 0) {
-                            throw new Error(`NIM "${nim}" tidak ditemukan dalam database.`);
-                        }
-
-                        const profil = resMhs[0];
-
-                        // Ambil riwayat nilai
-                        const nilai = await requestWithRetry("GetRiwayatNilaiMahasiswa", {
-                            filter: `id_registrasi_mahasiswa='${profil.id_registrasi_mahasiswa}'`
-                        });
-
-                        // Lookup kode MK asli secara paralel
-                        const kodePromises = nilai.map(item => getRealKodeMK(item));
-                        const kodeResults = await Promise.allSettled(kodePromises);
-                        kodeResults.forEach((result, idx) => {
-                            if (result.status === 'fulfilled') {
-                                nilai[idx].kode_bersih = result.value;
-                            } else {
-                                nilai[idx].kode_bersih = nilai[idx].kode_mata_kuliah || 'N/A';
-                            }
-                        });
-
-                        const stats = hitungKalkulasi(nilai);
-                        renderKartu(profil, nilai, stats, i);
-                        globalRekapData.push({ ...profil, ...stats });
-
-                    } catch (e) {
-                        renderError(nim, e.message, i);
+                console.log(`[Periode] Mencoba ${ep.act}...`);
+                const raw = await api(ep.act);
+                console.log(`[Periode] Respons dari ${ep.act}:`, raw);
+                const items = normalizeToArray(raw);
+                console.log(`[Periode] Normalize result: ${items.length} items`);
+                
+                if (items.length > 0) {
+                    periodeCache = items.map(p => {
+                        // FIX: Mapping lebih fleksibel untuk berbagai format respons API
+                        const id = p.id_periode || p.id_periode_perkuliahan || p.id_semester || p.id_tahun_ajaran || String(p.id || '').trim();
+                        const nama = p.nama_periode_perkuliahan || p.nama_periode || p.nama_semester || p.nama_tahun_ajaran || id || 'Tidak tersedia';
+                        const semester = p.nama_semester || p.semester || '';
+                        const tahun = p.id_tahun_ajaran || p.nama_tahun_ajaran || p.tahun_ajaran || '';
+                        return { id_periode: id, nama, semester, tahun };
+                    }).filter(p => p.id_periode && p.id_periode.trim() !== '')
+                      .sort((a, b) => (b.id_periode || '').localeCompare(a.id_periode || ''));
+                    
+                    if (periodeCache.length > 0) {
+                        periodeLoaded = true;
+                        console.log(`[Periode] ✅ Loaded ${periodeCache.length} items via ${ep.label}`);
+                        return true;
                     }
                 }
-
-                updateProgress(nims.length, nims.length, 'Selesai.');
-                showToast(`${globalRekapData.length} dari ${nims.length} NIM berhasil diproses.`, 'success');
-
-                if (globalRekapData.length > 0) {
-                    renderRekapTable(globalRekapData);
-                }
-
-            } catch (err) {
-                showToast(err.message, 'error');
-            } finally {
-                loader.classList.add('hidden');
-                btn.disabled = false;
-                isProcessing = false;
-                setTimeout(hideProgress, 2000);
+            } catch (e) {
+                console.warn(`[Periode] ❌ ${ep.label} gagal:`, e.message);
+                lastError = e;
             }
         }
+        
+        // FIX: Jangan toast error langsung, biarkan UI menangani dengan elegan
+        console.error('[Periode] Semua endpoint gagal:', lastError?.message);
+        return false;
+    }
 
-        /* ============================================
-           RENDER UI
-        ============================================ */
-
-        function renderKartu(mhs, nilai, stats, index) {
-            const delay = index * 80;
-            let rows = '';
-
-            if (!nilai || nilai.length === 0) {
-                rows = `<tr><td colspan="6" class="p-8 text-center text-ink-300 text-sm italic">Tidak ada riwayat nilai untuk mahasiswa ini.</td></tr>`;
-            } else {
-                nilai.forEach((n, i) => {
-                    const gc = gradeClass(n.nilai_huruf);
-                    rows += `
-                        <tr class="trow border-b border-white/[0.03] text-xs transition-colors">
-                            <td class="p-3 text-ink-300 font-mono">${i + 1}</td>
-                            <td class="p-3 font-mono font-semibold text-accent">${n.kode_bersih}</td>
-                            <td class="p-3">${n.nama_mata_kuliah}</td>
-                            <td class="p-3 text-center font-mono">${n.sks_mata_kuliah}</td>
-                            <td class="p-3 text-center font-bold ${gc}">${n.nilai_huruf || '-'}</td>
-                            <td class="p-3 text-center text-ink-300 font-mono">${n.nilai_indeks ?? '0'}</td>
-                        </tr>`;
-                });
-            }
-
-            // Predikat berdasarkan IPK
-            let predikat = '';
-            const ipkNum = parseFloat(stats.ipk);
-            if (ipkNum >= 3.75) predikat = 'Cum Laude';
-            else if (ipkNum >= 3.50) predikat = 'Sangat Memuaskan';
-            else if (ipkNum >= 3.00) predikat = 'Memuaskan';
-            else if (ipkNum >= 2.50) predikat = 'Cukup';
-            else if (ipkNum > 0) predikat = 'Kurang';
-            else predikat = 'Belum Ada';
-
-            const html = `
-                <article class="overflow-hidden card-enter" style="animation-delay:${delay}ms">
-                    <!-- Header Kartu -->
-                    <div class="p-5 md:p-6 border-b border-white/5">
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 mb-1.5">
-                                    <div class="pulse-dot flex-shrink-0"></div>
-                                    <span class="text-[10px] font-bold text-accent uppercase tracking-widest">Data Tersinkronisasi</span>
-                                </div>
-                                <h3 class="text-lg md:text-xl font-bold truncate">${mhs.nama_mahasiswa}</h3>
-                                <p class="text-xs text-ink-300 font-mono mt-0.5">${mhs.nim} &mdash; ${mhs.nama_program_studi}</p>
-                            </div>
-                            <div class="flex items-center gap-4 flex-shrink-0">
-                                <!-- Statistik IPK -->
-                                <div class="ipk-badge rounded-xl px-5 py-3 text-center">
-                                    <p class="text-[9px] font-bold text-accent/70 uppercase tracking-widest">IPK</p>
-                                    <p class="text-2xl font-black text-accent-light leading-tight">${stats.ipk}</p>
-                                    <p class="text-[10px] text-ink-300 mt-0.5">${predikat}</p>
-                                </div>
-                                <!-- Statistik SKS -->
-                                <div class="text-center">
-                                    <p class="text-[9px] font-bold text-ink-300 uppercase tracking-widest">SKS</p>
-                                    <p class="text-xl font-bold text-ink-100 leading-tight">${stats.totalSks}</p>
-                                    <p class="text-[10px] text-ink-300 mt-0.5">${stats.jumlahMatkul} matkul</p>
-                                </div>
-                                <!-- Aksi -->
-                                <button onclick="cetakPdfIndividu('${mhs.nim}')" class="btn-ghost w-10 h-10 rounded-xl flex items-center justify-center group" title="Download PDF KHS">
-                                    <i class="fa-solid fa-file-pdf text-danger group-hover:scale-110 transition-transform"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tabel Nilai -->
-                    <div class="overflow-x-auto">
-                        <table id="table-${mhs.nim}" class="w-full text-left">
-                            <thead>
-                                <tr class="text-[9px] font-bold text-ink-300/60 uppercase tracking-widest border-b border-white/[0.03]">
-                                    <th class="p-3 w-10">No</th>
-                                    <th class="p-3 w-24">Kode</th>
-                                    <th class="p-3">Mata Kuliah</th>
-                                    <th class="p-3 w-14 text-center">SKS</th>
-                                    <th class="p-3 w-14 text-center">Huruf</th>
-                                    <th class="p-3 w-14 text-center">Bobot</th>
-                                </tr>
-                            </thead>
-                            <tbody>${rows}</tbody>
-                        </table>
-                    </div>
-                </article>
-            `;
-            document.getElementById('hasilContainer').insertAdjacentHTML('beforeend', html);
+    async function openPeriodeDd() {
+        const list = document.getElementById('periodeDdList');
+        if (list.classList.contains('open')) return;
+        
+        if (selectedPeriode) {
+            const input = document.getElementById('periodeSearch');
+            input.value = selectedPeriode.nama;
+            setTimeout(() => input.select(), 0);
         }
-
-        function renderRekapTable(data) {
-            const tbody = document.getElementById('tableRekap');
-            document.getElementById('rekapSubtitle').textContent = `${data.length} mahasiswa diproses`;
-
-            data.forEach((d, i) => {
-                const ipkNum = parseFloat(d.ipk);
-                let ipkColor = 'text-accent-light';
-                if (ipkNum < 2.5) ipkColor = 'text-danger-light';
-                else if (ipkNum < 3.0) ipkColor = 'text-flame-light';
-                else if (ipkNum < 3.5) ipkColor = 'text-ink-100';
-
-                tbody.innerHTML += `
-                    <tr class="trow transition-colors">
-                        <td class="p-4 text-ink-300 font-mono text-xs">${i + 1}</td>
-                        <td class="p-4 font-mono font-bold text-accent text-xs">${d.nim}</td>
-                        <td class="p-4 font-semibold text-sm">${d.nama_mahasiswa}</td>
-                        <td class="p-4 text-xs text-ink-300">${d.nama_program_studi}</td>
-                        <td class="p-4 text-center font-mono text-sm">${d.totalSks}</td>
-                        <td class="p-4 text-center">
-                            <span class="no-print ipk-badge px-3 py-1 rounded-full font-bold text-xs ${ipkColor}">${d.ipk}</span>
-                            <span class="print-only font-bold">${d.ipk}</span>
-                        </td>
-                    </tr>`;
-            });
-            document.getElementById('rekapContainer').classList.remove('hidden');
+        
+        // FIX: Load data periode jika belum di-load
+        if (!periodeLoaded || periodeCache.length === 0) {
+            await loadAndRenderPeriode();
+        } else {
+            renderPeriodeList();
+            list.classList.add('open');
         }
+    }
 
-        function renderError(nim, msg, index) {
-            const delay = index * 80;
-            const html = `
-                <div class="glass rounded-2xl p-5 flex items-start gap-4 card-enter border-l-2 border-l-danger" style="animation-delay:${delay}ms">
-                    <div class="w-9 h-9 rounded-lg bg-danger/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <i class="fa-solid fa-triangle-exclamation text-danger text-sm"></i>
+    async function renderPeriodeList() {
+        const list = document.getElementById('periodeDdList');
+        const query = document.getElementById('periodeSearch').value.trim().toLowerCase();
+
+        // FIX: Load data jika belum loaded atau cache kosong
+        if ((!periodeLoaded || periodeCache.length === 0) && !list.querySelector('.dd-loading')) {
+            list.innerHTML = '<div class="dd-loading"><div class="spinner mx-auto mb-2" style="width:14px;height:14px;border-width:2px"></div><span class="text-[10px] text-ink-400">Memuat daftar Tahun Masuk...</span></div>';
+            list.classList.add('open');
+            
+            const success = await loadPeriodeData();
+            if (!success || periodeCache.length === 0) {
+                // FIX: Tampilkan opsi manual input yang lebih user-friendly
+                list.innerHTML = `<div class="dd-empty py-4">
+                    <div class="mb-3">
+                        <i class="fa-solid fa-calendar-days text-gold text-lg mb-2 block"></i>
+                        <p class="text-xs font-semibold text-ink-200 mb-1">Daftar Tahun Masuk tidak tersedia</p>
+                        <p class="text-[9px] text-ink-500 mb-3">Ketik manual format: 20231 (Ganjil), 20232 (Genap)</p>
                     </div>
-                    <div class="min-w-0">
-                        <p class="text-xs font-bold text-danger-light">Gagal: NIM ${nim}</p>
-                        <p class="text-xs text-ink-300 mt-0.5">${msg}</p>
+                    
+                    <div class="grid grid-cols-2 gap-1.5 mb-3 max-w-xs mx-auto">
+                        ${[
+                            {val: '20241', label: '2024 Ganjil'},
+                            {val: '20232', label: '2023 Genap'}, 
+                            {val: '20231', label: '2023 Ganjil'},
+                            {val: '20222', label: '2022 Genap'},
+                            {val: '20221', label: '2022 Ganjil'}
+                        ].map(item => `
+                            <button 
+                                onclick="manualSelectPeriode('${item.val}')" 
+                                class="px-2.5 py-1.5 rounded-lg text-[10px] font-medium bg-white/5 border border-white/10 text-ink-200 hover:bg-em/10 hover:border-em/30 hover:text-em transition-all"
+                            >
+                                ${item.label}
+                            </button>
+                        `).join('')}
                     </div>
-                </div>
-            `;
-            document.getElementById('hasilContainer').insertAdjacentHTML('beforeend', html);
-        }
-
-        /* ============================================
-           EXPORT FUNCTIONS
-        ============================================ */
-
-        // PDF Individu
-        function cetakPdfIndividu(nim) {
-            const mhs = globalRekapData.find(d => d.nim === nim);
-            if (!mhs) return showToast('Data mahasiswa tidak ditemukan.', 'error');
-
-            const containerId = `table-${nim}`;
-            const tableEl = document.getElementById(containerId);
-            if (!tableEl) return showToast('Tabel nilai tidak ditemukan.', 'error');
-
-            const rows = Array.from(tableEl.querySelectorAll('tbody tr')).map(tr => {
-                const cells = tr.querySelectorAll('td');
-                return [
-                    cells[0]?.innerText?.trim() || '',
-                    cells[1]?.innerText?.trim() || '',
-                    cells[2]?.innerText?.trim() || '',
-                    cells[3]?.innerText?.trim() || '',
-                    cells[4]?.innerText?.trim() || '',
-                    cells[5]?.innerText?.trim() || ''
-                ];
-            });
-
-            // Abaikan baris "tidak ada data"
-            if (rows.length === 1 && rows[0].length === 1 && rows[0][0].includes('Tidak ada')) {
-                showToast('Tidak ada riwayat nilai untuk mahasiswa ini.', 'info');
+                    
+                    <button onclick="loadAndRenderPeriode()" class="text-[10px] text-em font-medium hover:underline">
+                        <i class="fa-solid fa-rotate mr-1"></i>Muat Ulang dari Server
+                    </button>
+                </div>`;
                 return;
             }
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            // Header
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text('KARTU HASIL STUDI (KHS)', 105, 18, { align: 'center' });
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'normal');
-            doc.text('Dicetak secara otomatis oleh Neo Feeder IPK Engine', 105, 24, { align: 'center' });
-
-            // Info mahasiswa
-            doc.setLineWidth(0.3);
-            doc.line(14, 28, 196, 28);
-
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Nama', 14, 35);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`: ${mhs.nama_mahasiswa}`, 50, 35);
-
-            doc.setFont('helvetica', 'bold');
-            doc.text('NIM', 14, 41);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`: ${mhs.nim}`, 50, 41);
-
-            doc.setFont('helvetica', 'bold');
-            doc.text('Prodi', 14, 47);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`: ${mhs.nama_program_studi}`, 50, 47);
-
-            doc.setFont('helvetica', 'bold');
-            doc.text('Total SKS / IPK', 120, 35);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`: ${mhs.totalSks} / ${mhs.ipk}`, 155, 35);
-
-            // Tabel
-            doc.autoTable({
-                startY: 53,
-                head: [['No', 'Kode MK', 'Mata Kuliah', 'SKS', 'Nilai', 'Bobot']],
-                body: rows,
-                theme: 'grid',
-                headStyles: { fillColor: [16, 185, 129], textColor: 255, fontSize: 9, fontStyle: 'bold' },
-                bodyStyles: { fontSize: 8 },
-                columnStyles: {
-                    0: { cellWidth: 10, halign: 'center' },
-                    1: { cellWidth: 22 },
-                    3: { cellWidth: 14, halign: 'center' },
-                    4: { cellWidth: 16, halign: 'center' },
-                    5: { cellWidth: 16, halign: 'center' },
-                },
-                margin: { left: 14, right: 14 }
-            });
-
-            // Footer
-            const finalY = doc.lastAutoTable.finalY + 12;
-            doc.setFontSize(8);
-            doc.setTextColor(120);
-            doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, finalY);
-
-            doc.save(`KHS_${mhs.nim}_${mhs.nama_mahasiswa.replace(/\s+/g, '_')}.pdf`);
-            showToast(`PDF KHS ${mhs.nim} berhasil diunduh.`, 'success');
         }
 
-        // PDF Semua Mahasiswa
-        function cetakSemuaPdf() {
-            if (globalRekapData.length === 0) return showToast('Tidak ada data.', 'error');
-            showToast(`Membuat ${globalRekapData.length} PDF...`, 'info');
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            // Halaman 1: Ringkasan
-            doc.setFontSize(16);
-            doc.setFont('helvetica', 'bold');
-            doc.text('REKAPITULASI IPK MAHASISWA', 105, 18, { align: 'center' });
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, 105, 24, { align: 'center' });
-
-            const rekapRows = globalRekapData.map((d, i) => [
-                i + 1, d.nim, d.nama_mahasiswa, d.nama_program_studi || '-', d.totalSks, d.ipk
-            ]);
-
-            doc.autoTable({
-                startY: 30,
-                head: [['No', 'NIM', 'Nama', 'Prodi', 'SKS', 'IPK']],
-                body: rekapRows,
-                theme: 'grid',
-                headStyles: { fillColor: [16, 185, 129], textColor: 255, fontSize: 9, fontStyle: 'bold' },
-                bodyStyles: { fontSize: 8 },
-                columnStyles: {
-                    0: { cellWidth: 10, halign: 'center' },
-                    1: { cellWidth: 25 },
-                    4: { cellWidth: 14, halign: 'center' },
-                    5: { cellWidth: 16, halign: 'center' },
-                },
-                margin: { left: 14, right: 14 }
-            });
-
-            // Per-mahasiswa KHS
-            globalRekapData.forEach((mhs, idx) => {
-                doc.addPage();
-
-                doc.setFontSize(13);
-                doc.setFont('helvetica', 'bold');
-                doc.text(`KHS: ${mhs.nama_mahasiswa}`, 14, 18);
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'normal');
-                doc.text(`NIM: ${mhs.nim} | Prodi: ${mhs.nama_program_studi} | SKS: ${mhs.totalSks} | IPK: ${mhs.ipk}`, 14, 25);
-
-                const containerId = `table-${mhs.nim}`;
-                const tableEl = document.getElementById(containerId);
-                if (!tableEl) return;
-
-                const rows = Array.from(tableEl.querySelectorAll('tbody tr')).map(tr => {
-                    const cells = tr.querySelectorAll('td');
-                    return [
-                        cells[0]?.innerText?.trim() || '',
-                        cells[1]?.innerText?.trim() || '',
-                        cells[2]?.innerText?.trim() || '',
-                        cells[3]?.innerText?.trim() || '',
-                        cells[4]?.innerText?.trim() || '',
-                        cells[5]?.innerText?.trim() || ''
-                    ];
-                });
-
-                doc.autoTable({
-                    startY: 30,
-                    head: [['No', 'Kode MK', 'Mata Kuliah', 'SKS', 'Nilai', 'Bobot']],
-                    body: rows,
-                    theme: 'grid',
-                    headStyles: { fillColor: [16, 185, 129], textColor: 255, fontSize: 9, fontStyle: 'bold' },
-                    bodyStyles: { fontSize: 8 },
-                    columnStyles: {
-                        0: { cellWidth: 10, halign: 'center' },
-                        1: { cellWidth: 22 },
-                        3: { cellWidth: 14, halign: 'center' },
-                        4: { cellWidth: 16, halign: 'center' },
-                        5: { cellWidth: 16, halign: 'center' },
-                    },
-                    margin: { left: 14, right: 14 }
-                });
-            });
-
-            doc.save(`Rekap_KHS_IPK_${new Date().getTime()}.pdf`);
-            showToast('PDF gabungan berhasil diunduh.', 'success');
+        if (!periodeCache.length) {
+            // Sudah dicoba load tapi tetap kosong - tampilkan opsi manual
+            list.innerHTML = `<div class="dd-empty py-4">
+                <p class="text-xs text-ink-300 mb-2">Ketik manual Tahun Masuk:</p>
+                <p class="text-[9px] text-ink-500 font-mono mb-3">Contoh: 20231, 20232, 20241</p>
+                <input 
+                    type="text" 
+                    class="inp w-full px-3 py-2 rounded-lg text-xs text-center font-mono" 
+                    placeholder="20241"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();manualSelectPeriode(this.value);}"
+                >
+            </div>`;
+            return;
         }
 
-        // Export Excel
-        function exportToExcel() {
-            if (globalRekapData.length === 0) return showToast('Tidak ada data untuk diekspor.', 'error');
+        const filtered = query
+            ? periodeCache.filter(p =>
+                p.nama.toLowerCase().includes(query) ||
+                p.id_periode.toLowerCase().includes(query) ||
+                p.tahun.toLowerCase().includes(query) ||
+                p.semester.toLowerCase().includes(query)
+              )
+            : periodeCache;
 
-            const excelData = globalRekapData.map((d, i) => ({
-                'No': i + 1,
-                'NIM': d.nim,
-                'Nama Mahasiswa': d.nama_mahasiswa,
-                'Program Studi': d.nama_program_studi,
-                'Angkatan': d.nama_periode_masuk || '-',
-                'Total SKS': d.totalSks,
-                'IPK': d.ipk
-            }));
-
-            const worksheet = XLSX.utils.json_to_sheet(excelData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Rekap IPK');
-
-            worksheet['!cols'] = [
-                { wch: 5 }, { wch: 16 }, { wch: 32 }, { wch: 28 }, { wch: 16 }, { wch: 10 }, { wch: 10 }
-            ];
-
-            XLSX.writeFile(workbook, `Rekap_IPK_${new Date().getTime()}.xlsx`);
-            showToast('File Excel berhasil diunduh.', 'success');
+        if (!filtered.length) {
+            // FIX: Tampilkan opsi "Gunakan nilai yang diketik" jika tidak cocok
+            const inputValue = document.getElementById('periodeSearch').value.trim();
+            list.innerHTML = `<div>
+                <div class="dd-empty py-3">
+                    <p class="text-[10px] text-ink-400">Tidak ditemukan untuk "${escapeHtml(query)}"</p>
+                </div>
+                ${inputValue ? `
+                    <div class="px-3 pb-2">
+                        <button 
+                            onclick="manualSelectPeriode('${escapeHtml(inputValue)}')"
+                            class="w-full px-3 py-2 rounded-lg text-xs font-medium bg-em/10 border border-em/20 text-em hover:bg-em/20 transition-all"
+                        >
+                            <i class="fa-solid fa-check mr-1.5"></i>Gunakan "${escapeHtml(inputValue)}" sebagai Tahun Masuk
+                        </button>
+                    </div>
+                ` : ''}
+            </div>`;
+            return;
         }
 
-        /* ============================================
-           KEYBOARD SHORTCUT
-        ============================================ */
-        document.addEventListener('keydown', (e) => {
-            // Ctrl+Enter untuk proses
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                e.preventDefault();
-                if (!isProcessing) prosesData();
+        /* FIX: gunakan data-id alih-alih inline onclick */
+        list.innerHTML = filtered.map(p => {
+            const isActive = selectedPeriode && selectedPeriode.id_periode === p.id_periode;
+            const parts = [p.tahun, p.semester].filter(Boolean);
+            const sub = parts.length
+                ? `<div class="dd-sub">${parts.map(s => escapeHtml(s)).join(' &middot; ')}</div>`
+                : `<div class="dd-sub">ID: ${escapeHtml(p.id_periode)}</div>`;
+            return `<div class="dd-item${isActive?' active':''}" data-id="${escapeHtml(p.id_periode)}">
+                <div class="text-xs font-medium text-ink-100">${highlightMatch(p.nama, query)}</div>${sub}
+            </div>`;
+        }).join('');
+    }
+
+    function filterPeriodeDd() {
+        if (!document.getElementById('periodeDdList').classList.contains('open')) {
+            document.getElementById('periodeDdList').classList.add('open');
+        }
+        
+        // FIX: Jangan reset selectedPeriode jika user sedang typing
+        // Biarkan user bisa mengetik manual tanpa kehilangan state
+        const currentValue = document.getElementById('periodeSearch').value.trim();
+        
+        if (currentValue === '') {
+            selectedPeriode = null;
+            document.getElementById('angPeriode').value = '';
+            document.getElementById('periodeClearBtn').classList.add('hidden');
+            document.getElementById('periodeDdIcon').classList.remove('hidden');
+        }
+        
+        renderPeriodeList();
+    }
+
+    function selectPeriode(id) {
+        const found = periodeCache.find(p => p.id_periode === id);
+        if (!found) return;
+        selectedPeriode = found;
+        document.getElementById('angPeriode').value = found.id_periode;
+        document.getElementById('periodeSearch').value = found.nama;
+        document.getElementById('periodeClearBtn').classList.remove('hidden');
+        document.getElementById('periodeDdIcon').classList.add('hidden');
+        document.getElementById('periodeDdList').classList.remove('open');
+    }
+
+    function clearPeriode() {
+        selectedPeriode = null; document.getElementById('angPeriode').value = '';
+        document.getElementById('periodeSearch').value = '';
+        document.getElementById('periodeClearBtn').classList.add('hidden');
+        document.getElementById('periodeDdIcon').classList.remove('hidden');
+        document.getElementById('periodeSearch').focus();
+    }
+
+    /* FIX: reset periode tanpa focus() — dipanggil saat ganti prodi */
+    function resetPeriodeQuiet() {
+        selectedPeriode = null; document.getElementById('angPeriode').value = '';
+        document.getElementById('periodeSearch').value = '';
+        document.getElementById('periodeClearBtn').classList.add('hidden');
+        document.getElementById('periodeDdIcon').classList.remove('hidden');
+    }
+
+    /* =========================================================
+       FIX: Event delegation untuk dropdown (mengganti inline onclick)
+    ========================================================= */
+    document.getElementById('prodiDdList').addEventListener('click', (e) => {
+        const item = e.target.closest('.dd-item');
+        if (item && item.dataset.id) selectProdi(item.dataset.id);
+    });
+    document.getElementById('periodeDdList').addEventListener('click', (e) => {
+        const item = e.target.closest('.dd-item');
+        if (item && item.dataset.id) selectPeriode(item.dataset.id);
+    });
+
+    /* =========================================================
+       TUTUP DROPDOWN SAAT KLIK DI LUAR
+    ========================================================= */
+    document.addEventListener('click', (e) => {
+        // Prodi dropdown
+        if (!document.getElementById('prodiDdWrap').contains(e.target)) {
+            document.getElementById('prodiDdList').classList.remove('open');
+            if (selectedProdi) document.getElementById('prodiSearch').value = selectedProdi.nama;
+        }
+        
+        // Periode dropdown - FIX: Simpan nilai manual jika user sedang mengetik
+        if (!document.getElementById('periodeDdWrap').contains(e.target)) {
+            const periodeList = document.getElementById('periodeDdList');
+            const periodeInput = document.getElementById('periodeSearch');
+            const currentInputValue = periodeInput.value.trim();
+            
+            periodeList.classList.remove('open');
+            
+            // FIX: Jika user sudah mengetik sesuatu dan itu valid, simpan sebagai selection
+            if (currentInputValue && (!selectedPeriode || selectedPeriode.nama !== currentInputValue)) {
+                // Cek apakah input cocok dengan format yang wajar (minimal 3 karakter, alphanumeric)
+                if (/^[a-zA-Z0-9\-]{3,}$/.test(currentInputValue)) {
+                    // Update hidden value agar bisa diproses
+                    document.getElementById('angPeriode').value = currentInputValue;
+                    selectedPeriode = {
+                        id_periode: currentInputValue,
+                        nama: currentInputValue,
+                        semester: '',
+                        tahun: currentInputValue
+                    };
+                    document.getElementById('periodeClearBtn').classList.remove('hidden');
+                    document.getElementById('periodeDdIcon').classList.add('hidden');
+                }
+            } else if (selectedPeriode) {
+                periodeInput.value = selectedPeriode.nama;
             }
+        }
+    });
+
+    /* =========================================================
+       TAB 1: BATCH NIM
+    ========================================================= */
+    async function prosesBatchNim() {
+        if(isProcessing) return;
+        const raw = document.getElementById('listNim').value;
+        if(!raw.trim()) return toast('Masukkan minimal satu NIM.','error');
+        const nims = [...new Set(raw.split(/[\n,;]+/).map(s=>sanitize(s)).filter(Boolean))];
+        if(!nims.length) return toast('Tidak ada NIM valid.','error');
+        const btn=document.getElementById('btnBatchNim'), sp=document.getElementById('spinBN');
+        btn.disabled=true; sp.classList.remove('hidden'); isProcessing=true;
+        document.getElementById('bnCards').innerHTML='';
+        document.getElementById('bnRekapBody').innerHTML='';
+        document.getElementById('bnRekap').classList.add('hidden');
+        bnData=[]; mkCache.clear();
+        try {
+            await getToken(); toast(`Terhubung. Memproses ${nims.length} NIM...`,'success');
+            for(let i=0;i<nims.length;i++){
+                const nim=nims[i]; setProg('bnProg',`Memproses ${nim}...`,Math.floor((i/nims.length)*100));
+                try {
+                    const list=normalizeToArray(await api('GetListRiwayatPendidikanMahasiswa',{filter:`nim='${nim}'`}));
+                    if(!list.length) throw new Error(`NIM "${nim}" tidak ditemukan.`);
+                    const profil=list[0];
+                    setProg('bnProg',`Memuat transkrip ${profil.nama_mahasiswa}...`,Math.floor(((i+.5)/nims.length)*100));
+                    const trans=await getTranskrip(profil.id_registrasi_mahasiswa);
+                    renderBN_Card(profil, trans, i); bnData.push({...profil,...trans});
+                } catch(e) { renderBN_Error(nim, e.message, i); }
+            }
+            setProg('bnProg','Selesai.',100);
+            if(bnData.length) renderBN_Rekap();
+            toast(`${bnData.length} dari ${nims.length} NIM berhasil.`,'success');
+        } catch(e) { toast(e.message,'error'); }
+        finally { btn.disabled=false; sp.classList.add('hidden'); isProcessing=false; setTimeout(()=>hideProg('bnProg'),2500); }
+    }
+
+    function resetBatchNim() {
+        if(isProcessing) return toast('Proses sedang berjalan.','error');
+        document.getElementById('listNim').value=''; document.getElementById('bnCards').innerHTML='';
+        document.getElementById('bnRekapBody').innerHTML=''; document.getElementById('bnRekap').classList.add('hidden');
+        hideProg('bnProg'); bnData=[]; mkCache.clear(); toast('Data Batch NIM direset.','info');
+    }
+
+    function renderBN_Card(profil, trans, idx) {
+        /* FIX: escapeHtml untuk semua data API di template */
+        const rows = trans.data.length ? trans.data.map((n,i)=>`<tr class="trow border-b border-white/[.03] text-xs"><td class="p-2.5 text-ink-400 font-mono">${i+1}</td><td class="p-2.5 font-mono font-semibold text-em">${escapeHtml(n.kode_bersih)}</td><td class="p-2.5">${escapeHtml(n.nama_mata_kuliah)}</td><td class="p-2.5 text-center font-mono">${n.sks_mata_kuliah}</td><td class="p-2.5 text-center font-bold ${gradeCls(n.nilai_huruf)}">${escapeHtml(n.nilai_huruf||'-')}</td><td class="p-2.5 text-center text-ink-400 font-mono">${n.nilai_indeks??'0'}</td></tr>`).join('') : '<tr><td colspan="6" class="p-6 text-center text-ink-400 text-xs italic">Tidak ada riwayat nilai.</td></tr>';
+        const safeNim = escapeHtml(profil.nim);
+        document.getElementById('bnCards').insertAdjacentHTML('beforeend',`<article class="glass rounded-2xl overflow-hidden card-in" style="animation-delay:${idx*60}ms"><div class="p-5 border-b border-white/5"><div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3"><div class="min-w-0"><div class="flex items-center gap-1.5 mb-1"><div class="pdot"></div><span class="text-[8px] font-bold text-em uppercase tracking-widest">Tersinkronisasi</span></div><h3 class="text-lg font-bold truncate">${escapeHtml(profil.nama_mahasiswa)}</h3><p class="text-[10px] text-ink-400 font-mono">${safeNim} &mdash; ${escapeHtml(profil.nama_program_studi||'-')}</p></div><div class="flex items-center gap-3 flex-shrink-0"><div class="ipk-glow rounded-xl px-4 py-2.5 text-center"><p class="text-[7px] font-bold text-em/60 uppercase tracking-widest">IPK</p><p class="text-2xl font-bold text-em-light leading-tight">${trans.ipk}</p><p class="text-[9px] text-ink-300">${predikat(trans.ipk)}</p></div><div class="text-center"><p class="text-[7px] font-bold text-ink-400 uppercase tracking-widest">SKS</p><p class="text-lg font-bold text-ink-100 leading-tight">${trans.totalSks}</p><p class="text-[9px] text-ink-400">${trans.data.length} mk</p></div><button onclick="downloadPdf('${safeNim}')" class="btn-g w-9 h-9 rounded-xl flex items-center justify-center group" title="Download PDF"><i class="fa-solid fa-file-pdf text-rose group-hover:scale-110 transition-transform text-sm"></i></button></div></div></div><div class="overflow-x-auto"><table id="table-${safeNim}" class="w-full text-left"><thead><tr class="text-[8px] font-bold text-ink-400/50 uppercase tracking-widest border-b border-white/[.03]"><th class="p-2.5 w-9">No</th><th class="p-2.5 w-22">Kode</th><th class="p-2.5">Mata Kuliah</th><th class="p-2.5 w-12 text-center">SKS</th><th class="p-2.5 w-12 text-center">Huruf</th><th class="p-2.5 w-12 text-center">Bobot</th></tr></thead><tbody>${rows}</tbody></table></div></article>`);
+    }
+
+    function renderBN_Error(nim, msg, idx) {
+        document.getElementById('bnCards').insertAdjacentHTML('beforeend',`<div class="glass rounded-2xl p-4 flex items-start gap-3 card-in border-l-2 border-l-rose" style="animation-delay:${idx*60}ms"><div class="w-8 h-8 rounded-lg bg-rose/10 flex items-center justify-center flex-shrink-0 mt-0.5"><i class="fa-solid fa-triangle-exclamation text-rose text-xs"></i></div><div><p class="text-xs font-bold text-rose-light">Gagal: ${escapeHtml(nim)}</p><p class="text-[10px] text-ink-400 mt-0.5">${escapeHtml(msg)}</p></div></div>`);
+    }
+
+    function renderBN_Rekap() {
+        const tb=document.getElementById('bnRekapBody');
+        document.getElementById('bnRekapSub').textContent=`${bnData.length} mahasiswa diproses`;
+        let html = '';
+        bnData.forEach((d,i)=>{ html+=`<tr class="trow"><td class="p-3 text-ink-400 font-mono text-xs">${i+1}</td><td class="p-3 font-mono font-bold text-em text-xs">${escapeHtml(d.nim)}</td><td class="p-3 font-semibold text-sm">${escapeHtml(d.nama_mahasiswa)}</td><td class="p-3 text-xs text-ink-400">${escapeHtml(d.nama_program_studi||'-')}</td><td class="p-3 text-center font-mono text-sm">${d.totalSks}</td><td class="p-3 text-center"><span class="no-print ipk-glow px-2.5 py-0.5 rounded-full text-xs font-bold ${ipkColor(d.ipk)}">${d.ipk}</span><span class="print-only font-bold">${d.ipk}</span></td></tr>`; });
+        tb.innerHTML = html;
+        document.getElementById('bnRekap').classList.remove('hidden');
+    }
+
+    /* =========================================================
+       TAB 2: TRANSKRIP
+    ========================================================= */
+    async function prosesTranskrip() {
+        if(isProcessing) return;
+        const nim=sanitize(document.getElementById('nimTranskrip').value.trim());
+        if(!nim) return toast('Masukkan NIM.','error');
+        const btn=document.getElementById('btnTranskrip'), sp=document.getElementById('spinTr');
+        btn.disabled=true; sp.classList.remove('hidden'); isProcessing=true;
+        document.getElementById('transkripResult').classList.add('hidden');
+        try {
+            showLoader(true,`Mencari ${nim}...`);
+            const list=normalizeToArray(await api('GetListRiwayatPendidikanMahasiswa',{filter:`nim='${nim}'`}));
+            if(!list.length) throw new Error(`NIM "${nim}" tidak ditemukan.`);
+            const p=list[0]; showLoader(true,`Memuat transkrip ${p.nama_mahasiswa}...`);
+            const t=await getTranskrip(p.id_registrasi_mahasiswa); renderTranskrip(p, t);
+        } catch(e) {
+            document.getElementById('transkripResult').innerHTML=`<div class="max-w-md mx-auto glass rounded-2xl p-6 text-center border-l-2 border-l-rose card-in"><i class="fa-solid fa-triangle-exclamation text-rose text-2xl mb-2"></i><h3 class="text-rose-light font-bold text-sm mb-1">Tidak Ditemukan</h3><p class="text-ink-400 text-xs">${escapeHtml(e.message)}</p></div>`;
+            document.getElementById('transkripResult').classList.remove('hidden'); toast(e.message,'error');
+        } finally { showLoader(false); btn.disabled=false; sp.classList.add('hidden'); isProcessing=false; }
+    }
+
+    function renderTranskrip(p, t) {
+        const rows = t.data.length ? t.data.map((n,i)=>`<tr class="trow border-b border-white/[.03] text-xs"><td class="p-2.5 text-ink-400 font-mono">${i+1}</td><td class="p-2.5 font-mono font-semibold text-em">${escapeHtml(n.kode_bersih)}</td><td class="p-2.5">${escapeHtml(n.nama_mata_kuliah)}</td><td class="p-2.5 text-center font-mono">${n.sks_mata_kuliah}</td><td class="p-2.5 text-center font-bold ${gradeCls(n.nilai_huruf)}">${escapeHtml(n.nilai_huruf||'-')}</td><td class="p-2.5 text-center text-ink-400 font-mono">${n.nilai_indeks??'0'}</td></tr>`).join('') : '<tr><td colspan="6" class="p-8 text-center text-ink-400 text-xs italic">Tidak ada riwayat nilai.</td></tr>';
+        const safeNim = escapeHtml(p.nim);
+        document.getElementById('transkripResult').innerHTML=`<article class="glass rounded-2xl overflow-hidden max-w-4xl mx-auto card-in"><div class="p-6 md:p-8 border-b border-white/5"><div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"><div class="min-w-0"><div class="flex items-center gap-1.5 mb-1"><div class="pdot"></div><span class="text-[8px] font-bold text-em uppercase tracking-widest">Tersinkronisasi</span></div><h3 class="text-xl md:text-2xl font-bold truncate">${escapeHtml(p.nama_mahasiswa)}</h3><p class="text-[10px] text-ink-400 font-mono mt-0.5">${safeNim} &mdash; ${escapeHtml(p.nama_program_studi||'-')}</p></div><div class="flex items-center gap-4 flex-shrink-0"><div class="ipk-glow rounded-xl px-5 py-3 text-center"><p class="text-[7px] font-bold text-em/60 uppercase tracking-widest">IPK Kumulatif</p><p class="text-3xl font-bold text-em-light leading-tight">${t.ipk}</p><p class="text-[9px] text-ink-300">${predikat(t.ipk)}</p></div><div class="text-center"><p class="text-[7px] font-bold text-ink-400 uppercase tracking-widest">Total SKS</p><p class="text-xl font-bold text-ink-100 leading-tight">${t.totalSks}</p><p class="text-[9px] text-ink-400">${t.data.length} matkul</p></div></div></div><div class="flex gap-2 mt-5 no-print"><button onclick="downloadPdf('${safeNim}')" class="btn-g text-ink-200 px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2"><i class="fa-solid fa-file-pdf text-rose"></i>Download PDF</button><button onclick="window.print()" class="btn-g text-ink-200 px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2"><i class="fa-solid fa-print"></i>Cetak</button></div></div><div class="overflow-x-auto"><table id="table-${safeNim}" class="w-full text-left"><thead><tr class="text-[8px] font-bold text-ink-400/50 uppercase tracking-widest border-b border-white/[.03]"><th class="p-2.5 w-9">No</th><th class="p-2.5 w-22">Kode</th><th class="p-2.5">Mata Kuliah</th><th class="p-2.5 w-12 text-center">SKS</th><th class="p-2.5 w-12 text-center">Nilai</th><th class="p-2.5 w-12 text-center">Bobot</th></tr></thead><tbody>${rows}</tbody></table></div></article>`;
+        document.getElementById('transkripResult').classList.remove('hidden');
+    }
+
+    /* =========================================================
+       TAB 3: ANALISIS ANGKATAN
+    ========================================================= */
+    async function prosesAngkatan() {
+        if(isProcessing) return;
+        const prodi = sanitizeId(document.getElementById('angProdi').value.trim());
+        const periode = sanitizeId(document.getElementById('angPeriode').value.trim());
+        
+        if (!prodi) {
+            toast('Silakan pilih Program Studi.','error');
+            document.getElementById('prodiSearch').focus();
+            return;
+        }
+        
+        // FIX: Validasi lebih fleksibel - terima input manual selama tidak kosong
+        if (!periode || periode.trim() === '') {
+            toast('Silakan pilih atau ketik Tahun Masuk (contoh: 20231, 20232).','error');
+            document.getElementById('periodeSearch').focus();
+            // FIX: Buka dropdown untuk membantu user
+            openPeriodeDd();
+            return;
+        }
+        
+        // FIX: Jika periode tidak ada di cache tapi valid formatnya, tetap lanjutkan
+        if (!selectedPeriode || selectedPeriode.id_periode !== periode) {
+            console.log('[Angkatan] Menggunakan periode manual:', periode);
+            // Buat objek periode sementara untuk keperluan display
+            selectedPeriode = {
+                id_periode: periode,
+                nama: periode,
+                semester: '',
+                tahun: periode
+            };
+        }
+        
+        const btn=document.getElementById('btnAngkatan'), sp=document.getElementById('spinAng');
+        btn.disabled=true; sp.classList.remove('hidden'); isProcessing=true;
+        angData=[];
+        const body=document.getElementById('angBody'), acts=document.getElementById('angActions');
+        body.innerHTML=''; acts.classList.add('hidden');
+        try {
+            setProg('angProg','Mengambil daftar mahasiswa...',5);
+            const list=normalizeToArray(await api('GetListRiwayatPendidikanMahasiswa',{filter:`id_prodi='${prodi}' AND id_periode_masuk='${periode}'`}));
+            if(!list.length) throw new Error('Tidak ada data untuk kombinasi Prodi dan Angkatan tersebut.');
+
+            /* FIX: build string lalu set innerHTML sekali (performa) */
+            let html = '';
+            for(let i=0;i<list.length;i++){
+                const m=list[i], pct=Math.floor(((i+1)/list.length)*100);
+                setProg('angProg',`Memproses: ${m.nama_mahasiswa}`,pct);
+                const t=await getTranskrip(m.id_registrasi_mahasiswa);
+                angData.push({profil:m,transkrip:t});
+                html+=`<tr class="trow"><td class="p-3 text-ink-400 font-mono text-xs">${i+1}</td><td class="p-3"><div class="font-semibold text-sm">${escapeHtml(m.nama_mahasiswa)}</div><div class="text-[9px] text-ink-400 font-mono">${escapeHtml(m.nim)}</div></td><td class="p-3 text-center font-mono text-sm">${t.totalSks}</td><td class="p-3 text-center"><span class="ipk-glow px-2.5 py-0.5 rounded-full text-xs font-bold ${ipkColor(t.ipk)}">${t.ipk}</span></td><td class="p-3 text-center"><button onclick="lihatTranskrip('${escapeHtml(m.nim)}')" class="text-ink-400 hover:text-em transition-colors" title="Lihat Transkrip"><i class="fa-solid fa-eye text-xs"></i></button></td></tr>`;
+            }
+            body.innerHTML = html;
+
+            const avg = (angData.reduce((s,d)=>s+parseFloat(d.transkrip.ipk),0)/angData.length).toFixed(2);
+            setProg('angProg','Selesai.',100); acts.classList.remove('hidden');
+            document.getElementById('angSummary').textContent=`${angData.length} mhs — ${selectedProdi?.nama||'Prodi'} ${selectedPeriode?.nama||periode} | Avg IPK: ${avg}`;
+            toast(`${angData.length} mahasiswa berhasil diproses.`,'success');
+        } catch(e) {
+            toast(e.message,'error');
+            body.innerHTML=`<tr><td colspan="5" class="p-10 text-center text-rose text-xs">${escapeHtml(e.message)}</td></tr>`;
+        } finally { btn.disabled=false; sp.classList.add('hidden'); isProcessing=false; setTimeout(()=>hideProg('angProg'),2500); }
+    }
+
+    function lihatTranskrip(nim) { document.getElementById('nimTranskrip').value=nim; switchTab('transkrip'); prosesTranskrip(); }
+
+    /* =========================================================
+       TAB 4: KATALOG MK
+    ========================================================= */
+    async function loadMatkul() {
+        const q=sanitizeLike(document.getElementById('searchMk').value.trim()), body=document.getElementById('mkBody');
+        const btn=document.getElementById('btnMk'), sp=document.getElementById('spinMk');
+        sp.classList.remove('hidden'); btn.disabled=true;
+        body.innerHTML='<tr><td colspan="4" class="p-10 text-center text-ink-400 text-xs"><div class="spinner mx-auto mb-2" style="width:14px;height:14px;border-width:2px"></div>Memuat...</td></tr>';
+        try {
+            const filter = q ? `nama_mata_kuliah LIKE '%${q}%' OR kode_mata_kuliah LIKE '%${q}%'` : '';
+            const data=normalizeToArray(await api('GetListMataKuliah',{filter,limit:100}));
+            if(!data.length){body.innerHTML='<tr><td colspan="4" class="p-10 text-center text-ink-400 text-xs italic">Tidak ditemukan.</td></tr>';return;}
+            body.innerHTML=data.map(m=>`<tr class="trow text-xs"><td class="p-2.5 font-mono font-semibold text-em">${escapeHtml(m.kode_mata_kuliah)}</td><td class="p-2.5">${escapeHtml(m.nama_mata_kuliah)}</td><td class="p-2.5 text-center font-mono">${m.sks_mata_kuliah}</td><td class="p-2.5"><span class="text-[8px] px-2 py-0.5 bg-white/5 rounded-full font-bold uppercase text-ink-300">${escapeHtml(m.nama_jenis_mata_kuliah||'Wajib')}</span></td></tr>`).join('');
+        } catch(e) { body.innerHTML=`<tr><td colspan="4" class="p-10 text-center text-rose text-xs">${escapeHtml(e.message)}</td></tr>`; toast(e.message,'error'); }
+        finally { sp.classList.add('hidden'); btn.disabled=false; }
+    }
+
+    /* =========================================================
+       PDF EXPORT — FIX: buildRekapDoc data access
+    ========================================================= */
+    function buildPdfRows(nim) {
+        let found = bnData.find(d=>d.nim===nim);
+        if(found) return found.data.map((n,i)=>[i+1, n.kode_bersih, n.nama_mata_kuliah, n.sks_mata_kuliah, n.valor_huruf||n.nilai_huruf||'-', n.nilai_indeks??'0']);
+        found = angData.find(d=>d.profil.nim===nim);
+        if(found) return found.transkrip.data.map((n,i)=>[i+1, n.kode_bersih, n.nama_mata_kuliah, n.sks_mata_kuliah, n.valor_huruf||n.nilai_huruf||'-', n.nilai_indeks??'0']);
+        const el = document.getElementById(`table-${nim}`);
+        if(!el) return [];
+        return Array.from(el.querySelectorAll('tbody tr')).map(tr=>{ const c=tr.querySelectorAll('td'); return [c[0]?.textContent?.trim(), c[1]?.textContent?.trim(), c[2]?.textContent?.trim(), c[3]?.textContent?.trim(), c[4]?.textContent?.trim(), c[5]?.textContent?.trim()]; });
+    }
+    function findProfil(nim) {
+        let f = bnData.find(d=>d.nim===nim);
+        if(f) return { nama:f.nama_mahasiswa, nim:f.nim, prodi:f.nama_program_studi, sks:f.totalSks, ipk:f.ipk };
+        f = angData.find(d=>d.profil.nim===nim);
+        if(f) return { nama:f.profil.nama_mahasiswa, nim:f.profil.nim, prodi:f.profil.nama_program_studi, sks:f.transkrip.totalSks, ipk:f.transkrip.ipk };
+        const card = document.querySelector(`#table-${nim}`)?.closest('article');
+        return { nama:card?.querySelector('h3')?.textContent||nim, nim, prodi:card?.querySelector('p.font-mono')?.textContent?.split('—')[1]?.trim()||'-', sks:'?', ipk:'?' };
+    }
+    function downloadPdf(nim) {
+        const rows = buildPdfRows(nim);
+        if(!rows.length) return toast('Data tidak ditemukan.','error');
+        const p = findProfil(nim);
+        const {jsPDF}=window.jspdf, doc=new jsPDF();
+        doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.text('STIT TUNAS BANGSA',105,16,{align:'center'});
+        doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.text('Kartu Hasil Studi (KHS) / Transkrip Nilai',105,22,{align:'center'});
+        doc.setLineWidth(.3); doc.line(14,26,196,26);
+        let y=33;
+        const info=(l,v)=>{doc.setFont('helvetica','bold');doc.text(l,14,y);doc.setFont('helvetica','normal');doc.text(': '+String(v).substring(0,60),52,y);y+=5.5;};
+        info('Nama',p.nama); info('NIM',p.nim); info('Prodi',p.prodi); info('Total SKS / IPK',`${p.sks} / ${p.ipk}`);
+        doc.autoTable({startY:y+2, head:[['No','Kode MK','Mata Kuliah','SKS','Nilai','Bobot']], body:rows, theme:'grid', headStyles:{fillColor:[16,185,129],textColor:255,fontSize:8,fontStyle:'bold'}, bodyStyles:{fontSize:7.5}, columnStyles:{0:{cellWidth:10,halign:'center'},1:{cellWidth:22},3:{cellWidth:12,halign:'center'},4:{cellWidth:14,halign:'center'},5:{cellWidth:12,halign:'center'}}, margin:{left:14,right:14}});
+        doc.setFontSize(7);doc.setTextColor(140); doc.text(`Dicetak: ${new Date().toLocaleString('id-ID')} — Neo Feeder IPK Engine`,14,doc.lastAutoTable.finalY+8);
+        doc.save(`KHS_${nim}_${(p.nama||'').replace(/\s+/g,'_')}.pdf`); toast('PDF berhasil diunduh.','success');
+    }
+
+    /* FIX: buildRekapDoc — perbaikan akses data yang salah untuk detail halaman */
+    function buildRekapDoc(title, dataList, getRow) {
+        const {jsPDF}=window.jspdf, doc=new jsPDF();
+        doc.setFontSize(13);doc.setFont('helvetica','bold'); doc.text('STIT TUNAS BANGSA',105,16,{align:'center'});
+        doc.setFontSize(10);doc.text(title,105,22,{align:'center'});
+        doc.setLineWidth(.3);doc.line(14,26,196,26);
+        const rekapRows = dataList.map((d,i)=>getRow(d,i));
+        const avg = dataList.length ? (dataList.reduce((s,d)=>{ const ipk=typeof d.ipk==='string'?parseFloat(d.ipk):parseFloat(d.transkrip?.ipk||0); return s+ipk; },0)/dataList.length).toFixed(2) : '0.00';
+        doc.autoTable({startY:30, head:[['No','NIM','Nama','Prodi','SKS','IPK']], body:rekapRows, theme:'grid', headStyles:{fillColor:[16,185,129],textColor:255,fontSize:8,fontStyle:'bold'}, bodyStyles:{fontSize:7.5}, columnStyles:{0:{cellWidth:8,halign:'center'},1:{cellWidth:24},3:{cellWidth:30},4:{cellWidth:12,halign:'center'},5:{cellWidth:14,halign:'center'}}, margin:{left:14,right:14}});
+        doc.setFontSize(9);doc.setFont('helvetica','bold'); doc.text(`Rata-rata IPK: ${avg}`,14,doc.lastAutoTable.finalY+10);
+
+        dataList.forEach(d=>{
+            doc.addPage();
+            const nim=d.nim||d.profil?.nim||'';
+            const nama=d.nama_mahasiswa||d.profil?.nama_mahasiswa||'';
+            const prodi=d.nama_program_studi||d.profil?.nama_program_studi||'';
+
+            /* FIX: akses data transkrip dengan benar */
+            const courseData = Array.isArray(d.data) ? d.data : (d.transkrip?.data || []);
+            const sks = d.totalSks ?? d.transkrip?.totalSks ?? 0;
+            const ipk = d.ipk ?? d.transkrip?.ipk ?? '0.00';
+
+            doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text(String(nama).substring(0,50),14,18);
+            doc.setFontSize(8);doc.setFont('helvetica','normal');doc.text(`NIM: ${nim} | Prodi: ${String(prodi).substring(0,30)} | SKS: ${sks} | IPK: ${ipk}`,14,24);
+
+            /* FIX: tambah kolom Bobot untuk konsistensi */
+            const rows = courseData.map((n,i)=>[i+1, n.kode_bersih||n.kode_mata_kuliah||'', n.nama_mata_kuliah||'', n.sks_mata_kuliah||0, n.valor_huruf||n.nilai_huruf||'-', n.nilai_indeks??'0']);
+            doc.autoTable({startY:28, head:[['No','Kode','Mata Kuliah','SKS','Nilai','Bobot']], body:rows, theme:'grid', headStyles:{fillColor:[16,185,129],textColor:255,fontSize:8,fontStyle:'bold'}, bodyStyles:{fontSize:7.5}, columnStyles:{0:{cellWidth:8,halign:'center'},1:{cellWidth:22},3:{cellWidth:12,halign:'center'},4:{cellWidth:14,halign:'center'},5:{cellWidth:12,halign:'center'}}, margin:{left:14,right:14}});
         });
+        return doc;
+    }
+
+    function exportBN_PdfAll() {
+        if(!bnData.length) return toast('Tidak ada data.','error');
+        toast(`Membuat PDF ${bnData.length} transkrip...`,'info');
+        const doc = buildRekapDoc('Rekapitulasi Perhitungan IPK — Batch NIM', bnData, (d,i)=>[i+1,d.nim,d.nama_mahasiswa,d.nama_program_studi||'-',d.totalSks,d.ipk]);
+        doc.save(`Rekap_IPK_Batch_${new Date().getTime()}.pdf`); toast('PDF berhasil diunduh.','success');
+    }
+    function exportAng_PdfAll() {
+        if(!angData.length) return toast('Tidak ada data.','error');
+        toast(`Membuat PDF ${angData.length} transkrip...`,'info');
+        const mapped = angData.map(d=>({nim:d.profil.nim,nama_mahasiswa:d.profil.nama_mahasiswa,nama_program_studi:d.profil.nama_program_studi,...d.transkrip}));
+        const doc = buildRekapDoc('Rekapitulasi Analisis Angkatan', mapped, (d,i)=>[i+1,d.nim,d.nama_mahasiswa,d.nama_program_studi||'-',d.totalSks,d.ipk]);
+        doc.save(`Rekap_IPK_Angkatan_${new Date().getTime()}.pdf`); toast('PDF berhasil diunduh.','success');
+    }
+
+    /* =========================================================
+       EXCEL EXPORT
+    ========================================================= */
+    function exportBN_Excel() {
+        if(!bnData.length) return toast('Tidak ada data.','error');
+        const rows=bnData.map((d,i)=>({'No':i+1,'NIM':d.nim,'Nama':d.nama_mahasiswa,'Prodi':d.nama_program_studi||'-','Angkatan':d.nama_periode_masuk||'-','Total SKS':d.totalSks,'IPK':d.ipk}));
+        const ws=XLSX.utils.json_to_sheet(rows); ws['!cols']=[{wch:5},{wch:16},{wch:30},{wch:28},{wch:14},{wch:10},{wch:10}];
+        const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Rekap IPK');
+        XLSX.writeFile(wb,`Rekap_IPK_Batch_${new Date().getTime()}.xlsx`); toast('Excel berhasil diunduh.','success');
+    }
+    function exportAng_Excel() {
+        if(!angData.length) return toast('Tidak ada data.','error');
+        const rows=angData.map((d,i)=>({'No':i+1,'NIM':d.profil.nim,'Nama':d.profil.nama_mahasiswa,'Prodi':d.profil.nama_program_studi||'-','Total SKS':d.transkrip.totalSks,'IPK':d.transkrip.ipk,'Jumlah MK':d.transkrip.data.length}));
+        const ws=XLSX.utils.json_to_sheet(rows); ws['!cols']=[{wch:5},{wch:16},{wch:30},{wch:28},{wch:10},{wch:10},{wch:12}];
+        const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Analisis Angkatan');
+        XLSX.writeFile(wb,`Analisis_Angkatan_${new Date().getTime()}.xlsx`); toast('Excel berhasil diunduh.','success');
+    }
+
+    /* =========================================================
+       KEYBOARD
+    ========================================================= */
+    document.addEventListener('keydown', e=>{
+        // Ctrl/Cmd + Enter: Execute current action
+        if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){
+            e.preventDefault();
+            if(!document.getElementById('tab-batchNim').classList.contains('hidden')) prosesBatchNim();
+            else if(!document.getElementById('tab-transkrip').classList.contains('hidden')) prosesTranskrip();
+            else if(!document.getElementById('tab-angkatan').classList.contains('hidden')) prosesAngkatan();
+            else if(!document.getElementById('tab-matkul').classList.contains('hidden')) loadMatkul();
+        }
+        
+        // Ctrl/Cmd + Shift + D: Toggle Dark/Light Mode
+        if((e.ctrlKey||e.metaKey) && e.shiftKey && e.key.toLowerCase()==='d'){
+            e.preventDefault();
+            toggleTheme();
+        }
+    });
     </script>
 </body>
 </html>
