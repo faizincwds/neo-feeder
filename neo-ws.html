@@ -7,208 +7,326 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
         
         :root {
             --font-main: 'Inter', sans-serif;
-            --font-mono: 'Fira Code', monospace;
+            --font-mono: 'JetBrains Mono', monospace;
+            --bg-base: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-elevated: #f1f5f9;
+            --border-subtle: #e2e8f0;
+            --border-faint: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-tertiary: #94a3b8;
+            --accent: #6366f1;
+            --accent-light: #818cf8;
+            --accent-subtle: #eef2ff;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
         }
+
+        .dark {
+            --bg-base: #0a0a0f;
+            --bg-surface: #111118;
+            --bg-elevated: #1a1a24;
+            --border-subtle: #1e1e2e;
+            --border-faint: #141420;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-tertiary: #475569;
+            --accent: #818cf8;
+            --accent-light: #a5b4fc;
+            --accent-subtle: #1e1b4b;
+        }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: var(--font-main);
+            background: var(--bg-base);
+            color: var(--text-primary);
             scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .code-block {
-            font-family: var(--font-mono);
+        .code-font { font-family: var(--font-mono); }
+
+        /* Scrollbar */
+        .thin-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+        .thin-scroll::-webkit-scrollbar-track { background: transparent; }
+        .thin-scroll::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 99px; }
+        .thin-scroll::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+        /* Loader */
+        .spin-loader { animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Pulse */
+        @keyframes soft-pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+        .pulse-soft { animation: soft-pulse 1.2s ease-in-out infinite; }
+
+        /* Float animation for hero icons */
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .float-anim { animation: float 3s ease-in-out infinite; }
+        .float-anim-delay { animation: float 3s ease-in-out 0.5s infinite; }
+        .float-anim-delay2 { animation: float 3s ease-in-out 1s infinite; }
+
+        /* Gradient mesh background for hero */
+        .mesh-gradient {
+            background: 
+                radial-gradient(ellipse 80% 50% at 20% 40%, rgba(99,102,241,0.08) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 80% 20%, rgba(16,185,129,0.06) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 50% at 60% 80%, rgba(245,158,11,0.05) 0%, transparent 70%);
+        }
+        .dark .mesh-gradient {
+            background: 
+                radial-gradient(ellipse 80% 50% at 20% 40%, rgba(99,102,241,0.12) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 80% 20%, rgba(16,185,129,0.08) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 50% at 60% 80%, rgba(245,158,11,0.06) 0%, transparent 70%);
         }
 
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #e2e8f0;
-            border-radius: 10px;
-        }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #334155;
+        /* Glass card */
+        .glass {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            backdrop-filter: blur(12px);
         }
 
-        /* Loading Animation */
-        .loader {
-            border-top-color: #3b82f6;
-            animation: spinner 1.5s linear infinite;
+        /* JSON Colors */
+        .json-key { color: #a5b4fc; }
+        .json-string { color: #6ee7b7; }
+        .json-number { color: #fcd34d; }
+        .json-boolean { color: #c4b5fd; }
+        .json-null { color: #fca5a5; font-style: italic; }
+        .json-punctuation { color: #475569; }
+
+        /* Toast */
+        .toast-show { transform: translateY(0); opacity: 1; }
+        .toast-hide { transform: translateY(4rem); opacity: 0; }
+
+        /* Subtle noise texture overlay */
+        .noise-overlay::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            opacity: 0.015;
+            pointer-events: none;
+            z-index: 9999;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
-        @keyframes spinner {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .dark .noise-overlay::before { opacity: 0.03; }
+
+        /* Sidebar active glow */
+        .sidebar-active {
+            background: var(--accent-subtle);
+            color: var(--accent);
+            box-shadow: inset 0 0 0 1px rgba(99,102,241,0.15);
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
+<body class="noise-overlay">
 
-    <!-- Layout Wrapper -->
     <div class="flex h-screen overflow-hidden">
 
-        <!-- Sidebar -->
-        <aside id="sidebar" class="w-80 flex-shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-all duration-300">
-            <div class="p-6 border-b border-slate-200 dark:border-slate-800">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="bg-blue-600 p-2 rounded-lg">
-                        <i data-lucide="book-open" class="text-white w-5 h-5"></i>
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="w-[280px] flex-shrink-0 flex flex-col border-r transition-colors duration-300"
+               style="background:var(--bg-surface); border-color:var(--border-subtle);">
+            
+            <!-- Logo -->
+            <div class="px-5 py-5 border-b" style="border-color:var(--border-subtle);">
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--accent);">
+                            <i data-lucide="book-open" class="text-white w-[18px] h-[18px]"></i>
+                        </div>
+                        <div class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2" style="background:var(--success); border-color:var(--bg-surface);"></div>
                     </div>
-                    <h1 class="font-bold text-lg tracking-tight">NeoDocs <span class="text-blue-600">WS</span></h1>
+                    <div>
+                        <h1 class="font-bold text-[15px] tracking-tight leading-none">NeoDocs</h1>
+                        <span class="text-[10px] font-semibold uppercase tracking-[0.15em]" style="color:var(--accent);">Web Service</span>
+                    </div>
                 </div>
-                
                 <!-- Search -->
-                <div class="relative">
-                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                    <input type="text" id="searchInput" placeholder="Cari fungsi (act)..." 
-                        class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                <div class="relative mt-4">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color:var(--text-tertiary);"></i>
+                    <input type="text" id="searchInput" placeholder="Cari fungsi..." 
+                        class="w-full pl-9 pr-3 py-2 rounded-lg text-[13px] outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/30"
+                        style="background:var(--bg-elevated); color:var(--text-primary);">
                 </div>
             </div>
 
-            <!-- Categories & Menu -->
-            <div id="endpointList" class="flex-grow overflow-y-auto custom-scrollbar p-4 space-y-6">
-                <!-- Categories will be rendered here -->
-                <div class="flex items-center justify-center h-20 text-slate-400">
-                    <p class="text-sm">Memuat data...</p>
+            <!-- Endpoint List -->
+            <div id="endpointList" class="flex-grow overflow-y-auto thin-scroll px-3 py-3 space-y-4">
+                <div class="flex items-center justify-center h-20" style="color:var(--text-tertiary);">
+                    <p class="text-xs">Memuat data...</p>
                 </div>
             </div>
 
-            <!-- Bottom Info -->
-            <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
-                <div class="flex items-center justify-between text-xs">
-                    <span id="connStatus" class="flex items-center gap-1.5 text-red-500">
-                        <span class="w-2 h-2 rounded-full bg-current"></span>
-                        Offline
-                    </span>
-                    <button id="themeToggle" class="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                        <i data-lucide="moon" class="w-4 h-4"></i>
-                    </button>
-                </div>
+            <!-- Footer -->
+            <div class="px-4 py-3 border-t flex items-center justify-between" style="border-color:var(--border-subtle); background:var(--bg-elevated);">
+                <span id="connStatus" class="flex items-center gap-1.5 text-[11px] font-medium" style="color:var(--error);">
+                    <span class="w-1.5 h-1.5 rounded-full" style="background:currentColor;"></span>
+                    Offline
+                </span>
+                <button id="themeToggle" class="w-7 h-7 rounded-lg flex items-center justify-center transition-colors duration-200" style="color:var(--text-tertiary);"
+                    onmouseover="this.style.background='var(--border-subtle)'" onmouseout="this.style.background='transparent'">
+                    <i data-lucide="moon" class="w-3.5 h-3.5"></i>
+                </button>
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="flex-grow flex flex-col overflow-hidden relative">
-            
-            <!-- Top Header -->
-            <header class="h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 z-10">
-                <div class="flex items-center gap-4">
-                    <button id="configBtn" class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white rounded-lg transition-all">
-                        <i data-lucide="settings" class="w-4 h-4"></i>
-                        Konfigurasi API
-                    </button>
-                </div>
-                <div class="flex items-center gap-6">
-                    <div id="statsInfo" class="hidden md:flex gap-4 text-xs font-medium text-slate-500">
-                        <!-- Stats injected here -->
-                    </div>
-                </div>
+        <!-- ===== MAIN ===== -->
+        <main class="flex-grow flex flex-col overflow-hidden relative" style="background:var(--bg-base);">
+
+            <!-- Header Bar -->
+            <header class="h-14 flex items-center justify-between px-6 border-b z-10 transition-colors duration-300"
+                    style="background:var(--bg-surface); border-color:var(--border-subtle);">
+                <button id="configBtn" class="flex items-center gap-2 px-3 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-200 hover:shadow-sm"
+                    style="background:var(--bg-elevated); color:var(--text-secondary);"
+                    onmouseover="this.style.background='var(--accent)'; this.style.color='white';"
+                    onmouseout="this.style.background='var(--bg-elevated)'; this.style.color='var(--text-secondary)';">
+                    <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+                    Konfigurasi API
+                </button>
+                <div id="statsInfo" class="hidden md:flex gap-5 text-[11px] font-medium" style="color:var(--text-tertiary);"></div>
             </header>
 
-            <!-- Scrollable Content Area -->
-            <div id="contentArea" class="flex-grow overflow-y-auto custom-scrollbar p-8">
-                <!-- Welcome View -->
-                <div id="welcomeView" class="max-w-4xl mx-auto space-y-12 py-10">
-                    <div class="text-center space-y-4">
-                        <h2 class="text-4xl font-extrabold tracking-tight">Selamat Datang di NeoDocs</h2>
-                        <p class="text-slate-500 dark:text-slate-400 text-lg max-w-2xl mx-auto">
-                            Sistem dokumentasi interaktif untuk Web Service Neo Feeder. 
-                            Kelola token, eksplorasi dictionary, dan uji coba endpoint langsung dari browser Anda.
+            <!-- Content -->
+            <div id="contentArea" class="flex-grow overflow-y-auto thin-scroll p-8">
+
+                <!-- ===== WELCOME VIEW ===== -->
+                <div id="welcomeView" class="max-w-4xl mx-auto pt-16 pb-10 mesh-gradient rounded-3xl">
+                    <div class="text-center space-y-5 mb-14">
+                        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-wider"
+                             style="background:var(--accent-subtle); color:var(--accent);">
+                            <span class="w-1.5 h-1.5 rounded-full pulse-soft" style="background:var(--accent);"></span>
+                            Documentation Explorer v2.0
+                        </div>
+                        <h2 class="text-5xl font-extrabold tracking-tight leading-[1.1]">Selamat Datang<br>di <span style="color:var(--accent);">NeoDocs</span></h2>
+                        <p class="text-base max-w-lg mx-auto leading-relaxed" style="color:var(--text-secondary);">
+                            Sistem dokumentasi interaktif untuk Web Service Neo Feeder. Kelola token, eksplorasi dictionary, dan uji coba endpoint langsung dari browser.
                         </p>
                     </div>
 
-                    <div class="grid md:grid-cols-3 gap-6">
-                        <div class="p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                            <i data-lucide="shield-check" class="w-8 h-8 text-blue-500 mb-4"></i>
-                            <h3 class="font-bold mb-2">Manajemen Token</h3>
-                            <p class="text-sm text-slate-500">Dapatkan token akses otomatis dan simpan dengan aman di local storage.</p>
+                    <div class="grid md:grid-cols-3 gap-5">
+                        <div class="glass rounded-2xl p-6 group hover:shadow-lg transition-all duration-300 cursor-default">
+                            <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 float-anim"
+                                 style="background:rgba(99,102,241,0.1);">
+                                <i data-lucide="shield-check" class="w-5 h-5" style="color:var(--accent);"></i>
+                            </div>
+                            <h3 class="font-bold text-[15px] mb-1.5">Manajemen Token</h3>
+                            <p class="text-[13px] leading-relaxed" style="color:var(--text-secondary);">Dapatkan token akses otomatis dan simpan dengan aman di local storage.</p>
                         </div>
-                        <div class="p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                            <i data-lucide="database" class="w-8 h-8 text-emerald-500 mb-4"></i>
-                            <h3 class="font-bold mb-2">Auto Dictionary</h3>
-                            <p class="text-sm text-slate-500">Sistem akan mencoba mengambil struktur parameter langsung dari server Neo Feeder.</p>
+                        <div class="glass rounded-2xl p-6 group hover:shadow-lg transition-all duration-300 cursor-default">
+                            <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 float-anim-delay"
+                                 style="background:rgba(16,185,129,0.1);">
+                                <i data-lucide="database" class="w-5 h-5" style="color:var(--success);"></i>
+                            </div>
+                            <h3 class="font-bold text-[15px] mb-1.5">Auto Dictionary</h3>
+                            <p class="text-[13px] leading-relaxed" style="color:var(--text-secondary);">Mengambil struktur parameter langsung dari server Neo Feeder.</p>
                         </div>
-                        <div class="p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                            <i data-lucide="zap" class="w-8 h-8 text-amber-500 mb-4"></i>
-                            <h3 class="font-bold mb-2">Uji Coba Langsung</h3>
-                            <p class="text-sm text-slate-500">Kirim request ke server dan lihat response secara realtime.</p>
+                        <div class="glass rounded-2xl p-6 group hover:shadow-lg transition-all duration-300 cursor-default">
+                            <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 float-anim-delay2"
+                                 style="background:rgba(245,158,11,0.1);">
+                                <i data-lucide="zap" class="w-5 h-5" style="color:var(--warning);"></i>
+                            </div>
+                            <h3 class="font-bold text-[15px] mb-1.5">Uji Coba Langsung</h3>
+                            <p class="text-[13px] leading-relaxed" style="color:var(--text-secondary);">Kirim request ke server dan lihat response secara realtime.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Endpoint Detail View (Hidden initially) -->
-                <div id="detailView" class="hidden max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
-                        <div>
-                            <span id="detailCategory" class="text-xs font-bold uppercase tracking-widest text-blue-600 mb-1 block">KATEGORI</span>
-                            <h2 id="detailAct" class="text-3xl font-bold font-mono">GetListMahasiswa</h2>
-                            <p id="detailDesc" class="mt-2 text-slate-500 dark:text-slate-400">Deskripsi fungsi akan tampil di sini.</p>
+                <!-- ===== DETAIL VIEW ===== -->
+                <div id="detailView" class="hidden max-w-5xl mx-auto space-y-7">
+                    
+                    <!-- Breadcrumb & Title -->
+                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6" style="border-bottom:1px solid var(--border-subtle);">
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider" style="color:var(--accent);">
+                                <i data-lucide="folder" class="w-3 h-3"></i>
+                                <span id="detailCategory">KATEGORI</span>
+                            </div>
+                            <h2 id="detailAct" class="text-3xl font-extrabold tracking-tight code-font">GetListMahasiswa</h2>
+                            <p id="detailDesc" class="text-sm leading-relaxed" style="color:var(--text-secondary);">Deskripsi fungsi akan tampil di sini.</p>
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="downloadExcel()" class="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition-all">
-                                <i data-lucide="download" class="w-4 h-4"></i> Excel
+                        <div class="flex gap-2 flex-shrink-0">
+                            <button onclick="downloadExcel()" class="flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200 hover:shadow-md"
+                                style="background:var(--success); color:white;">
+                                <i data-lucide="download" class="w-3.5 h-3.5"></i> Excel
                             </button>
-                            <button onclick="copyEndpoint()" class="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white dark:bg-white dark:text-slate-900 rounded-xl text-sm font-medium hover:opacity-90 transition-all">
-                                <i data-lucide="copy" class="w-4 h-4"></i> Salin JSON
+                            <button onclick="copyEndpoint()" class="flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200 hover:shadow-md"
+                                style="background:var(--text-primary); color:var(--bg-surface);">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin JSON
                             </button>
                         </div>
                     </div>
 
-                    <!-- Tabs/Section Grid -->
-                    <div class="grid lg:grid-cols-2 gap-8">
-                        <!-- Left Col: Params & Info -->
-                        <div class="space-y-6">
-                            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                                <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-                                    <h4 class="font-bold text-sm flex items-center gap-2">
-                                        <i data-lucide="list" class="w-4 h-4"></i> Parameter Request
-                                    </h4>
-                                </div>
-                                <div class="overflow-x-auto">
-                                    <table class="w-full text-sm">
-                                        <thead>
-                                            <tr class="bg-slate-50 dark:bg-slate-800/30 text-left">
-                                                <th class="px-6 py-3 font-semibold">Field</th>
-                                                <th class="px-6 py-3 font-semibold">Tipe</th>
-                                                <th class="px-6 py-3 font-semibold">Ket</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="paramsTableBody" class="divide-y divide-slate-100 dark:divide-slate-800">
-                                            <!-- Injected rows -->
-                                        </tbody>
-                                    </table>
-                                </div>
+                    <!-- Grid: Params + Try API -->
+                    <div class="grid lg:grid-cols-2 gap-6">
+
+                        <!-- Params Card -->
+                        <div class="glass rounded-2xl overflow-hidden">
+                            <div class="px-5 py-3.5 flex items-center gap-2" style="background:var(--bg-elevated); border-bottom:1px solid var(--border-subtle);">
+                                <i data-lucide="list" class="w-4 h-4" style="color:var(--accent);"></i>
+                                <h4 class="font-semibold text-[13px]">Parameter Request</h4>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-[13px]">
+                                    <thead>
+                                        <tr style="background:var(--bg-elevated);">
+                                            <th class="px-5 py-2.5 text-left font-semibold text-[11px] uppercase tracking-wider" style="color:var(--text-tertiary);">Field</th>
+                                            <th class="px-5 py-2.5 text-left font-semibold text-[11px] uppercase tracking-wider" style="color:var(--text-tertiary);">Tipe</th>
+                                            <th class="px-5 py-2.5 text-left font-semibold text-[11px] uppercase tracking-wider" style="color:var(--text-tertiary);">Ket</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="paramsTableBody"></tbody>
+                                </table>
                             </div>
                         </div>
 
-                        <!-- Right Col: Try API -->
-                        <div class="space-y-6">
-                            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col h-full">
-                                <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                                    <h4 class="font-bold text-sm flex items-center gap-2">
-                                        <i data-lucide="play-circle" class="w-4 h-4 text-blue-500"></i> Try API
-                                    </h4>
-                                    <button id="sendRequestBtn" class="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all">
-                                        KIRIM REQUEST
-                                    </button>
+                        <!-- Try API Card -->
+                        <div class="glass rounded-2xl flex flex-col">
+                            <div class="px-5 py-3.5 flex items-center justify-between" style="background:var(--bg-elevated); border-bottom:1px solid var(--border-subtle);">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="play-circle" class="w-4 h-4" style="color:var(--accent);"></i>
+                                    <h4 class="font-semibold text-[13px]">Try API</h4>
                                 </div>
-                                <div class="p-6 space-y-4 flex-grow">
-                                    <div>
-                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Payload JSON (data)</label>
-                                        <textarea id="requestPayload" class="w-full h-40 bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 font-mono text-sm outline-none focus:ring-1 focus:ring-blue-500" spellcheck="false"></textarea>
-                                    </div>
-                                    <div>
-                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Response</label>
-                                        <div id="responseContainer" class="w-full h-64 bg-slate-900 text-blue-400 p-4 rounded-xl border border-slate-800 font-mono text-xs overflow-auto custom-scrollbar">
-                                            { "status": "Ready to test" }
+                                <button id="sendRequestBtn" class="px-4 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 hover:shadow-md"
+                                    style="background:var(--accent); color:white;">
+                                    Kirim
+                                </button>
+                            </div>
+                            <div class="p-5 space-y-4 flex-grow flex flex-col">
+                                <!-- Payload -->
+                                <div>
+                                    <label class="text-[10px] font-bold uppercase tracking-[0.12em] mb-2 block" style="color:var(--text-tertiary);">Payload JSON</label>
+                                    <textarea id="requestPayload" spellcheck="false"
+                                        class="code-font w-full h-36 p-4 rounded-xl text-[12px] leading-relaxed outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/20 resize-none"
+                                        style="background:var(--bg-elevated); color:var(--text-primary); border:1px solid var(--border-subtle);"></textarea>
+                                </div>
+                                <!-- Response -->
+                                <div class="flex-grow flex flex-col">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <label class="text-[10px] font-bold uppercase tracking-[0.12em]" style="color:var(--text-tertiary);">Response</label>
+                                        <div class="flex items-center gap-1.5">
+                                            <span id="responseStatusBadge" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider"
+                                                  style="background:rgba(100,116,139,0.15); color:var(--text-tertiary);">
+                                                <span class="w-1.5 h-1.5 rounded-full" style="background:currentColor;"></span>
+                                                Waiting
+                                            </span>
+                                            <button id="copyResponseBtn" onclick="copyResponse()" title="Salin JSON mentah"
+                                                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider transition-all duration-200"
+                                                style="background:rgba(100,116,139,0.15); color:var(--text-tertiary);"
+                                                onmouseover="this.style.background='rgba(100,116,139,0.3)'" onmouseout="this.style.background='rgba(100,116,139,0.15)'">
+                                                <i data-lucide="clipboard" class="w-3 h-3"></i> Salin
+                                            </button>
                                         </div>
                                     </div>
+                                    <div id="responseContainer" class="code-font w-full flex-grow min-h-[240px] p-4 rounded-xl text-[11px] leading-relaxed overflow-auto thin-scroll whitespace-pre tab-size-2"
+                                         style="background:#0c0c14; color:#94a3b8; border:1px solid #1e1e2e;"></div>
                                 </div>
                             </div>
                         </div>
@@ -218,60 +336,67 @@
         </main>
     </div>
 
-    <!-- Configuration Modal -->
-    <div id="configModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
-        <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <div class="p-8 space-y-6">
+    <!-- ===== CONFIG MODAL ===== -->
+    <div id="configModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-200" style="background:rgba(0,0,0,0.5); backdrop-filter:blur(8px);">
+        <div class="w-full max-w-md rounded-3xl shadow-2xl overflow-hidden transition-all duration-200" style="background:var(--bg-surface); border:1px solid var(--border-subtle);">
+            <div class="p-7 space-y-5">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-xl font-bold">Pengaturan API</h3>
-                    <button id="closeConfig" class="text-slate-400 hover:text-slate-600"><i data-lucide="x"></i></button>
+                    <h3 class="text-lg font-bold tracking-tight">Pengaturan API</h3>
+                    <button id="closeConfig" class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200" style="color:var(--text-tertiary);"
+                        onmouseover="this.style.background='var(--bg-elevated)'" onmouseout="this.style.background='transparent'">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
                 </div>
-                
-                <div class="space-y-4">
+                <div class="space-y-3.5">
                     <div>
-                        <label class="text-sm font-medium mb-1 block">WS URL</label>
+                        <label class="text-[12px] font-medium mb-1.5 block" style="color:var(--text-secondary);">WS URL</label>
                         <input type="text" id="wsUrlInput" placeholder="http://localhost:3003/ws/live2.php" 
-                            class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full px-4 py-2.5 rounded-xl text-[13px] outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/30 code-font"
+                            style="background:var(--bg-elevated); color:var(--text-primary);">
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="text-sm font-medium mb-1 block">Username</label>
-                            <input type="text" id="wsUserInput" class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                            <label class="text-[12px] font-medium mb-1.5 block" style="color:var(--text-secondary);">Username</label>
+                            <input type="text" id="wsUserInput" 
+                                class="w-full px-4 py-2.5 rounded-xl text-[13px] outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/30"
+                                style="background:var(--bg-elevated); color:var(--text-primary);">
                         </div>
                         <div>
-                            <label class="text-sm font-medium mb-1 block">Password</label>
-                            <input type="password" id="wsPassInput" class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                            <label class="text-[12px] font-medium mb-1.5 block" style="color:var(--text-secondary);">Password</label>
+                            <input type="password" id="wsPassInput" 
+                                class="w-full px-4 py-2.5 rounded-xl text-[13px] outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/30"
+                                style="background:var(--bg-elevated); color:var(--text-primary);">
                         </div>
                     </div>
-                    <div class="pt-2">
-                        <button id="saveConfigBtn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-2xl hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
-                            <i data-lucide="save" class="w-4 h-4"></i> Simpan & Ambil Token
-                        </button>
-                    </div>
+                    <button id="saveConfigBtn" class="w-full py-3 rounded-xl font-semibold text-[13px] transition-all duration-200 hover:shadow-lg flex items-center justify-center gap-2"
+                        style="background:var(--accent); color:white;">
+                        <i data-lucide="save" class="w-4 h-4"></i> Simpan & Ambil Token
+                    </button>
                 </div>
-                
-                <div class="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl space-y-2">
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-500">Current Token:</span>
-                        <span id="tokenStatus" class="font-mono text-blue-500 truncate ml-4">Tidak ada token</span>
+                <div class="p-4 rounded-xl" style="background:var(--bg-elevated);">
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span style="color:var(--text-tertiary);">Current Token:</span>
+                        <span id="tokenStatus" class="code-font truncate ml-4 max-w-[200px]" style="color:var(--accent);">Tidak ada token</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Notification Toast -->
-    <div id="toast" class="fixed bottom-8 right-8 z-[100] transform translate-y-20 opacity-0 transition-all duration-300">
-        <div id="toastContent" class="bg-slate-900 dark:bg-white dark:text-slate-900 text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3">
-            <i data-lucide="info" class="w-5 h-5 text-blue-400"></i>
-            <span id="toastMessage" class="text-sm font-medium">Message here</span>
+    <!-- ===== TOAST ===== -->
+    <div id="toast" class="fixed bottom-6 right-6 z-[100] toast-hide transition-all duration-300">
+        <div class="flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-2xl text-[13px] font-medium"
+             style="background:var(--text-primary); color:var(--bg-surface);">
+            <i data-lucide="info" class="w-4 h-4" style="color:var(--accent-light);"></i>
+            <span id="toastMessage">Message here</span>
         </div>
     </div>
 
     <script>
-        // --- CONSTANTS & INITIAL DATA ---
-        const FALLBACK_ENDPOINTS = [
-            // Data PT & Referensi
+        // ============================================================
+        //  DATA
+        // ============================================================
+        var FALLBACK_ENDPOINTS = [
             { act: "GetToken", desc: "Mendapatkan token autentikasi", cat: "Utility" },
             { act: "GetDictionary", desc: "Melihat struktur tabel/fungsi", cat: "Utility" },
             { act: "GetAllPT", desc: "Daftar semua perguruan tinggi", cat: "Referensi" },
@@ -280,8 +405,6 @@
             { act: "GetProdi", desc: "Detail prodi tertentu", cat: "Referensi" },
             { act: "GetPeriode", desc: "Daftar periode/semester", cat: "Referensi" },
             { act: "GetFakultas", desc: "Daftar fakultas", cat: "Referensi" },
-
-            // Data Mahasiswa
             { act: "GetListMahasiswa", desc: "Daftar mahasiswa terdaftar", cat: "Mahasiswa" },
             { act: "GetBiodataMahasiswa", desc: "Detail biodata mahasiswa", cat: "Mahasiswa" },
             { act: "GetDataLengkapMahasiswaProdi", desc: "Data komprehensif mahasiswa per prodi", cat: "Mahasiswa" },
@@ -290,406 +413,359 @@
             { act: "GetRiwayatNilaiMahasiswa", desc: "Transkrip nilai per semester", cat: "Mahasiswa" },
             { act: "GetAktivitasKuliahMahasiswa", desc: "Status aktif mahasiswa", cat: "Mahasiswa" },
             { act: "GetTranskripMahasiswa", desc: "Transkrip nilai keseluruhan", cat: "Mahasiswa" },
-
-            // Data Dosen
             { act: "GetListDosen", desc: "Daftar dosen terdaftar", cat: "Dosen" },
             { act: "DetailBiodataDosen", desc: "Profil lengkap dosen", cat: "Dosen" },
             { act: "GetListPenugasanDosen", desc: "Daftar penugasan dosen ke prodi", cat: "Dosen" },
             { act: "GetAktivitasMengajarDosen", desc: "Jadwal mengajar dosen", cat: "Dosen" },
             { act: "GetMahasiswaBimbinganDosen", desc: "Daftar bimbingan akademik/tugas akhir", cat: "Dosen" },
-
-            // Akademik
             { act: "GetListMataKuliah", desc: "Daftar mata kuliah kurikulum", cat: "Akademik" },
             { act: "GetListKelasKuliah", desc: "Daftar kelas yang dibuka", cat: "Akademik" },
             { act: "GetPesertaKelasKuliah", desc: "Daftar peserta mahasiswa di kelas", cat: "Akademik" },
             { act: "GetListNilaiPerkuliahanKelas", desc: "Daftar nilai mahasiswa di kelas", cat: "Akademik" },
             { act: "GetListKurikulum", desc: "Daftar kurikulum prodi", cat: "Akademik" },
-
-            // Kelulusan
             { act: "GetListMahasiswaLulusDO", desc: "Daftar mahasiswa yang keluar", cat: "Kelulusan" },
             { act: "GetListAktivitasMahasiswa", desc: "Daftar aktivitas (skripsi, magang, dll)", cat: "Kelulusan" },
-
-            // Rekap
             { act: "GetRekapLaporan", desc: "Rekapitulasi data pelaporan", cat: "Rekap" },
             { act: "GetRekapJumlahMahasiswa", desc: "Statistik jumlah mahasiswa", cat: "Rekap" },
-
-            // Master Referensi
             { act: "GetAgama", desc: "Master data agama", cat: "Referensi" },
             { act: "GetWilayah", desc: "Master data wilayah/kecamatan", cat: "Referensi" },
             { act: "GetJenjangPendidikan", desc: "Master data jenjang pendidikan", cat: "Referensi" },
             { act: "GetStatusMahasiswa", desc: "Master data status keaktifan", cat: "Referensi" },
-
-            // Count
             { act: "GetCountMahasiswa", desc: "Jumlah total mahasiswa", cat: "Statistik" },
             { act: "GetCountDosen", desc: "Jumlah total dosen", cat: "Statistik" },
             { act: "GetCountKelasKuliah", desc: "Jumlah total kelas", cat: "Statistik" }
         ];
 
-        // --- STATE MANAGEMENT ---
-        let appState = {
+        // ============================================================
+        //  STATE
+        // ============================================================
+        var appState = {
             config: {
                 url: 'http://localhost:3003/ws/live2.php',
                 user: '',
                 pass: '',
                 token: localStorage.getItem('neo_token') || ''
             },
-            endpoints: [],
             currentAct: null,
             isOnline: false,
-            darkMode: localStorage.getItem('theme') === 'dark'
+            darkMode: localStorage.getItem('theme') === 'dark',
+            lastRawResponse: ''
         };
 
-        // --- INITIALIZATION ---
-        window.addEventListener('DOMContentLoaded', () => {
-            initIcons();
-            loadConfig();
+        // ============================================================
+        //  INIT
+        // ============================================================
+        window.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
             initTheme();
             renderEndpoints(FALLBACK_ENDPOINTS);
             updateStats(FALLBACK_ENDPOINTS);
-            checkConnection();
-
-            // Set default textarea value
-            document.getElementById('requestPayload').value = JSON.stringify({
-                filter: "",
-                order: "",
-                limit: 10,
-                offset: 0
-            }, null, 2);
+            if (appState.config.token) checkConnection();
+            document.getElementById('requestPayload').value = JSON.stringify({ filter: "", order: "", limit: 10, offset: 0 }, null, 2);
         });
 
-        function initIcons() {
-            lucide.createIcons();
-        }
-
         function initTheme() {
-            if (appState.darkMode) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
+            document.documentElement.classList.toggle('dark', appState.darkMode);
         }
 
-        // --- CORE FUNCTIONS ---
-
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            const msg = document.getElementById('toastMessage');
-            msg.innerText = message;
-            
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-                toast.classList.remove('translate-y-0', 'opacity-100');
-            }, 3000);
-        }
-
-        async function requestNeo(act, data = {}, customConfig = null) {
-            const config = customConfig || appState.config;
-            if (!config.url) {
-                showToast("URL API belum dikonfigurasi", "error");
-                return null;
-            }
-
-            try {
-                const response = await fetch(config.url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        act: act,
-                        token: config.token,
-                        username: config.user,
-                        password: config.pass,
-                        ...data
-                    })
-                });
-
-                const result = await response.json();
-                
-                // Handle Error Neo Feeder
-                if (result.error_code !== 0 && result.error_code !== "0") {
-                    if (result.error_desc && result.error_desc.includes("Token")) {
-                        appState.config.token = "";
-                        localStorage.removeItem('neo_token');
-                        updateConnUI(false, "Token Expired");
-                    }
+        // ============================================================
+        //  SYNTAX HIGHLIGHTING
+        // ============================================================
+        function syntaxHighlight(json) {
+            if (typeof json !== 'string') json = JSON.stringify(json, null, 2);
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(
+                /("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(?:true|false)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?|\bnull\b|[{}\[\],])/g,
+                function (match) {
+                    var cls = 'json-number';
+                    if (/^"/.test(match)) { cls = /:$/.test(match) ? 'json-key' : 'json-string'; }
+                    else if (/true|false/.test(match)) { cls = 'json-boolean'; }
+                    else if (/null/.test(match)) { cls = 'json-null'; }
+                    else if (/[{}\[\],]/.test(match)) { cls = 'json-punctuation'; }
+                    return '<span class="' + cls + '">' + match + '</span>';
                 }
+            );
+        }
 
+        // ============================================================
+        //  STATUS BADGE
+        // ============================================================
+        function setResponseStatus(state) {
+            var badge = document.getElementById('responseStatusBadge');
+            var map = {
+                waiting: { bg:'rgba(100,116,139,0.15)', fg:'var(--text-tertiary)', dot:'var(--text-tertiary)', anim:'', label:'Waiting' },
+                loading: { bg:'rgba(245,158,11,0.15)',  fg:'var(--warning)',        dot:'var(--warning)',        anim:'pulse-soft', label:'Loading' },
+                success: { bg:'rgba(16,185,129,0.15)',  fg:'var(--success)',        dot:'var(--success)',        anim:'', label:'Success' },
+                error:   { bg:'rgba(239,68,68,0.15)',   fg:'var(--error)',          dot:'var(--error)',          anim:'', label:'Error' }
+            };
+            var c = map[state] || map.waiting;
+            badge.style.background = c.bg;
+            badge.style.color = c.fg;
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full ' + c.anim + '" style="background:currentColor;"></span>' + c.label;
+        }
+
+        // ============================================================
+        //  COPY RESPONSE
+        // ============================================================
+        function copyResponse() {
+            if (!appState.lastRawResponse) { showToast("Belum ada respons untuk disalin", "warning"); return; }
+            navigator.clipboard.writeText(appState.lastRawResponse).then(function() {
+                showToast("Respons JSON disalin ke clipboard");
+                animateCopyBtn();
+            }).catch(function() {
+                var ta = document.createElement('textarea');
+                ta.value = appState.lastRawResponse;
+                ta.style.cssText = 'position:fixed;opacity:0';
+                document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+                showToast("Respons JSON disalin ke clipboard");
+                animateCopyBtn();
+            });
+        }
+
+        function animateCopyBtn() {
+            var btn = document.getElementById('copyResponseBtn');
+            var orig = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> OK';
+            btn.style.background = 'rgba(16,185,129,0.2)';
+            btn.style.color = 'var(--success)';
+            lucide.createIcons();
+            setTimeout(function() {
+                btn.innerHTML = orig;
+                btn.style.background = 'rgba(100,116,139,0.15)';
+                btn.style.color = 'var(--text-tertiary)';
+                lucide.createIcons();
+            }, 1500);
+        }
+
+        // ============================================================
+        //  RENDER RESPONSE
+        // ============================================================
+        function renderResponse(data) {
+            appState.lastRawResponse = JSON.stringify(data, null, 2);
+            document.getElementById('responseContainer').innerHTML = syntaxHighlight(data);
+        }
+
+        // ============================================================
+        //  TOAST
+        // ============================================================
+        function showToast(message, type) {
+            var toast = document.getElementById('toast');
+            document.getElementById('toastMessage').innerText = message;
+            var iconEl = toast.querySelector('[data-lucide]');
+            var n = type === 'error' ? 'alert-circle' : type === 'warning' ? 'alert-triangle' : 'info';
+            var c = type === 'error' ? 'var(--error)' : type === 'warning' ? 'var(--warning)' : 'var(--accent-light)';
+            if (iconEl) { iconEl.setAttribute('data-lucide', n); iconEl.style.color = c; lucide.createIcons(); }
+            toast.classList.remove('toast-hide'); toast.classList.add('toast-show');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(function() { toast.classList.add('toast-hide'); toast.classList.remove('toast-show'); }, 3000);
+        }
+
+        // ============================================================
+        //  CORE API
+        // ============================================================
+        async function requestNeo(act, data, customConfig) {
+            var config = customConfig || appState.config;
+            if (!config.url) { showToast("URL API belum dikonfigurasi", "error"); return null; }
+            try {
+                var body = Object.assign({ act: act, token: config.token, username: config.user, password: config.pass }, data);
+                var res = await fetch(config.url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                var result = await res.json();
+                if (result.error_code != 0 && result.error_code != "0" && result.error_desc && result.error_desc.includes("Token")) {
+                    appState.config.token = ""; localStorage.removeItem('neo_token'); updateConnUI(false, "Token Expired");
+                }
                 return result;
-            } catch (error) {
-                console.error("Request Failed:", error);
+            } catch (e) {
                 return { error_code: 500, error_desc: "Koneksi gagal ke server. Pastikan Neo Feeder menyala dan CORS diizinkan." };
             }
         }
 
         async function getToken() {
-            const res = await requestNeo("GetToken");
+            var res = await requestNeo("GetToken");
             if (res && res.data && res.data.token) {
                 appState.config.token = res.data.token;
                 localStorage.setItem('neo_token', res.data.token);
                 updateConnUI(true, "Terhubung");
                 showToast("Token berhasil didapatkan!");
                 return true;
-            } else {
-                showToast(res?.error_desc || "Gagal mendapatkan token", "error");
-                updateConnUI(false, "Auth Gagal");
-                return false;
             }
+            showToast((res && res.error_desc) || "Gagal mendapatkan token", "error");
+            updateConnUI(false, "Auth Gagal");
+            return false;
         }
 
         function updateConnUI(isOnline, text) {
-            const status = document.getElementById('connStatus');
-            const tokenEl = document.getElementById('tokenStatus');
-            
+            var el = document.getElementById('connStatus');
             appState.isOnline = isOnline;
-            status.innerText = text;
-            status.className = `flex items-center gap-1.5 ${isOnline ? 'text-emerald-500' : 'text-red-500'}`;
-            
-            if (appState.config.token) {
-                tokenEl.innerText = appState.config.token.substring(0, 20) + "...";
-            } else {
-                tokenEl.innerText = "Tidak ada token";
-            }
+            el.innerHTML = '<span class="w-1.5 h-1.5 rounded-full" style="background:currentColor;"></span> ' + text;
+            el.style.color = isOnline ? 'var(--success)' : 'var(--error)';
+            document.getElementById('tokenStatus').innerText = appState.config.token ? appState.config.token.substring(0, 20) + '...' : 'Tidak ada token';
         }
 
         async function checkConnection() {
-            if (appState.config.token) {
-                updateConnUI(true, "Checking...");
-                // Simple test with GetProfilPT
-                const res = await requestNeo("GetProfilPT");
-                if (res && res.error_code == 0) {
-                    updateConnUI(true, "Online");
-                } else {
-                    updateConnUI(false, "Expired/Error");
-                }
-            }
+            updateConnUI(true, "Checking...");
+            var res = await requestNeo("GetProfilPT");
+            updateConnUI(res && res.error_code == 0, res && res.error_code == 0 ? "Online" : "Expired/Error");
         }
 
-        // --- UI RENDERING ---
-
+        // ============================================================
+        //  SIDEBAR RENDER
+        // ============================================================
         function renderEndpoints(data) {
-            const container = document.getElementById('endpointList');
+            var container = document.getElementById('endpointList');
             container.innerHTML = '';
+            var cats = [];
+            data.forEach(function(i) { if (cats.indexOf(i.cat) === -1) cats.push(i.cat); });
 
-            const categories = [...new Set(data.map(item => item.cat))];
-            
-            categories.forEach(cat => {
-                const catGroup = document.createElement('div');
-                catGroup.className = 'space-y-1';
-                catGroup.innerHTML = `
-                    <h3 class="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">${cat}</h3>
-                `;
+            cats.forEach(function(cat) {
+                var group = document.createElement('div');
+                group.className = 'space-y-0.5';
+                group.innerHTML = '<h3 class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em]" style="color:var(--text-tertiary);">' + cat + '</h3>';
 
-                const items = data.filter(i => i.cat === cat);
-                items.forEach(item => {
-                    const btn = document.createElement('button');
-                    btn.className = `w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-all hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between group ${appState.currentAct === item.act ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 ring-1 ring-blue-500/20' : 'text-slate-600 dark:text-slate-400'}`;
-                    btn.innerHTML = `
-                        <span class="truncate">${item.act}</span>
-                        <i data-lucide="chevron-right" class="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all"></i>
-                    `;
-                    btn.onclick = () => selectEndpoint(item);
-                    catGroup.appendChild(btn);
+                data.filter(function(i) { return i.cat === cat; }).forEach(function(item) {
+                    var btn = document.createElement('button');
+                    var active = appState.currentAct === item.act;
+                    btn.className = 'w-full text-left px-3 py-[7px] rounded-lg text-[12.5px] font-medium transition-all duration-150 flex items-center justify-between group';
+                    btn.style.color = active ? 'var(--accent)' : 'var(--text-secondary)';
+                    if (active) btn.classList.add('sidebar-active');
+                    btn.onmouseover = function() { if (!active) this.style.background = 'var(--bg-elevated)'; };
+                    btn.onmouseout  = function() { if (!active) this.style.background = 'transparent'; };
+                    btn.innerHTML = '<span class="truncate code-font text-[12px]">' + item.act + '</span>'
+                        + '<i data-lucide="chevron-right" class="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity"></i>';
+                    btn.onclick = function() { selectEndpoint(item); };
+                    group.appendChild(btn);
                 });
-
-                container.appendChild(catGroup);
+                container.appendChild(group);
             });
-            initIcons();
+            lucide.createIcons();
         }
 
-        async function selectEndpoint(item) {
+        // ============================================================
+        //  SELECT ENDPOINT
+        // ============================================================
+        function selectEndpoint(item) {
             appState.currentAct = item.act;
-            
-            // UI Toggle
+            appState.lastRawResponse = '';
             document.getElementById('welcomeView').classList.add('hidden');
             document.getElementById('detailView').classList.remove('hidden');
-            
-            // Content Update
             document.getElementById('detailAct').innerText = item.act;
             document.getElementById('detailCategory').innerText = item.cat;
             document.getElementById('detailDesc').innerText = item.desc;
-            
-            // Reset Try API Response
-            document.getElementById('responseContainer').innerText = '{ "status": "Ready to test" }';
-            document.getElementById('responseContainer').classList.remove('text-red-400', 'text-emerald-400');
-            document.getElementById('responseContainer').classList.add('text-blue-400');
-
-            // Refresh sidebar highlight
+            renderResponse({ status: "Ready to test" });
+            setResponseStatus('waiting');
             renderEndpoints(getFilteredEndpoints());
-
-            // Get Dictionary detail if online
-            renderParams(item);
-            if (appState.isOnline) {
-                fetchParams(item.act);
-            }
+            renderParams();
+            if (appState.isOnline) requestNeo("GetDictionary", { fungsi: item.act });
         }
 
-        function renderParams(item) {
-            const tbody = document.getElementById('paramsTableBody');
+        function renderParams() {
+            var tbody = document.getElementById('paramsTableBody');
             tbody.innerHTML = '';
-            
-            // Standard params always present
-            const stdParams = [
-                { name: 'token', type: 'string', desc: 'Token akses' },
-                { name: 'act', type: 'string', desc: 'Nama fungsi' },
-                { name: 'filter', type: 'string', desc: 'Filter data (SQL Like)' },
-                { name: 'order', type: 'string', desc: 'Pengurutan data' },
-                { name: 'limit', type: 'int', desc: 'Jumlah data per page' },
-                { name: 'offset', type: 'int', desc: 'Start data' }
-            ];
-
-            stdParams.forEach(p => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="px-6 py-3 font-mono text-xs text-blue-600">${p.name}</td>
-                    <td class="px-6 py-3"><span class="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-[10px] font-bold uppercase">${p.type}</span></td>
-                    <td class="px-6 py-3 text-slate-500">${p.desc}</td>
-                `;
+            [
+                { name:'token', type:'string', desc:'Token akses' },
+                { name:'act', type:'string', desc:'Nama fungsi' },
+                { name:'filter', type:'string', desc:'Filter data (SQL Like)' },
+                { name:'order', type:'string', desc:'Pengurutan data' },
+                { name:'limit', type:'int', desc:'Jumlah data per page' },
+                { name:'offset', type:'int', desc:'Start data' }
+            ].forEach(function(p) {
+                var tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid var(--border-faint)';
+                tr.innerHTML = '<td class="px-5 py-2.5 code-font text-[11px]" style="color:var(--accent);">' + p.name + '</td>'
+                    + '<td class="px-5 py-2.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider" style="background:var(--bg-elevated); color:var(--text-tertiary);">' + p.type + '</span></td>'
+                    + '<td class="px-5 py-2.5 text-[12px]" style="color:var(--text-secondary);">' + p.desc + '</td>';
                 tbody.appendChild(tr);
             });
         }
 
-        async function fetchParams(act) {
-            const res = await requestNeo("GetDictionary", { fungsi: act });
-            if (res && res.data) {
-                // If dictionary found, we can enrich the UI
-                // Note: Neo Feeder Dictionary returns data with detailed column names
-                console.log("Dictionary for", act, res.data);
-                // Implementation for displaying more detailed field info if available
-            }
-        }
-
         function updateStats(data) {
-            const stats = document.getElementById('statsInfo');
-            stats.classList.remove('hidden');
-            stats.innerHTML = `
-                <span>Total: <b class="text-slate-900 dark:text-white">${data.length}</b></span>
-                <span>Statistik: <b class="text-slate-900 dark:text-white">${data.filter(i => i.cat === 'Statistik').length}</b></span>
-                <span>Referensi: <b class="text-slate-900 dark:text-white">${data.filter(i => i.cat === 'Referensi').length}</b></span>
-            `;
+            var el = document.getElementById('statsInfo');
+            el.classList.remove('hidden');
+            el.innerHTML = '<span>Total: <b style="color:var(--text-primary);">' + data.length + '</b></span>'
+                + '<span>Statistik: <b style="color:var(--text-primary);">' + data.filter(function(i){return i.cat==='Statistik'}).length + '</b></span>'
+                + '<span>Referensi: <b style="color:var(--text-primary);">' + data.filter(function(i){return i.cat==='Referensi'}).length + '</b></span>';
         }
-
-        // --- EVENT HANDLERS ---
-
-        // Search logic with Debounce
-        let searchTimer;
-        document.getElementById('searchInput').oninput = (e) => {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(() => {
-                const term = e.target.value.toLowerCase();
-                const filtered = FALLBACK_ENDPOINTS.filter(i => i.act.toLowerCase().includes(term) || i.cat.toLowerCase().includes(term));
-                renderEndpoints(filtered);
-            }, 300);
-        };
 
         function getFilteredEndpoints() {
-            const term = document.getElementById('searchInput').value.toLowerCase();
-            return FALLBACK_ENDPOINTS.filter(i => i.act.toLowerCase().includes(term));
+            var t = document.getElementById('searchInput').value.toLowerCase();
+            return FALLBACK_ENDPOINTS.filter(function(i) { return i.act.toLowerCase().indexOf(t) !== -1; });
         }
 
-        // Theme Toggle
-        document.getElementById('themeToggle').onclick = () => {
+        // ============================================================
+        //  EVENT LISTENERS
+        // ============================================================
+        var searchTimer;
+        document.getElementById('searchInput').oninput = function() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(function() { renderEndpoints(getFilteredEndpoints()); }, 300);
+        };
+
+        document.getElementById('themeToggle').onclick = function() {
             appState.darkMode = !appState.darkMode;
             localStorage.setItem('theme', appState.darkMode ? 'dark' : 'light');
             initTheme();
         };
 
-        // Modal Logic
-        const configModal = document.getElementById('configModal');
-        document.getElementById('configBtn').onclick = () => {
+        var configModal = document.getElementById('configModal');
+        document.getElementById('configBtn').onclick = function() {
             document.getElementById('wsUrlInput').value = appState.config.url;
             document.getElementById('wsUserInput').value = appState.config.user;
             document.getElementById('wsPassInput').value = appState.config.pass;
             configModal.classList.remove('hidden');
         };
-        
-        document.getElementById('closeConfig').onclick = () => configModal.classList.add('hidden');
-        
-        document.getElementById('saveConfigBtn').onclick = async () => {
+        document.getElementById('closeConfig').onclick = function() { configModal.classList.add('hidden'); };
+        document.getElementById('saveConfigBtn').onclick = async function() {
             appState.config.url = document.getElementById('wsUrlInput').value;
             appState.config.user = document.getElementById('wsUserInput').value;
             appState.config.pass = document.getElementById('wsPassInput').value;
-            
-            const success = await getToken();
-            if (success) {
-                configModal.classList.add('hidden');
-            }
+            if (await getToken()) configModal.classList.add('hidden');
         };
 
-        function loadConfig() {
-            // No persistent storage for user/pass for security in this demo, 
-            // only URL and token from LocalStorage
-        }
-
-        // Try API logic
-        document.getElementById('sendRequestBtn').onclick = async () => {
-            const btn = document.getElementById('sendRequestBtn');
-            const resContainer = document.getElementById('responseContainer');
-            const payloadRaw = document.getElementById('requestPayload').value;
-            
-            let payload = {};
-            try {
-                payload = JSON.parse(payloadRaw);
-            } catch (e) {
-                showToast("Format JSON payload tidak valid", "error");
-                return;
-            }
+        // ============================================================
+        //  SEND REQUEST
+        // ============================================================
+        document.getElementById('sendRequestBtn').onclick = async function() {
+            var btn = document.getElementById('sendRequestBtn');
+            var container = document.getElementById('responseContainer');
+            var payload;
+            try { payload = JSON.parse(document.getElementById('requestPayload').value); }
+            catch (e) { showToast("Format JSON payload tidak valid", "error"); return; }
 
             btn.disabled = true;
-            btn.innerHTML = '<span class="loader block w-3 h-3 border-2 border-white rounded-full"></span>';
-            resContainer.innerText = "// Menunggu response...";
-            resContainer.classList.remove('text-red-400', 'text-emerald-400');
-            resContainer.classList.add('text-slate-400');
+            btn.innerHTML = '<svg class="spin-loader w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="30 70" stroke-linecap="round"/></svg>';
+            setResponseStatus('loading');
+            container.innerHTML = '<span style="color:var(--text-tertiary);">// Mengirim request ke <span class="json-key">' + appState.currentAct + '</span>...\n// Menunggu respons server...</span>';
 
-            const result = await requestNeo(appState.currentAct, payload);
-            
+            var result = await requestNeo(appState.currentAct, payload);
+
             btn.disabled = false;
-            btn.innerHTML = 'KIRIM REQUEST';
-            
-            resContainer.innerText = JSON.stringify(result, null, 2);
+            btn.innerHTML = 'Kirim';
+            renderResponse(result);
+
             if (result && (result.error_code == 0 || result.error_code == "0")) {
-                resContainer.classList.add('text-emerald-400');
+                setResponseStatus('success');
                 showToast("Request Berhasil");
             } else {
-                resContainer.classList.add('text-red-400');
-                showToast("Request Gagal: " + (result?.error_desc || "Unknown error"), "error");
+                setResponseStatus('error');
+                showToast("Request Gagal: " + ((result && result.error_desc) || "Unknown error"), "error");
             }
         };
 
-        // Utility: Copy
+        // ============================================================
+        //  UTILITIES
+        // ============================================================
         function copyEndpoint() {
-            const act = appState.currentAct;
-            const dummyJson = {
-                act: act,
-                token: appState.config.token || "YOUR_TOKEN_HERE",
-                filter: "",
-                order: "",
-                limit: 10,
-                offset: 0
-            };
-            navigator.clipboard.writeText(JSON.stringify(dummyJson, null, 2));
+            var obj = { act: appState.currentAct, token: appState.config.token || "YOUR_TOKEN_HERE", filter: "", order: "", limit: 10, offset: 0 };
+            navigator.clipboard.writeText(JSON.stringify(obj, null, 2));
             showToast("JSON disalin ke clipboard");
         }
 
         function downloadExcel() {
-            // Helper to generate CSV and download
-            const act = appState.currentAct;
-            let csvContent = "data:text/csv;charset=utf-8,Field,Type,Description\n";
-            csvContent += "token,string,Token akses\n";
-            csvContent += "act,string,Nama fungsi\n";
-            csvContent += "filter,string,Filter SQL Like\n";
-            
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `neo_feeder_${act}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            var csv = "data:text/csv;charset=utf-8,Field,Type,Description\ntoken,string,Token akses\nact,string,Nama fungsi\nfilter,string,Filter SQL Like\n";
+            var a = document.createElement("a");
+            a.href = encodeURI(csv); a.download = "neo_feeder_" + appState.currentAct + ".csv";
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
             showToast("Dokumentasi CSV diunduh");
         }
-
     </script>
 </body>
 </html>
