@@ -3,846 +3,820 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Neo Feeder Importer — Full System</title>
+<title>Neo Feeder Importer PRO</title>
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<style>
-:root{
-  --bg-base:#f4f6f9;--bg-card:#ffffff;--bg-sidebar:#f8f9fb;--bg-input:#ffffff;
-  --bg-hover:#eef1f6;--bg-stripe:#f8f9fc;
-  --txt:#0c1222;--txt-sub:#5a6478;--txt-mute:#9ca3b4;
-  --bdr:#dfe3ec;--bdr-f:#0d9488;
-  --accent:#0d9488;--accent-h:#0f766e;--accent-l:#ccfbf1;--accent-xl:#f0fdfa;
-  --danger:#dc2626;--danger-l:#fef2f2;
-  --warn:#d97706;--warn-l:#fffbeb;
-  --info:#0284c7;--info-l:#f0f9ff;
-  --ok:#16a34a;--ok-l:#f0fdf4;
-  --retry:#7c3aed;--retry-l:#f5f3ff;
-  --sh:0 1px 3px rgba(12,18,34,.06),0 1px 2px rgba(12,18,34,.04);
-  --sh-lg:0 10px 40px rgba(12,18,34,.1),0 2px 8px rgba(12,18,34,.06);
-  --rad:12px;
-}
-.dark{
-  --bg-base:#090b11;--bg-card:#11141e;--bg-sidebar:#0d0f17;--bg-input:#181c28;
-  --bg-hover:#1a1f2e;--bg-stripe:#141825;
-  --txt:#e4e8f0;--txt-sub:#8b95aa;--txt-mute:#555d72;
-  --bdr:#1e2436;--bdr-f:#14b8a6;
-  --accent:#14b8a6;--accent-h:#2dd4bf;--accent-l:#042f2e;--accent-xl:#011e1d;
-  --danger:#f87171;--danger-l:#2a0a0a;
-  --warn:#fbbf24;--warn-l:#2a1f04;
-  --info:#38bdf8;--info-l:#0a1f33;
-  --ok:#4ade80;--ok-l:#052e16;
-  --retry:#a78bfa;--retry-l:#1e1545;
-  --sh:0 1px 3px rgba(0,0,0,.2);
-  --sh-lg:0 10px 40px rgba(0,0,0,.35);
-}
-*{box-sizing:border-box;scrollbar-width:thin;scrollbar-color:var(--accent) transparent}
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-thumb{background:var(--accent);border-radius:9px}
-body{margin:0;font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg-base);color:var(--txt);transition:background .25s,color .25s;line-height:1.5}
-.page{display:none;animation:fadeUp .25s ease}.page.active{display:block}
-@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-@keyframes slideR{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
-@keyframes slideROut{to{transform:translateX(110%);opacity:0}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
-@media(prefers-reduced-motion:reduce){*{animation-duration:0s!important;transition-duration:0s!important}}
-
-.card{background:var(--bg-card);border:1px solid var(--bdr);border-radius:var(--rad);box-shadow:var(--sh);transition:box-shadow .2s}
-.card:hover{box-shadow:var(--sh-lg)}
-.input{width:100%;padding:9px 13px;border-radius:8px;border:1.5px solid var(--bdr);background:var(--bg-input);color:var(--txt);font-size:13px;font-family:inherit;outline:none;transition:border .15s,box-shadow .15s}
-.input:focus{border-color:var(--bdr-f);box-shadow:0 0 0 3px rgba(13,148,136,.12)}
-.input::placeholder{color:var(--txt-mute)}
-select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%239ca3b4' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:30px}
-.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;border:none;transition:all .15s;white-space:nowrap;line-height:1.4}
-.btn:active:not(:disabled){transform:scale(.97)}
-.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
-.btn-p{background:var(--accent);color:#fff}.btn-p:hover:not(:disabled){background:var(--accent-h)}
-.btn-d{background:var(--danger);color:#fff}.btn-d:hover:not(:disabled){filter:brightness(1.1)}
-.btn-o{background:transparent;border:1.5px solid var(--bdr);color:var(--txt-sub)}.btn-o:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
-.btn-sm{padding:5px 12px;font-size:11.5px;border-radius:6px}
-.btn-ghost{background:transparent;color:var(--txt-sub);padding:6px 10px;border-radius:6px;cursor:pointer;border:none;font-size:14px}.btn-ghost:hover{background:var(--bg-hover);color:var(--txt)}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:99px;font-size:10.5px;font-weight:700;letter-spacing:.02em}
-.badge-ok{background:var(--ok-l);color:var(--ok)}.badge-err{background:var(--danger-l);color:var(--danger)}
-.badge-warn{background:var(--warn-l);color:var(--warn)}.badge-info{background:var(--info-l);color:var(--info)}
-
-.sb-link{display:flex;align-items:center;gap:9px;padding:8px 14px;border-radius:0 8px 8px 0;font-size:13px;font-weight:500;color:var(--txt-sub);cursor:pointer;transition:all .12s;border-left:3px solid transparent;text-decoration:none}
-.sb-link:hover{background:var(--bg-hover);color:var(--txt)}
-.sb-link.on{background:var(--accent-l);color:var(--accent-h);border-left-color:var(--accent);font-weight:700}
-.sb-num{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;background:var(--bg-hover);color:var(--txt-mute);flex-shrink:0;transition:all .15s}
-.sb-link.on .sb-num{background:var(--accent);color:#fff}
-
-.drop{border:2px dashed var(--bdr);border-radius:var(--rad);padding:52px 24px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-.drop::before{content:'';position:absolute;inset:0;background:var(--accent-xl);opacity:0;transition:opacity .2s}
-.drop.over{border-color:var(--accent)}.drop.over::before,.drop:hover::before{opacity:1}
-
-.tw{overflow-x:auto;border:1px solid var(--bdr);border-radius:10px;background:var(--bg-card)}
-.tw table{width:100%;border-collapse:collapse;font-size:12px}
-.tw th{background:var(--bg-hover);padding:8px 12px;text-align:left;font-weight:700;color:var(--txt-sub);font-size:11px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;position:sticky;top:0;z-index:1}
-.tw td{padding:6px 12px;border-top:1px solid var(--bdr);color:var(--txt);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tw tbody tr:nth-child(even) td{background:var(--bg-stripe)}
-.tw tbody tr:hover td{background:var(--bg-hover)}
-
-.prg{height:8px;border-radius:99px;background:var(--bg-hover);overflow:hidden}
-.prg-f{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--info));transition:width .35s ease;position:relative}
-.prg-f::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);animation:shimmer 1.5s infinite}
-
-.ll{font-family:'JetBrains Mono',monospace;font-size:11px;padding:2px 0;line-height:1.6}
-.ll.c-ok{color:var(--ok)}.ll.c-err{color:var(--danger)}.ll.c-warn{color:var(--warn)}.ll.c-info{color:var(--info)}.ll.c-retry{color:var(--retry)}
-
-.toast{padding:11px 16px;border-radius:10px;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:9px;animation:slideR .3s ease;box-shadow:var(--sh-lg);pointer-events:auto;max-width:360px}
-.toast.out{animation:slideROut .25s ease forwards}
-.toast-ok{background:#059669;color:#fff}.toast-err{background:#dc2626;color:#fff}
-.toast-warn{background:#d97706;color:#fff}.toast-info{background:#0284c7;color:#fff}
-
-.code{background:var(--bg-input);border:1px solid var(--bdr);border-radius:8px;padding:13px;font-family:'JetBrains Mono',monospace;font-size:11.5px;overflow-x:auto;white-space:pre;line-height:1.6;color:var(--txt-sub)}
-
-.sm{background:var(--bg-card);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;transition:all .2s}
-.sm .sv{font-size:22px;font-weight:900;line-height:1.1}
-.sm .sl{font-size:10.5px;font-weight:700;color:var(--txt-mute);text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
-
-.spin-i{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
-
-@media(max-width:768px){
-  #sidebar{position:fixed;z-index:50;transform:translateX(-100%);transition:transform .3s ease;width:250px}
-  #sidebar.open{transform:translateX(0)}
-  #sb-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;backdrop-filter:blur(2px)}
-  #sb-ov.open{display:block}
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style type="text/tailwindcss">
+@import "tailwindcss";
+@theme {
+  --font-outfit: 'Outfit', sans-serif;
+  --color-accent: #f0a500;
+  --color-accent-hover: #c48800;
+  --color-accent-glow: rgba(240,165,0,0.12);
 }
 </style>
+<style>
+:root{--bg:#0c0e14;--card:#151822;--card2:#1c1f2e;--input:#111420;--bdr:#252836;--bdr2:#333650;--tx:#e4e5ea;--tx2:#a0a3b5;--tx3:#6c7086;--accent:#f0a500;--accent2:#c48800;--glow:rgba(240,165,0,0.12);--ok:#10b981;--warn:#eab308;--err:#ef4444;--info:#06b6d4}
+body.light{--bg:#f3f4f8;--card:#ffffff;--card2:#f0f1f5;--input:#f0f1f5;--bdr:#dfe1e8;--bdr2:#c8cad3;--tx:#1a1d27;--tx2:#4a4d5e;--tx3:#8a8da0;--glow:rgba(240,165,0,0.08)}
+*{font-family:'Outfit',sans-serif;box-sizing:border-box}
+body{background:var(--bg);color:var(--tx);margin:0;min-height:100vh;transition:background .3s,color .3s}
+body::before{content:'';position:fixed;top:-250px;right:-250px;width:700px;height:700px;background:radial-gradient(circle,rgba(240,165,0,.05)0%,transparent 70%);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;bottom:-300px;left:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(6,182,212,.03)0%,transparent 70%);pointer-events:none;z-index:0}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:4px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideR{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.anim-fade{animation:fadeUp .35s ease-out both}.anim-fade-d1{animation:fadeUp .35s .08s ease-out both}.anim-fade-d2{animation:fadeUp .35s .16s ease-out both}.anim-fade-d3{animation:fadeUp .35s .24s ease-out both}
+.sidebar-link{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:10px;color:var(--tx2);transition:all .2s;cursor:pointer;font-size:14px;font-weight:500;position:relative;margin:2px 0}
+.sidebar-link:hover{background:rgba(240,165,0,.06);color:var(--accent)}
+.sidebar-link.active{background:rgba(240,165,0,.1);color:var(--accent);font-weight:600}
+.sidebar-link.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:60%;background:var(--accent);border-radius:0 3px 3px 0}
+.sidebar-group{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--tx3);padding:16px 16px 6px;margin-top:8px}
+.sidebar-num{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;background:var(--card2);color:var(--tx3);flex-shrink:0;transition:all .15s}
+.sidebar-link.active .sidebar-num{background:var(--accent);color:#0c0e14}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;transition:border-color .2s}.card:hover{border-color:var(--bdr2)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;border:none;transition:all .2s}
+.btn:active{transform:scale(.97)}.btn-p{background:var(--accent);color:#0c0e14}.btn-p:hover{background:var(--accent2);transform:translateY(-1px)}.btn-p:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-s{background:var(--card2);color:var(--tx);border:1px solid var(--bdr)}.btn-s:hover{background:var(--bdr);border-color:var(--bdr2)}
+.btn-d{background:rgba(239,68,68,.12);color:var(--err);border:1px solid rgba(239,68,68,.2)}.btn-d:hover{background:rgba(239,68,68,.2)}
+.ipt{width:100%;padding:10px 14px;background:var(--input);border:1px solid var(--bdr);border-radius:10px;color:var(--tx);font-size:14px;transition:all .2s;outline:none;font-family:inherit}
+.ipt:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}.ipt::placeholder{color:var(--tx3)}
+textarea.ipt{resize:vertical;min-height:120px;font-family:'Courier New',monospace;font-size:13px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}.tbl th{background:var(--card2);color:var(--tx2);font-weight:600;padding:10px 14px;text-align:left;position:sticky;top:0;z-index:2;border-bottom:1px solid var(--bdr)}.tbl td{padding:8px 14px;border-bottom:1px solid var(--bdr);color:var(--tx2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tbl tr:hover td{background:rgba(240,165,0,.03)}
+.drop-zone{border:2px dashed var(--bdr2);border-radius:14px;padding:40px;text-align:center;cursor:pointer;transition:all .3s}.drop-zone:hover,.drop-zone.over{border-color:var(--accent);background:var(--glow)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-ok{background:rgba(16,185,129,.12);color:var(--ok)}.badge-warn{background:rgba(234,179,8,.12);color:var(--warn)}.badge-err{background:rgba(239,68,68,.12);color:var(--err)}.badge-info{background:rgba(6,182,212,.12);color:var(--info)}
+.log-ok{color:var(--ok)}.log-warn{color:var(--warn)}.log-err{color:var(--err)}.log-info{color:var(--info)}.log-retry{color:#a78bfa}
+.toast-box{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{pointer-events:auto;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;animation:fadeUp .3s ease-out;backdrop-filter:blur(10px);border:1px solid var(--bdr);display:flex;align-items:center;gap:10px;max-width:380px}
+.toast.out{animation:fadeIn .25s ease-out reverse both}
+.toast-ok{background:rgba(16,185,129,.15);color:var(--ok);border-color:rgba(16,185,129,.3)}.toast-err{background:rgba(239,68,68,.15);color:var(--err);border-color:rgba(239,68,68,.3)}.toast-warn{background:rgba(234,179,8,.15);color:var(--warn);border-color:rgba(234,179,8,.3)}.toast-info{background:rgba(6,182,212,.15);color:var(--info);border-color:rgba(6,182,212,.3)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s}
+.modal-box{background:var(--card);border:1px solid var(--bdr);border-radius:16px;max-width:640px;width:90%;max-height:80vh;overflow-y:auto;animation:fadeUp .3s ease-out}
+.progress-track{background:var(--card2);border-radius:8px;height:10px;overflow:hidden}
+.progress-fill{height:100%;border-radius:8px;transition:width .4s ease;background:linear-gradient(90deg,var(--accent),#fbbf24)}
+.stat-card{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;text-align:center}
+.stat-num{font-size:28px;font-weight:800;line-height:1.1}.stat-lbl{font-size:12px;color:var(--tx3);margin-top:4px;font-weight:500}
+.spin-anim{animation:spin 1s linear infinite}
+@media(max-width:768px){.sidebar-wrap{position:fixed!important;z-index:500;transform:translateX(-100%);transition:transform .3s}.sidebar-wrap.open{transform:translateX(0)}.main-wrap{margin-left:0!important}.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:499}.overlay.show{display:block}}
+</style>
 </head>
-<body class="min-h-screen">
-
-<div id="sb-ov" onclick="togSB(false)"></div>
-
-<div class="flex min-h-screen">
-<aside id="sidebar" class="w-60 flex-shrink-0 h-screen sticky top-0 flex flex-col border-r" style="background:var(--bg-sidebar);border-color:var(--bdr)">
-  <div class="p-4 border-b" style="border-color:var(--bdr)">
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:var(--accent)"><i class="fas fa-bolt text-white text-sm"></i></div>
-      <div><div class="font-extrabold text-sm" style="color:var(--txt)">Neo Feeder</div><div class="font-bold" style="font-size:10px;color:var(--txt-mute);letter-spacing:.08em">IMPORTER SYSTEM</div></div>
+<body>
+<div class="toast-box" id="toasts"></div>
+<div class="overlay" id="overlay"></div>
+<div class="flex min-h-screen relative" style="z-index:1">
+  <aside class="sidebar-wrap w-[260px] min-w-[260px] h-screen sticky top-0 flex flex-col border-r" id="sidebar" style="background:var(--card);border-color:var(--bdr)">
+    <div class="p-5 flex items-center gap-3 border-b" style="border-color:var(--bdr)">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:var(--accent)"><i class="fa-solid fa-bolt text-sm" style="color:#0c0e14"></i></div>
+      <div><div class="font-bold text-sm" style="color:var(--tx)">Neo Feeder</div><div class="text-[11px] font-semibold" style="color:var(--accent)">Importer PRO</div></div>
     </div>
-  </div>
-  <nav class="flex-1 p-2.5 space-y-0.5 overflow-y-auto" id="sb-nav"></nav>
-  <div class="p-3 border-t text-center" style="border-color:var(--bdr)"><span class="font-bold" style="font-size:9.5px;color:var(--txt-mute);letter-spacing:.08em">v1.0 PRODUCTION READY</span></div>
-</aside>
-
-<div class="flex-1 flex flex-col min-w-0">
-  <header class="flex items-center px-4 gap-3 sticky top-0 z-30 border-b" style="background:var(--bg-card);border-color:var(--bdr);min-height:52px">
-    <button class="md:hidden btn-ghost" onclick="togSB(true)" aria-label="Menu"><i class="fas fa-bars"></i></button>
-    <h1 id="pg-title" class="font-bold text-sm flex-1 truncate" style="color:var(--txt)"></h1>
-    <div class="flex items-center gap-2">
-      <span id="tk-ok" class="badge badge-ok hidden"><i class="fas fa-key" style="font-size:8px"></i>Token Aktif</span>
-      <span id="tk-no" class="badge badge-err"><i class="fas fa-triangle-exclamation" style="font-size:8px"></i>Belum Ada Token</span>
-      <button onclick="togDark()" class="btn-ghost" title="Dark Mode" aria-label="Toggle dark mode"><i id="dk-ic" class="fas fa-moon"></i></button>
-    </div>
-  </header>
-
-  <main class="flex-1 p-4 md:p-6 overflow-y-auto" id="content">
-    <div id="pg-config" class="page active max-w-2xl mx-auto space-y-4"></div>
-    <div id="pg-docs" class="page max-w-4xl mx-auto space-y-4"></div>
-    <div id="pg-import" class="page max-w-5xl mx-auto space-y-4"></div>
-    <div id="pg-test" class="page max-w-3xl mx-auto space-y-4"></div>
-  </main>
-</div>
-</div>
-
-<!-- Modal Konfirmasi -->
-<div id="cf-mod" class="fixed inset-0 z-[65] hidden items-center justify-center p-4" style="background:rgba(0,0,0,.5);backdrop-filter:blur(3px)">
-  <div class="card p-6 w-full max-w-md" style="box-shadow:var(--sh-lg)">
-    <h3 id="cf-t" class="font-bold text-base mb-2" style="color:var(--txt)"></h3>
-    <p id="cf-m" class="text-sm mb-5" style="color:var(--txt-sub)"></p>
-    <div id="cf-s" class="grid grid-cols-2 gap-2 mb-5"></div>
-    <div class="flex justify-end gap-2">
-      <button class="btn btn-o" onclick="cfClose()">Batal</button>
-      <button id="cf-b" class="btn btn-p">Lanjutkan Import</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Monitoring -->
-<div id="mon-mod" class="fixed inset-0 z-[60] hidden items-center justify-center p-4" style="background:rgba(0,0,0,.55);backdrop-filter:blur(3px)">
-  <div class="card w-full max-w-2xl flex flex-col" style="max-height:92vh;box-shadow:var(--sh-lg)">
-    <div class="p-4 border-b flex items-center justify-between" style="border-color:var(--bdr)">
+    <nav class="flex-1 overflow-y-auto py-2 px-3" id="sidebar-nav"></nav>
+    <div class="p-4 border-t" style="border-color:var(--bdr)" id="sidebar-footer"></div>
+  </aside>
+  <div class="main-wrap flex-1 flex flex-col min-h-screen">
+    <header class="sticky top-0 z-40 border-b flex items-center gap-4 px-5 h-[60px]" style="background:var(--card);border-color:var(--bdr);backdrop-filter:blur(12px)">
+      <button class="md:hidden w-9 h-9 flex items-center justify-center rounded-lg" style="background:var(--card2)" onclick="toggleSidebar()"><i class="fa-solid fa-bars text-sm" style="color:var(--tx2)"></i></button>
+      <div class="flex-1"><h1 class="text-sm font-bold" id="page-title" style="color:var(--tx)">Konfigurasi API</h1><p class="text-[11px]" id="page-subtitle" style="color:var(--tx3)">Atur koneksi ke server Neo Feeder</p></div>
       <div class="flex items-center gap-2">
-        <div id="mon-dot" class="w-2.5 h-2.5 rounded-full" style="background:var(--ok);animation:pulse 1s infinite"></div>
-        <h2 class="font-bold text-sm" style="color:var(--txt)">Monitoring Import</h2>
+        <button class="w-9 h-9 rounded-lg flex items-center justify-center transition-colors" style="background:var(--card2)" onclick="toggleTheme()" title="Toggle tema"><i class="fa-solid fa-moon text-sm" style="color:var(--tx2)" id="theme-icon"></i></button>
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg" style="background:var(--card2)" id="status-badge"><span class="w-2 h-2 rounded-full" style="background:var(--err)" id="status-dot"></span><span class="text-xs font-semibold" style="color:var(--tx3)" id="status-text">Offline</span></div>
       </div>
-      <div class="flex items-center gap-2">
-        <span id="mon-tm" class="font-mono text-xs" style="color:var(--txt-mute)">00:00</span>
-        <button id="mon-can" onclick="cancelImp()" class="btn btn-d btn-sm"><i class="fas fa-stop"></i>Batalkan</button>
-        <button onclick="monClose()" class="btn-ghost"><i class="fas fa-xmark"></i></button>
-      </div>
-    </div>
-    <div class="p-4 space-y-3 overflow-y-auto flex-1">
-      <div class="prg"><div id="mon-bar" class="prg-f" style="width:0%"></div></div>
-      <div id="mon-pct" class="text-center text-xs font-bold" style="color:var(--txt-sub)">0%</div>
-      <div class="grid grid-cols-5 gap-2" id="mon-st"></div>
-      <div class="flex gap-2 flex-wrap">
-        <button onclick="expLog()" class="btn btn-o btn-sm"><i class="fas fa-download"></i>Export Log</button>
-        <button onclick="dlFail()" class="btn btn-o btn-sm"><i class="fas fa-file-arrow-down"></i>Download Gagal</button>
-      </div>
-      <div id="mon-log" class="p-3 rounded-lg overflow-y-auto" style="background:var(--bg-input);border:1px solid var(--bdr);height:200px"></div>
-    </div>
+    </header>
+    <main class="flex-1 p-5 md:p-6 relative" style="z-index:1" id="page-container"></main>
   </div>
 </div>
-
-<div id="toast-box" class="fixed top-4 right-4 z-[70] space-y-2 pointer-events-none"></div>
+<div id="modal-root"></div>
 
 <script>
-/* ============================================================
-   1. DOKUMENTASI WS INTERNAL
-   ============================================================ */
-const wsDocs={
-GetToken:{label:'GetToken',desc:'Mendapatkan token autentikasi Neo Feeder. Token wajib disertakan pada setiap request selanjutnya. Gunakan tool eksternal (Postman/curl) atau halaman Test API untuk mendapatkannya, lalu tempel token di halaman Konfigurasi.',
-fields:[{n:'username',l:'Username',r:true,t:'string'},{n:'password',l:'Password',r:true,t:'string'}],
-example:{act:'GetToken',data:{username:'admin',password:'password123'}}},
-InsertBiodataDosen:{label:'InsertBiodataDosen',desc:'Menyimpan data biodata dosen. NIDN bersifat unik.',
-fields:[{n:'nidn',l:'NIDN',r:true,t:'string'},{n:'nama_dosen',l:'Nama Dosen',r:true,t:'string'},{n:'jenis_kelamin',l:'Jenis Kelamin (L/P)',r:true,t:'string'},{n:'id_prodi',l:'ID Program Studi',r:true,t:'string'},{n:'id_status_aktif',l:'Status Aktif',r:false,t:'string',d:'A'}],
-example:{act:'InsertBiodataDosen',token:'xxx',data:{nidn:'0012345678',nama_dosen:'Dr. Ahmad Fauzi, M.Kom',jenis_kelamin:'L',id_prodi:'A1B2C3D4',id_status_aktif:'A'}}},
-InsertMahasiswa:{label:'InsertMahasiswa',desc:'Menyimpan data mahasiswa baru. NIM harus unik per program studi.',
-fields:[{n:'nim',l:'NIM',r:true,t:'string'},{n:'nama_mahasiswa',l:'Nama Mahasiswa',r:true,t:'string'},{n:'id_prodi',l:'ID Program Studi',r:true,t:'string'},{n:'id_periode_masuk',l:'ID Periode Masuk',r:true,t:'string'}],
-example:{act:'InsertMahasiswa',token:'xxx',data:{nim:'2024001',nama_mahasiswa:'Budi Santoso',id_prodi:'A1B2C3D4',id_periode_masuk:'20241'}}},
-InsertKelasKuliah:{label:'InsertKelasKuliah',desc:'Membuat kelas kuliah pada semester tertentu. ID kelas kuliah harus unik.',
-fields:[{n:'id_kelas_kuliah',l:'ID Kelas Kuliah',r:true,t:'string'},{n:'nama_kelas',l:'Nama Kelas',r:true,t:'string'},{n:'id_matkul',l:'ID Mata Kuliah',r:true,t:'string'},{n:'id_prodi',l:'ID Program Studi',r:true,t:'string'},{n:'id_periode',l:'ID Periode',r:true,t:'string'}],
-example:{act:'InsertKelasKuliah',token:'xxx',data:{id_kelas_kuliah:'KK-MK001-A',nama_kelas:'Kelas A',id_matkul:'MK001',id_prodi:'A1B2C3D4',id_periode:'20241'}}},
-InsertDosenPengajarKelasKuliah:{label:'InsertDosenPengajarKelasKuliah',desc:'Menempatkan dosen sebagai pengajar pada kelas kuliah. Kombinasi id_kelas_kuliah + nidn harus unik.',
-fields:[{n:'id_kelas_kuliah',l:'ID Kelas Kuliah',r:true,t:'string'},{n:'nidn',l:'NIDN Dosen',r:true,t:'string'},{n:'peran_dosen',l:'Peran Dosen',r:false,t:'string',d:'pengajar'}],
-example:{act:'InsertDosenPengajarKelasKuliah',token:'xxx',data:{id_kelas_kuliah:'KK-MK001-A',nidn:'0012345678',peran_dosen:'pengajar'}}},
-InsertJadwalKuliah:{label:'InsertJadwalKuliah',desc:'Menyimpan jadwal kuliah. Kombinasi id_kelas_kuliah + id_ruang + hari + jam_mulai harus unik.',
-fields:[{n:'id_kelas_kuliah',l:'ID Kelas Kuliah',r:true,t:'string'},{n:'id_ruang',l:'ID Ruang',r:true,t:'string'},{n:'hari',l:'Hari',r:true,t:'string'},{n:'jam_mulai',l:'Jam Mulai',r:true,t:'string'},{n:'jam_selesai',l:'Jam Selesai',r:true,t:'string'}],
-example:{act:'InsertJadwalKuliah',token:'xxx',data:{id_kelas_kuliah:'KK-MK001-A',id_ruang:'R-101',hari:'Senin',jam_mulai:'08:00',jam_selesai:'09:40'}}},
-InsertKRS:{label:'InsertKRS',desc:'Menyimpan Kartu Rencana Studi. Kombinasi id_kelas_kuliah + nim harus unik.',
-fields:[{n:'id_kelas_kuliah',l:'ID Kelas Kuliah',r:true,t:'string'},{n:'nim',l:'NIM',r:true,t:'string'}],
-example:{act:'InsertKRS',token:'xxx',data:{id_kelas_kuliah:'KK-MK001-A',nim:'2024001'}}},
-InsertKHS:{label:'InsertKHS',desc:'Menyimpan Kartu Hasil Studi. Kombinasi id_kelas_kuliah + nim harus unik.',
-fields:[{n:'id_kelas_kuliah',l:'ID Kelas Kuliah',r:true,t:'string'},{n:'nim',l:'NIM',r:true,t:'string'},{n:'nilai_huruf',l:'Nilai Huruf',r:true,t:'string'},{n:'nilai_index',l:'Nilai Index',r:true,t:'number'},{n:'bobot_mata_kuliah',l:'Bobot SKS',r:true,t:'number'}],
-example:{act:'InsertKHS',token:'xxx',data:{id_kelas_kuliah:'KK-MK001-A',nim:'2024001',nilai_huruf:'A',nilai_index:4.0,bobot_mata_kuliah:3}}},
-InsertAKM:{label:'InsertAKM',desc:'Menyimpan Aktivitas Kemahasiswaan (status per semester). Kombinasi nim + id_periode harus unik.',
-fields:[{n:'nim',l:'NIM',r:true,t:'string'},{n:'id_periode',l:'ID Periode',r:true,t:'string'},{n:'id_status_mahasiswa',l:'Status Mahasiswa',r:true,t:'string'},{n:'ips',l:'IPS',r:false,t:'number'},{n:'sks_semester',l:'SKS Semester',r:false,t:'number'}],
-example:{act:'InsertAKM',token:'xxx',data:{nim:'2024001',id_periode:'20241',id_status_mahasiswa:'A',ips:3.5,sks_semester:20}}},
-InsertAktivitasMahasiswa:{label:'InsertAktivitasMahasiswa',desc:'Menyimpan kegiatan kemahasiswaan (KKN, PPL, MBKM, dll). ID aktivitas harus unik.',
-fields:[{n:'id_aktivitas',l:'ID Aktivitas',r:true,t:'string'},{n:'nama_aktivitas',l:'Nama Aktivitas',r:true,t:'string'},{n:'jenis_aktivitas',l:'Jenis Aktivitas',r:true,t:'string'},{n:'id_prodi',l:'ID Program Studi',r:true,t:'string'},{n:'id_periode',l:'ID Periode',r:true,t:'string'}],
-example:{act:'InsertAktivitasMahasiswa',token:'xxx',data:{id_aktivitas:'AKT-001',nama_aktivitas:'KKN Desa Mekar Sari',jenis_aktivitas:'KKN',id_prodi:'A1B2C3D4',id_periode:'20241'}}},
-InsertPesertaAktivitasMahasiswa:{label:'InsertPesertaAktivitasMahasiswa',desc:'Menyimpan peserta kegiatan kemahasiswaan. Kombinasi id_aktivitas + nim harus unik.',
-fields:[{n:'id_aktivitas',l:'ID Aktivitas',r:true,t:'string'},{n:'nim',l:'NIM',r:true,t:'string'},{n:'peran',l:'Peran',r:false,t:'string',d:'peserta'}],
-example:{act:'InsertPesertaAktivitasMahasiswa',token:'xxx',data:{id_aktivitas:'AKT-001',nim:'2024001',peran:'peserta'}}},
-InsertKelulusanMahasiswa:{label:'InsertKelulusanMahasiswa',desc:'Menyimpan data kelulusan mahasiswa. NIM harus unik.',
-fields:[{n:'nim',l:'NIM',r:true,t:'string'},{n:'id_periode_kelulusan',l:'ID Periode Kelulusan',r:true,t:'string'},{n:'ipk',l:'IPK',r:false,t:'number'},{n:'no_sk_yudisium',l:'No SK Yudisium',r:false,t:'string'}],
-example:{act:'InsertKelulusanMahasiswa',token:'xxx',data:{nim:'2024001',id_periode_kelulusan:'20242',ipk:3.75,no_sk_yudisium:'SK/YUD/001/2024'}}}
+/* ================================================================
+   KONSTANTA & STORAGE KEYS
+   ================================================================ */
+const DEFAULT_URL = 'http://localhost:3003/ws/live2.php';
+const SK = { url:'nf_url', user:'nf_user', pass:'nf_pass', token:'nf_token', settings:'nf_settings', dark:'nf_dark' };
+
+/* ================================================================
+   MENU & URUTAN IMPORT (sesuai spesifikasi)
+   ================================================================ */
+const menuItems = [
+  { id:'config', label:'Konfigurasi API', icon:'fa-gear', group:null },
+  { id:'dosen',       label:'Dosen',             icon:'fa-chalkboard-user',   group:'Import Data', ord:1 },
+  { id:'mahasiswa',   label:'Mahasiswa',         icon:'fa-user-graduate',     group:'Import Data', ord:2 },
+  { id:'kelas',       label:'Kelas Kuliah',      icon:'fa-door-open',         group:'Import Data', ord:3 },
+  { id:'pengajar',    label:'Pengajar Kelas',     icon:'fa-person-chalkboard', group:'Import Data', ord:4 },
+  { id:'jadwal',      label:'Jadwal Kuliah',     icon:'fa-calendar-days',     group:'Import Data', ord:5 },
+  { id:'krs',         label:'KRS',               icon:'fa-list-check',        group:'Import Data', ord:6 },
+  { id:'khs',         label:'KHS',               icon:'fa-file-lines',        group:'Import Data', ord:7 },
+  { id:'akm',         label:'AKM',               icon:'fa-chart-line',        group:'Import Data', ord:8 },
+  { id:'aktivitas',   label:'Aktivitas',         icon:'fa-person-running',    group:'Import Data', ord:9 },
+  { id:'peserta',     label:'Peserta Aktivitas', icon:'fa-users',             group:'Import Data', ord:10 },
+  { id:'kelulusan',   label:'Kelulusan',         icon:'fa-graduation-cap',    group:'Import Data', ord:11 },
+  { id:'testapi',     label:'Test API',          icon:'fa-flask-vial',        group:'Alat Bantu' },
+  { id:'reference',   label:'Reference WS',      icon:'fa-book-open',         group:'Alat Bantu' },
+];
+
+/* ================================================================
+   KONFIGURASI TIPE IMPORT (lengkap 11 tipe)
+   ================================================================ */
+const importCfg = {
+  dosen:     { method:'InsertBiodataDosen',                keyFields:['nidn'],                          label:'Dosen',             desc:'Import data biodata dosen' },
+  mahasiswa: { method:'InsertMahasiswa',                   keyFields:['nim'],                            label:'Mahasiswa',         desc:'Import data mahasiswa baru' },
+  kelas:     { method:'InsertKelasKuliah',                keyFields:['id_kelas_kuliah'],                label:'Kelas Kuliah',      desc:'Import data kelas kuliah' },
+  pengajar:  { method:'InsertDosenPengajarKelasKuliah',   keyFields:['id_kelas_kuliah','nidn'],        label:'Pengajar Kelas',    desc:'Import dosen pengajar kelas' },
+  jadwal:    { method:'InsertJadwalKuliah',                keyFields:['id_kelas_kuliah','id_ruang','id_waktu'], label:'Jadwal Kuliah', desc:'Import jadwal perkuliahan' },
+  krs:       { method:'InsertKRS',                         keyFields:['id_kelas_kuliah','nim'],         label:'KRS',               desc:'Import Kartu Rencana Studi' },
+  khs:       { method:'InsertKHS',                         keyFields:['id_kelas_kuliah','nim'],         label:'KHS',               desc:'Import Kartu Hasil Studi' },
+  akm:       { method:'InsertAKM',                         keyFields:['nim','id_periode'],              label:'AKM',               desc:'Import Aktivitas Kemahasiswaan' },
+  aktivitas: { method:'InsertAktivitasMahasiswa',          keyFields:['id_aktivitas'],                  label:'Aktivitas',         desc:'Import data aktivitas mahasiswa' },
+  peserta:   { method:'InsertPesertaAktivitasMahasiswa',   keyFields:['id_aktivitas','nim'],           label:'Peserta Aktivitas', desc:'Import peserta aktivitas' },
+  kelulusan: { method:'InsertKelulusanMahasiswa',          keyFields:['nim'],                            label:'Kelulusan',         desc:'Import data kelulusan mahasiswa' },
 };
 
-/* ============================================================
-   2. DEFINISI TIPE IMPORT
-   ============================================================ */
-const IO=['dosen','mahasiswa','kelas','pengajar','jadwal','krs','khs','akm','aktivitas','peserta','kelulusan'];
-const IT={
-dosen:{k:'dosen',lb:'Dosen',m:'InsertBiodataDosen',ic:'fa-chalkboard-user',ord:1,
-kf:['nidn'],rf:['nidn','nama_dosen','jenis_kelamin','id_prodi'],
-fl:[{n:'nidn',l:'NIDN',r:1},{n:'nama_dosen',l:'Nama Dosen',r:1},{n:'jenis_kelamin',l:'Jenis Kelamin',r:1},{n:'id_prodi',l:'ID Prodi',r:1},{n:'id_status_aktif',l:'Status Aktif',r:0,d:'A'}],
-smp:[{nidn:'0012345678',nama_dosen:'Dr. Ahmad Fauzi, M.Kom',jenis_kelamin:'L',id_prodi:'A1B2C3D4',id_status_aktif:'A'},{nidn:'0012345679',nama_dosen:'Siti Nurhaliza, S.Kom, M.T',jenis_kelamin:'P',id_prodi:'A1B2C3D4',id_status_aktif:'A'},{nidn:'0012345680',nama_dosen:'Prof. Bambang Suryo, Ph.D',jenis_kelamin:'L',id_prodi:'E5F6G7H8',id_status_aktif:'A'}]},
-mahasiswa:{k:'mahasiswa',lb:'Mahasiswa',m:'InsertMahasiswa',ic:'fa-user-graduate',ord:2,
-kf:['nim'],rf:['nim','nama_mahasiswa','id_prodi','id_periode_masuk'],
-fl:[{n:'nim',l:'NIM',r:1},{n:'nama_mahasiswa',l:'Nama Mahasiswa',r:1},{n:'id_prodi',l:'ID Prodi',r:1},{n:'id_periode_masuk',l:'Periode Masuk',r:1}],
-smp:[{nim:'2024001',nama_mahasiswa:'Budi Santoso',id_prodi:'A1B2C3D4',id_periode_masuk:'20241'},{nim:'2024002',nama_mahasiswa:'Ani Rahayu',id_prodi:'A1B2C3D4',id_periode_masuk:'20241'},{nim:'2024003',nama_mahasiswa:'Citra Dewi',id_prodi:'E5F6G7H8',id_periode_masuk:'20241'}]},
-kelas:{k:'kelas',lb:'Kelas Kuliah',m:'InsertKelasKuliah',ic:'fa-door-open',ord:3,
-kf:['id_kelas_kuliah'],rf:['id_kelas_kuliah','nama_kelas','id_matkul','id_prodi','id_periode'],
-fl:[{n:'id_kelas_kuliah',l:'ID Kelas',r:1},{n:'nama_kelas',l:'Nama Kelas',r:1},{n:'id_matkul',l:'ID Matkul',r:1},{n:'id_prodi',l:'ID Prodi',r:1},{n:'id_periode',l:'ID Periode',r:1}],
-smp:[{id_kelas_kuliah:'KK-MK001-A',nama_kelas:'Kelas A',id_matkul:'MK001',id_prodi:'A1B2C3D4',id_periode:'20241'},{id_kelas_kuliah:'KK-MK002-B',nama_kelas:'Kelas B',id_matkul:'MK002',id_prodi:'A1B2C3D4',id_periode:'20241'}]},
-pengajar:{k:'pengajar',lb:'Pengajar Kelas',m:'InsertDosenPengajarKelasKuliah',ic:'fa-person-chalkboard',ord:4,
-kf:['id_kelas_kuliah','nidn'],rf:['id_kelas_kuliah','nidn'],
-fl:[{n:'id_kelas_kuliah',l:'ID Kelas',r:1},{n:'nidn',l:'NIDN',r:1},{n:'peran_dosen',l:'Peran',r:0,d:'pengajar'}],
-smp:[{id_kelas_kuliah:'KK-MK001-A',nidn:'0012345678',peran_dosen:'pengajar'},{id_kelas_kuliah:'KK-MK002-B',nidn:'0012345679',peran_dosen:'pengajar'}]},
-jadwal:{k:'jadwal',lb:'Jadwal Kuliah',m:'InsertJadwalKuliah',ic:'fa-calendar-days',ord:5,
-kf:['id_kelas_kuliah','id_ruang','hari','jam_mulai'],rf:['id_kelas_kuliah','id_ruang','hari','jam_mulai','jam_selesai'],
-fl:[{n:'id_kelas_kuliah',l:'ID Kelas',r:1},{n:'id_ruang',l:'ID Ruang',r:1},{n:'hari',l:'Hari',r:1},{n:'jam_mulai',l:'Jam Mulai',r:1},{n:'jam_selesai',l:'Jam Selesai',r:1}],
-smp:[{id_kelas_kuliah:'KK-MK001-A',id_ruang:'R-101',hari:'Senin',jam_mulai:'08:00',jam_selesai:'09:40'},{id_kelas_kuliah:'KK-MK002-B',id_ruang:'R-102',hari:'Selasa',jam_mulai:'10:00',jam_selesai:'11:40'}]},
-krs:{k:'krs',lb:'KRS',m:'InsertKRS',ic:'fa-list-check',ord:6,
-kf:['id_kelas_kuliah','nim'],rf:['id_kelas_kuliah','nim'],
-fl:[{n:'id_kelas_kuliah',l:'ID Kelas',r:1},{n:'nim',l:'NIM',r:1}],
-smp:[{id_kelas_kuliah:'KK-MK001-A',nim:'2024001'},{id_kelas_kuliah:'KK-MK001-A',nim:'2024002'},{id_kelas_kuliah:'KK-MK002-B',nim:'2024001'}]},
-khs:{k:'khs',lb:'KHS',m:'InsertKHS',ic:'fa-file-lines',ord:7,
-kf:['id_kelas_kuliah','nim'],rf:['id_kelas_kuliah','nim','nilai_huruf','nilai_index','bobot_mata_kuliah'],
-fl:[{n:'id_kelas_kuliah',l:'ID Kelas',r:1},{n:'nim',l:'NIM',r:1},{n:'nilai_huruf',l:'Nilai Huruf',r:1},{n:'nilai_index',l:'Nilai Index',r:1},{n:'bobot_mata_kuliah',l:'SKS',r:1}],
-smp:[{id_kelas_kuliah:'KK-MK001-A',nim:'2024001',nilai_huruf:'A',nilai_index:4.0,bobot_mata_kuliah:3},{id_kelas_kuliah:'KK-MK001-A',nim:'2024002',nilai_huruf:'B+',nilai_index:3.5,bobot_mata_kuliah:3}]},
-akm:{k:'akm',lb:'AKM (Status Mahasiswa)',m:'InsertAKM',ic:'fa-chart-line',ord:8,
-kf:['nim','id_periode'],rf:['nim','id_periode','id_status_mahasiswa'],
-fl:[{n:'nim',l:'NIM',r:1},{n:'id_periode',l:'ID Periode',r:1},{n:'id_status_mahasiswa',l:'Status',r:1},{n:'ips',l:'IPS',r:0},{n:'sks_semester',l:'SKS Semester',r:0}],
-smp:[{nim:'2024001',id_periode:'20241',id_status_mahasiswa:'A',ips:3.5,sks_semester:20},{nim:'2024002',id_periode:'20241',id_status_mahasiswa:'A',ips:3.2,sks_semester:18}]},
-aktivitas:{k:'aktivitas',lb:'Aktivitas Mahasiswa',m:'InsertAktivitasMahasiswa',ic:'fa-trophy',ord:9,
-kf:['id_aktivitas'],rf:['id_aktivitas','nama_aktivitas','jenis_aktivitas','id_prodi','id_periode'],
-fl:[{n:'id_aktivitas',l:'ID Aktivitas',r:1},{n:'nama_aktivitas',l:'Nama Aktivitas',r:1},{n:'jenis_aktivitas',l:'Jenis',r:1},{n:'id_prodi',l:'ID Prodi',r:1},{n:'id_periode',l:'ID Periode',r:1}],
-smp:[{id_aktivitas:'AKT-001',nama_aktivitas:'KKN Desa Mekar Sari',jenis_aktivitas:'KKN',id_prodi:'A1B2C3D4',id_periode:'20241'}]},
-peserta:{k:'peserta',lb:'Peserta Aktivitas',m:'InsertPesertaAktivitasMahasiswa',ic:'fa-users',ord:10,
-kf:['id_aktivitas','nim'],rf:['id_aktivitas','nim'],
-fl:[{n:'id_aktivitas',l:'ID Aktivitas',r:1},{n:'nim',l:'NIM',r:1},{n:'peran',l:'Peran',r:0,d:'peserta'}],
-smp:[{id_aktivitas:'AKT-001',nim:'2024001',peran:'peserta'},{id_aktivitas:'AKT-001',nim:'2024002',peran:'peserta'}]},
-kelulusan:{k:'kelulusan',lb:'Kelulusan Mahasiswa',m:'InsertKelulusanMahasiswa',ic:'fa-graduation-cap',ord:11,
-kf:['nim'],rf:['nim','id_periode_kelulusan'],
-fl:[{n:'nim',l:'NIM',r:1},{n:'id_periode_kelulusan',l:'Periode Kelulusan',r:1},{n:'ipk',l:'IPK',r:0},{n:'no_sk_yudisium',l:'No SK Yudisium',r:0}],
-smp:[{nim:'2024001',id_periode_kelulusan:'20242',ipk:3.75,no_sk_yudisium:'SK/YUD/001/2024'}]}
+/* ================================================================
+   DOKUMENTASI WS (lengkap 12 method)
+   ================================================================ */
+const wsDocs = {
+  GetToken:{desc:'Mendapatkan token autentikasi untuk mengakses semua endpoint API Neo Feeder.',
+    fields:[{name:'username',type:'string',req:true,desc:'Username akun Neo Feeder'},{name:'password',type:'string',req:true,desc:'Password akun Neo Feeder'}],
+    example:{username:'admin',password:'password123'}},
+  InsertBiodataDosen:{desc:'Menambahkan data biodata dosen. NIDN harus unik.',
+    fields:[{name:'nidn',type:'string',req:true,desc:'NIDN dosen (unik)'},{name:'nama_dosen',type:'string',req:true,desc:'Nama lengkap dosen'},{name:'jenis_kelamin',type:'string',req:true,desc:'L / P'},{name:'id_prodi',type:'string',req:true,desc:'Kode program studi'},{name:'id_status_aktif',type:'string',req:false,desc:'Status aktif (default: A)'}],
+    example:{nidn:'0012345678',nama_dosen:'Dr. Ahmad Fauzi, M.Kom',jenis_kelamin:'L',id_prodi:'A1B2C3D4',id_status_aktif:'A'}},
+  InsertMahasiswa:{desc:'Menambahkan data mahasiswa baru. NIM harus unik per prodi.',
+    fields:[{name:'nim',type:'string',req:true,desc:'NIM (unik)'},{name:'nama_mahasiswa',type:'string',req:true,desc:'Nama lengkap'},{name:'id_prodi',type:'string',req:true,desc:'Kode program studi'},{name:'id_periode_masuk',type:'string',req:true,desc:'Periode masuk'}],
+    example:{nim:'2024001',nama_mahasiswa:'Budi Santoso',id_prodi:'A1B2C3D4',id_periode_masuk:'20241'}},
+  InsertKelasKuliah:{desc:'Menambahkan kelas kuliah pada semester berjalan. ID kelas harus unik.',
+    fields:[{name:'id_kelas_kuliah',type:'string',req:true,desc:'ID unik kelas'},{name:'nama_kelas_kuliah',type:'string',req:true,desc:'Nama kelas (A, B, C)'},{name:'id_matkul',type:'string',req:true,desc:'Kode mata kuliah'},{name:'id_prodi',type:'string',req:true,desc:'Kode program studi'},{name:'id_semester',type:'string',req:true,desc:'Kode semester'}],
+    example:{id_kelas_kuliah:'KK-001',nama_kelas_kuliah:'A',id_matkul:'MK001',id_prodi:'A1B2C3D4',id_semester:'20241'}},
+  InsertDosenPengajarKelasKuliah:{desc:'Menempatkan dosen sebagai pengajar kelas. Kombinasi id_kelas_kuliah + nidn unik.',
+    fields:[{name:'id_kelas_kuliah',type:'string',req:true,desc:'ID kelas kuliah'},{name:'nidn',type:'string',req:true,desc:'NIDN dosen'},{name:'peran_dosen',type:'string',req:false,desc:'Peran (default: pengajar)'}],
+    example:{id_kelas_kuliah:'KK-001',nidn:'0012345678',peran_dosen:'pengajar'}},
+  InsertJadwalKuliah:{desc:'Menambahkan jadwal kuliah. Kombinasi id_kelas_kuliah + id_ruang + id_waktu unik.',
+    fields:[{name:'id_kelas_kuliah',type:'string',req:true,desc:'ID kelas kuliah'},{name:'id_ruang',type:'string',req:true,desc:'Kode ruang'},{name:'id_waktu',type:'string',req:true,desc:'Kode waktu'},{name:'hari',type:'string',req:false,desc:'Hari'},{name:'jam_mulai',type:'string',req:false,desc:'Jam mulai'},{name:'jam_selesai',type:'string',req:false,desc:'Jam selesai'}],
+    example:{id_kelas_kuliah:'KK-001',id_ruang:'R101',id_waktu:'W001',hari:'Senin',jam_mulai:'08:00:00',jam_selesai:'09:40:00'}},
+  InsertKRS:{desc:'Menambahkan KRS mahasiswa. Kombinasi id_kelas_kuliah + nim unik.',
+    fields:[{name:'id_kelas_kuliah',type:'string',req:true,desc:'ID kelas kuliah'},{name:'nim',type:'string',req:true,desc:'NIM mahasiswa'}],
+    example:{id_kelas_kuliah:'KK-001',nim:'2024001'}},
+  InsertKHS:{desc:'Menambahkan KHS mahasiswa. Kombinasi id_kelas_kuliah + nim unik.',
+    fields:[{name:'id_kelas_kuliah',type:'string',req:true,desc:'ID kelas kuliah'},{name:'nim',type:'string',req:true,desc:'NIM mahasiswa'},{name:'nilai_huruf',type:'string',req:true,desc:'Nilai huruf (A-E)'},{name:'nilai_index',type:'number',req:true,desc:'Nilai index (0-4)'},{name:'bobot_mata_kuliah',type:'number',req:true,desc:'Bobot SKS'}],
+    example:{id_kelas_kuliah:'KK-001',nim:'2024001',nilai_huruf:'A',nilai_index:4,bobot_mata_kuliah:3}},
+  InsertAKM:{desc:'Menambahkan AKM per periode. Kombinasi nim + id_periode unik.',
+    fields:[{name:'nim',type:'string',req:true,desc:'NIM mahasiswa'},{name:'id_periode',type:'string',req:true,desc:'Kode periode'},{name:'id_status_mahasiswa',type:'string',req:true,desc:'Status (A/K/L/D)'},{name:'ips',type:'number',req:false,desc:'IPS'},{name:'sks_semester',type:'number',req:false,desc:'SKS semester'}],
+    example:{nim:'2024001',id_periode:'20241',id_status_mahasiswa:'A',ips:3.5,sks_semester:20}},
+  InsertAktivitasMahasiswa:{desc:'Menambahkan aktivitas kemahasiswaan. ID aktivitas harus unik.',
+    fields:[{name:'id_aktivitas',type:'string',req:true,desc:'ID unik aktivitas'},{name:'nama_aktivitas',type:'string',req:true,desc:'Nama aktivitas'},{name:'jenis_aktivitas',type:'string',req:true,desc:'Jenis (KKN/PPL/MBKM)'},{name:'id_prodi',type:'string',req:true,desc:'Kode prodi'},{name:'id_periode',type:'string',req:true,desc:'Kode periode'}],
+    example:{id_aktivitas:'AKT-001',nama_aktivitas:'KKN Desa Mekar Sari',jenis_aktivitas:'KKN',id_prodi:'A1B2C3D4',id_periode:'20241'}},
+  InsertPesertaAktivitasMahasiswa:{desc:'Menambahkan peserta aktivitas. Kombinasi id_aktivitas + nim unik.',
+    fields:[{name:'id_aktivitas',type:'string',req:true,desc:'ID aktivitas'},{name:'nim',type:'string',req:true,desc:'NIM mahasiswa'},{name:'peran',type:'string',req:false,desc:'Peran (default: peserta)'}],
+    example:{id_aktivitas:'AKT-001',nim:'2024001',peran:'peserta'}},
+  InsertKelulusanMahasiswa:{desc:'Menambahkan data kelulusan. NIM harus unik.',
+    fields:[{name:'nim',type:'string',req:true,desc:'NIM mahasiswa'},{name:'id_periode_kelulusan',type:'string',req:true,desc:'Periode kelulusan'},{name:'ipk',type:'number',req:false,desc:'IPK saat kelulusan'},{name:'no_sk_yudisium',type:'string',req:false,desc:'Nomor SK yudisium'}],
+    example:{nim:'2024001',id_periode_kelulusan:'20242',ipk:3.75,no_sk_yudisium:'SK/YUD/001/2024'}}
 };
 
-/* ============================================================
-   3. STATE
-   ============================================================ */
-const S={
-token:localStorage.getItem('neo_tk')||'',
-ep:localStorage.getItem('neo_ep')||'http://localhost:3003/ws/live2.php',
-dark:localStorage.getItem('neo_dk')==='true',
-pg:'config',ik:null,step:0,
-raw:[],mapped:[],srcH:[],fMap:{},
-busy:false,cancel:false,
-cfg:{batchSz:10,batchDl:500,maxRet:3,parLim:3,prevLim:50},
-mon:{tot:0,ok:0,fail:0,skip:0,ret:0,t0:0},
-failArr:[],logs:[]
+/* ================================================================
+   STATE
+   ================================================================ */
+const state = {
+  page:'config', apiUrl:DEFAULT_URL, username:'', password:'', token:'',
+  importing:false, progress:{total:0,success:0,failed:0,skipped:0,current:0},
+  logs:[], failedData:[], previewData:[], previewType:'',
+  darkMode:true, settings:{batchSize:20,batchDelay:300,maxRetry:3,parallel:1}
 };
 
-/* ============================================================
-   4. UTILITAS
-   ============================================================ */
-const $=id=>document.getElementById(id);
-const dl=ms=>new Promise(r=>setTimeout(r,ms));
-const esc=s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML};
-const chunk=(a,n)=>{const r=[];for(let i=0;i<a.length;i+=n)r.push(a.slice(i,i+n));return r};
-const fmtT=ms=>{const s=Math.floor(ms/1000),m=Math.floor(s/60);return String(m).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
-
-function getKeyFields(k){return IT[k]?.kf||[]}
-
-function isDupErr(e){
-  const m=String(e?.message||e||'').toLowerCase();
-  return['sudah ada','duplicate','duplikat','exists','already exist','telah terdaftar','sudah terdaftar'].some(w=>m.includes(w));
+function loadState(){
+  try{
+    state.apiUrl=localStorage.getItem(SK.url)||DEFAULT_URL;
+    state.username=localStorage.getItem(SK.user)||'';
+    state.password=localStorage.getItem(SK.pass)||'';
+    state.token=localStorage.getItem(SK.token)||'';
+    state.darkMode=localStorage.getItem(SK.dark)!=='false';
+    const s=JSON.parse(localStorage.getItem(SK.settings)||'{}');
+    Object.assign(state.settings,s);
+  }catch(e){console.warn('Load state error:',e)}
+}
+function sv(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function saveAll(){
+  sv(SK.url,state.apiUrl);sv(SK.user,state.username);sv(SK.pass,state.password);
+  sv(SK.token,state.token);sv(SK.dark,String(state.darkMode));
+  sv(SK.settings,JSON.stringify(state.settings));
 }
 
-function removeDuplicate(k,data){
-  const kf=getKeyFields(k);if(!kf.length)return data;
-  const seen=new Set(),out=[];
-  for(const it of data){const key=kf.map(f=>String(it[f]??'')).join('\x00');if(!seen.has(key)){seen.add(key);out.push(it)}}
-  const rm=data.length-out.length;
-  if(rm>0)addLog('warn',`Lokal: ${rm} duplikat ${IT[k].lb} dihapus (${data.length} → ${out.length})`);
-  return out;
-}
-
-function validateData(k,data){
-  const t=IT[k];if(!t)return[];
-  const errs=[];
-  data.forEach((row,i)=>{t.rf.forEach(f=>{if(row[f]===undefined||row[f]===null||String(row[f]).trim()==='')errs.push(`Baris ${i+1}: "${f}" wajib diisi`)})});
-  return errs;
-}
-
-/* ============================================================
-   5. TOAST
-   ============================================================ */
-function toast(msg,type='info'){
-  const c=$('toast-box'),cls={ok:'toast-ok',err:'toast-err',warn:'toast-warn',info:'toast-info'},
-  ico={ok:'fa-check-circle',err:'fa-times-circle',warn:'fa-exclamation-circle',info:'fa-info-circle'};
-  const el=document.createElement('div');el.className=`toast ${cls[type]||cls.info}`;
-  el.innerHTML=`<i class="fas ${ico[type]||ico.info}"></i><span>${esc(msg)}</span>`;
-  c.appendChild(el);setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),260)},3800);
-}
-
-/* ============================================================
-   6. LOG
-   ============================================================ */
-function addLog(type,msg){
-  const t=new Date().toLocaleTimeString('id-ID',{hour12:false});
-  S.logs.push({type,msg,time:t});
-  const el=$('mon-log');if(!el)return;
-  const d=document.createElement('div');d.className=`ll c-${type}`;d.textContent=`[${t}] ${msg}`;
-  el.appendChild(d);el.scrollTop=el.scrollHeight;
-}
-
-/* ============================================================
-   7. API LAYER
-   ============================================================ */
+/* ================================================================
+   FUNGSI WAJIB: requestNeo
+   ================================================================ */
 async function requestNeo(act,data){
   const body={act};
-  if(act!=='GetToken')body.token=S.token;
+  /* FIX: GetToken TIDAK mengirim field token */
+  if(act!=='GetToken') body.token=state.token||'';
   body.data=data;
-  const ctrl=new AbortController(),tid=setTimeout(()=>ctrl.abort(),30000);
-  let res;try{res=await fetch(S.ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ctrl.signal})}finally{clearTimeout(tid)}
-  if(!res.ok)throw new Error(`HTTP ${res.status} ${res.statusText}`);
-  let json;try{json=await res.json()}catch(e){throw new Error('Response bukan JSON valid')}
-  if(json.error)throw new Error(String(json.error));
-  if(json.err)throw new Error(String(json.err));
-  if(typeof json.status==='string'&&(json.status==='error'||json.status==='gagal'||json.status==='fail'))
-    throw new Error(json.message||json.msg||json.pesan||'Error dari server');
-  if(json.status_code&&json.status_code>=400)throw new Error(json.message||json.msg||`Error ${json.status_code}`);
-  if(act==='GetToken'){
-    const tk=json.token||json.data?.token||json.result?.token;
-    if(tk){S.token=tk;localStorage.setItem('neo_tk',tk);updTk()}
-    else if(!json.token&&!json.data?.token&&!json.result?.token)throw new Error('Token tidak ditemukan di response');
+  const res=await fetch(state.apiUrl,{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)
+  });
+  if(!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  return await res.json();
+}
+
+/* ================================================================
+   FUNGSI WAJIB: isDuplicateError
+   FIX: handle string (Error message) DAN object (response JSON)
+   ================================================================ */
+function isDuplicateError(res){
+  if(!res) return false;
+  const s=(typeof res==='string'?res:JSON.stringify(res)).toLowerCase();
+  return['sudah ada','duplicate','exists','duplikat','sudah terdaftar','already exist','telah terdaftar'].some(k=>s.includes(k));
+}
+
+/* ================================================================
+   FUNGSI WAJIB: requestWithRetry
+   FIX: bedakan duplikat (skip, no retry) vs error lain (retry)
+   ================================================================ */
+async function requestWithRetry(act,data,maxRetry){
+  const delays=[1000,2000,3000];
+  let lastErr=null;
+  for(let i=0;i<=maxRetry;i++){
+    try{
+      const res=await requestNeo(act,data);
+      /* Duplikat → langsung return, JANGAN retry */
+      if(isDuplicateError(res)) return{_skip:true,_res:res};
+      /* Response error dari server (bukan duplikat) → throw agar di-retry */
+      if(res.error||(res.error_code&&res.error_code!=='0')||res.status==='error'||res.status==='gagal'||res.status==='fail')
+        throw new Error(res.error_desc||res.message||res.error||'Error dari server');
+      return{_ok:true,_res:res};
+    }catch(e){
+      lastErr=e;
+      /* FIX: jika error-nya duplikat, skip tanpa retry */
+      if(isDuplicateError(e.message)) return{_skip:true,_err:e.message};
+      if(i<maxRetry){
+        addLog(`RETRY ${i+1}/${maxRetry}: ${e.message}`,'retry');
+        await sleep(delays[Math.min(i,delays.length-1)]);
+      }
+    }
   }
-  return json;
+  throw lastErr;
 }
 
-async function requestWithRetry(act,data){
-  const delays=[1000,2000,3000];let last;
-  for(let i=0;i<=S.cfg.maxRet;i++){
-    try{return await requestNeo(act,data)}
-    catch(e){last=e;if(isDupErr(e))throw e;
-      if(i<S.cfg.maxRet){addLog('retry',`Retry ${i+1}/${S.cfg.maxRet}: ${e.message}`);S.mon.ret++;updMonSt();await dl(delays[i]||3000);S.mon.ret=Math.max(0,S.mon.ret-1);updMonSt()}}
-  }throw last;
+/* ================================================================
+   FUNGSI WAJIB: getKeyFields
+   ================================================================ */
+function getKeyFields(type){return importCfg[type]?.keyFields||[]}
+
+/* ================================================================
+   FUNGSI WAJIB: removeDuplicate
+   ================================================================ */
+function removeDuplicate(data,type){
+  const keys=getKeyFields(type);
+  if(!keys.length) return{filtered:data,removed:0};
+  const seen=new Set(),filtered=[];
+  let removed=0;
+  for(const item of data){
+    const kv=keys.map(k=>String(item[k]||'')).join('||');
+    if(seen.has(kv)){removed++;addLog(`DUPLIKAT LOKAL: ${keys.map(k=>`${k}=${item[k]}`).join(', ')}`,'warn');}
+    else{seen.add(kv);filtered.push(item)}
+  }
+  return{filtered,removed};
 }
 
-/* ============================================================
-   8. PARALLEL
-   ============================================================ */
-async function processPar(items,limit,fn){
+/* FIX: countDuplicate tanpa side-effect log */
+function countDuplicate(data,type){
+  const keys=getKeyFields(type);if(!keys.length) return 0;
+  const seen=new Set();let c=0;
+  for(const item of data){const kv=keys.map(k=>String(item[k]||'')).join('||');if(seen.has(kv))c++;seen.add(kv)}
+  return c;
+}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+/* ================================================================
+   IMPORT ENGINE: startImport
+   ================================================================ */
+async function startImport(data,type,opts){
+  if(state.importing) return;
+  if(!state.token){toast('Token belum tersedia. Login dulu di Konfigurasi API.','err');return}
+  const method=importCfg[type].method;
+  const{filtered,removed}=removeDuplicate(data,type);
+  if(!filtered.length){toast('Tidak ada data setelah deduplikasi.','warn');return}
+  state.importing=true;
+  state.progress={total:filtered.length,success:0,failed:0,skipped:removed,current:0};
+  state.failedData=[];
+  showProgressCard(type);
+  updateProgressUI();
+  addLog(`=== IMPORT ${importCfg[type].label} ===`,'info');
+  addLog(`Total: ${data.length}, Duplikat lokal: ${removed}, Diproses: ${filtered.length}`,'info');
+  addLog(`Batch: ${opts.batchSize}, Delay: ${opts.batchDelay}ms, Retry: ${opts.maxRetry}x, Parallel: ${opts.parallel}`,'info');
+
+  const batches=[];for(let i=0;i<filtered.length;i+=opts.batchSize) batches.push(filtered.slice(i,i+opts.batchSize));
+  const conc=Math.max(1,Math.min(opts.parallel,10));
+
+  for(let bi=0;bi<batches.length;bi++){
+    if(!state.importing){addLog('Dibatalkan pengguna.','warn');break}
+    const batch=batches[bi];
+    const results=await runParallel(batch,conc,method,type,opts.maxRetry);
+    for(const r of results){
+      if(r._skip){state.progress.skipped++;addLog(`SKIP SERVER: ${r._key||'-'}`,'warn')}
+      else if(r._ok){state.progress.success++}
+      else{state.progress.failed++;state.failedData.push(r._item);addLog(`GAGAL: ${r._err}`,'err')}
+    }
+    state.progress.current+=batch.length;
+    updateProgressUI();
+    if(bi<batches.length-1) await sleep(opts.batchDelay);
+  }
+  state.importing=false;
+  addLog(`=== SELESAI === Sukses: ${state.progress.success}, Gagal: ${state.progress.failed}, Skip: ${state.progress.skipped}`,'info');
+  toast(`Import selesai! Sukses: ${state.progress.success}, Gagal: ${state.progress.failed}`,state.progress.failed?'warn':'ok');
+  updateFailedBtn(type);
+}
+
+async function runParallel(items,conc,method,type,maxRetry){
   const results=[],executing=new Set();
   for(const item of items){
-    if(S.cancel)break;
-    const p=fn(item).then(r=>{executing.delete(p);return r}).catch(e=>{executing.delete(p);throw e});
+    if(!state.importing) break;
+    const p=processOneItem(item,method,type,maxRetry).then(r=>{executing.delete(p);return r});
     executing.add(p);results.push(p);
-    if(executing.size>=limit)await Promise.race(executing);
+    if(executing.size>=conc) await Promise.race(executing);
   }
-  return Promise.allSettled(results);
+  return Promise.all(results);
 }
 
-/* ============================================================
-   9. IMPORT ENGINE
-   ============================================================ */
-async function startImport(typeKey){
-  const type=IT[typeKey];if(!type)return;
-  const errs=validateData(typeKey,S.mapped);
-  if(errs.length){toast(`${errs.length} error validasi. Periksa data.`,'err');return}
-  if(!S.token){toast('Token belum tersedia. Masukkan token di Konfigurasi.','err');return}
-  const deduped=removeDuplicate(typeKey,S.mapped);
-  S.mon={tot:deduped.length,ok:0,fail:0,skip:0,ret:0,t0:Date.now()};
-  S.failArr=[];S.logs=[];S.busy=true;S.cancel=false;
-  openMon();
-  addLog('info',`=== IMPORT ${type.lb.toUpperCase()} ===`);
-  addLog('info',`Total: ${deduped.length} | Batch: ${S.cfg.batchSz} | Parallel: ${S.cfg.parLim} | Delay: ${S.cfg.batchDl}ms`);
-  updMonSt();
-  const timer=setInterval(()=>{$('mon-tm').textContent=fmtT(Date.now()-S.mon.t0)},500);
-  let usePar=true;const batches=chunk(deduped,S.cfg.batchSz);
-  for(let bi=0;bi<batches.length;bi++){
-    if(S.cancel)break;const batch=batches[bi];
-    addLog('info',`--- Batch ${bi+1}/${batches.length} (${batch.length} item) ---`);
-    if(usePar&&S.cfg.parLim>1&&batch.length>1){
-      const settled=await processPar(batch,S.cfg.parLim,procItem.bind(null,type));
-      const bFail=settled.filter(r=>r.status==='rejected').length;
-      if(bFail>batch.length*0.5){usePar=false;addLog('warn',`Kegagalan tinggi (${bFail}/${batch.length}). Fallback ke sequential.`)}
-    }else{for(const item of batch){if(S.cancel)break;await procItem(type,item);if(S.cfg.batchDl>0)await dl(S.cfg.batchDl)}}
-    if(!S.cancel&&bi<batches.length-1&&S.cfg.batchDl>0)await dl(S.cfg.batchDl);
-  }
-  addLog('info',`=== SELESAI === Sukses: ${S.mon.ok} | Gagal: ${S.mon.fail} | Skip: ${S.mon.skip}`);
-  if(!S.mon.fail&&!S.mon.skip)toast('Semua data berhasil diimport!','ok');
-  else if(!S.mon.fail)toast(`Selesai. ${S.mon.skip} data skip (duplikat server).`,'warn');
-  else toast(`${S.mon.fail} data gagal. Download di monitoring.`,'err');
-  S.busy=false;clearInterval(timer);$('mon-can').disabled=true;
-  $('mon-dot').style.animation='none';$('mon-dot').style.background=S.mon.fail?'var(--danger)':'var(--ok)';
+async function processOneItem(item,method,type,maxRetry){
+  const keys=getKeyFields(type);
+  const keyStr=keys.map(k=>`${k}=${item[k]}`).join(', ');
+  try{
+    const res=await requestWithRetry(method,item,maxRetry);
+    if(res._skip) return{_skip:true,_key:keyStr};
+    addLog(`OK: ${keyStr}`,'ok');
+    return{_ok:true};
+  }catch(e){return{_ok:false,_item:item,_err:e.message}}
 }
 
-async function procItem(type,item){
-  if(S.cancel)return;const lbl=type.kf.map(f=>item[f]).join(' - ');
-  try{await requestWithRetry(type.m,item);S.mon.ok++;addLog('ok',`[OK] ${lbl}`);updMonSt();if(S.cfg.batchDl>0)await dl(S.cfg.batchDl)}
-  catch(e){if(isDupErr(e)){S.mon.skip++;addLog('warn',`[SKIP] ${lbl} — ${e.message}`)}
-  else{S.mon.fail++;S.failArr.push({data:item,error:e.message,key:lbl});addLog('err',`[FAIL] ${lbl} — ${e.message}`)}updMonSt()}
-}
+function cancelImport(){state.importing=false;addLog('Membatalkan import...','warn')}
 
-function cancelImp(){S.cancel=true;addLog('warn','Import dibatalkan pengguna.');toast('Import dibatalkan.','warn')}
-
-/* ============================================================
-   10. FILE
-   ============================================================ */
+/* ================================================================
+   FILE PARSING
+   ================================================================ */
 function parseFile(file){
-  return new Promise((ok,no)=>{
-    const ext=file.name.split('.').pop().toLowerCase(),rd=new FileReader();
-    if(ext==='json'){rd.onload=e=>{try{const j=JSON.parse(e.target.result);ok(Array.isArray(j)?j:[j])}catch(x){no('JSON tidak valid: '+x.message)}};rd.readAsText(file)}
-    else if(['xlsx','xls','csv'].includes(ext)){rd.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'array'});ok(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''}))}catch(x){no('Gagal baca file: '+x.message)}};rd.readAsArrayBuffer(file)}
-    else no('Format tidak didukung. Gunakan JSON, CSV, atau Excel.');
-  });
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='json') return new Promise((ok,no)=>{const r=new FileReader();r.onload=e=>{try{let d=JSON.parse(e.target.result);if(!Array.isArray(d))d=[d];ok(d)}catch(x){no(new Error('JSON tidak valid: '+x.message))}};r.onerror=()=>no(new Error('Gagal baca file'));r.readAsText(file)});
+  if(ext==='csv') return new Promise((ok,no)=>{const r=new FileReader();r.onload=e=>{try{const lines=parseCSVLines(e.target.result);if(lines.length<2){ok([]);return}const h=lines[0].map(x=>x.trim());const d=[];for(let i=1;i<lines.length;i++){const o={};h.forEach((hh,idx)=>{o[hh]=(lines[i][idx]||'').trim()});d.push(o)}ok(d)}catch(x){no(new Error('CSV tidak valid: '+x.message))}};r.onerror=()=>no(new Error('Gagal baca file'));r.readAsText(file)});
+  if(['xlsx','xls'].includes(ext)) return new Promise((ok,no)=>{const r=new FileReader();r.onload=e=>{try{const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});ok(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''}))}catch(x){no(new Error('Excel tidak valid: '+x.message))}};r.onerror=()=>no(new Error('Gagal baca file'));r.readAsArrayBuffer(file)});
+  return Promise.reject(new Error('Format tidak didukung. Gunakan JSON, CSV, atau Excel.'));
 }
+function parseCSVLines(text){const lines=[];let cur=[],field='',inQ=false;for(let i=0;i<text.length;i++){const ch=text[i];if(inQ){if(ch==='"'&&text[i+1]==='"'){field+='"';i++}else if(ch==='"')inQ=false;else field+=ch}else{if(ch==='"')inQ=true;else if(ch===','){cur.push(field);field=''}else if(ch==='\r'&&text[i+1]==='\n'){cur.push(field);field='';lines.push(cur);cur=[];i++}else if(ch==='\n'){cur.push(field);field='';lines.push(cur);cur=[]}else field+=ch}}if(field||cur.length){cur.push(field);lines.push(cur)}return lines}
 
-function autoMap(srcH,tgtFl){
-  const map={},used=new Set();
-  for(const tf of tgtFl){
-    const tn=tf.n.toLowerCase().replace(/[_\-\s]/g,'');
-    let m=srcH.find(h=>{const hn=h.toLowerCase().replace(/[_\-\s]/g,'');return hn===tn&&!used.has(h)});
-    if(!m)m=srcH.find(h=>{const hn=h.toLowerCase().replace(/[_\-\s]/g,'');return hn.includes(tn)&&!used.has(h)&&h.length>1});
-    if(!m)m=srcH.find(h=>{const hn=h.toLowerCase().replace(/[_\-\s]/g,'');return tn.includes(hn)&&h.length>1&&!used.has(h)});
-    if(m){map[tf.n]=m;used.add(m)}
-  }return map;
+/* ================================================================
+   UI UTILITIES
+   ================================================================ */
+function toast(msg,type){
+  const c=$('toasts'),icons={ok:'fa-check-circle',err:'fa-times-circle',warn:'fa-exclamation-triangle',info:'fa-info-circle'};
+  const el=document.createElement('div');el.className=`toast toast-${type||'info'}`;
+  el.innerHTML=`<i class="fa-solid ${icons[type]||icons.info}"></i><span>${esc(msg)}</span>`;
+  c.appendChild(el);setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300)},3500);
 }
-
-async function handleFile(file){
-  try{S.raw=await parseFile(file);if(!S.raw.length){toast('File kosong.','warn');return}
-    S.srcH=Object.keys(S.raw[0]);S.fMap=autoMap(S.srcH,IT[S.ik].fl);applyMap();
-    S.step=1;renderImp();toast(`${S.raw.length} baris dimuat dari "${file.name}".`,'ok');
-  }catch(e){toast(typeof e==='string'?e:e.message,'err')}
+function addLog(msg,type){
+  state.logs.push({msg,type,time:new Date().toISOString()});
+  if(state.logs.length>1000) state.logs=state.logs.slice(-500);
+  const el=$('log-area');if(!el)return;
+  const d=new Date(),ts=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+  el.innerHTML+=`<div class="log-${type||'info'} text-xs py-0.5 font-mono">[${ts}] ${esc(msg)}</div>`;
+  el.scrollTop=el.scrollHeight;
 }
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
-function applyMap(){
-  const type=IT[S.ik];
-  S.mapped=S.raw.map(row=>{
-    const m={};type.fl.forEach(f=>{const src=S.fMap[f.n];if(src&&row[src]!==undefined)m[f.n]=row[src];else if(f.d!==undefined)m[f.n]=f.d});
-    Object.keys(row).forEach(k=>{if(!(k in m))m[k]=row[k]});return m;
-  });
-}
-
-/* ============================================================
-   11. RENDER HELPERS
-   ============================================================ */
-function renderTbl(data,headers,limit){
-  const rows=limit?data.slice(0,limit):data;
-  if(!rows.length)return`<p style="color:var(--txt-mute);font-size:13px;padding:16px">Tidak ada data.</p>`;
-  const hs=headers||Object.keys(rows[0]);
-  let h=`<div class="tw"><table><thead><tr>${hs.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>`;
-  for(const r of rows)h+=`<tr>${hs.map(k=>`<td title="${esc(String(r[k]??''))}">${esc(String(r[k]??''))}</td>`).join('')}</tr>`;
+/* ================================================================
+   FUNGSI WAJIB: renderTable
+   ================================================================ */
+function renderTable(data,container,limit){
+  if(!data.length){container.innerHTML=`<div class="text-center py-8" style="color:var(--tx3)"><i class="fa-solid fa-inbox text-3xl mb-3 block"></i>Tidak ada data</div>`;return}
+  const show=data.slice(0,limit||50),cols=Object.keys(show[0]);
+  let h=`<div class="overflow-auto rounded-xl border" style="border-color:var(--bdr);max-height:360px"><table class="tbl"><thead><tr><th class="text-xs" style="color:var(--tx3)">#</th>`;
+  cols.forEach(c=>{h+=`<th class="text-xs">${esc(c)}</th>`});h+=`</tr></thead><tbody>`;
+  show.forEach((row,i)=>{h+=`<tr><td style="color:var(--tx3)">${i+1}</td>`;cols.forEach(c=>{h+=`<td title="${esc(String(row[c]))}">${esc(String(row[c]??''))}</td>`});h+=`</tr>`});
   h+=`</tbody></table></div>`;
-  if(limit&&data.length>limit)h+=`<p style="color:var(--txt-mute);font-size:11px;margin-top:8px">Menampilkan ${limit} dari ${data.length} baris.</p>`;
-  return h;
+  if(data.length>(limit||50)) h+=`<div class="text-xs mt-2 text-center" style="color:var(--tx3)">Menampilkan ${limit||50} dari ${data.length} data</div>`;
+  container.innerHTML=h;
 }
 
-function downloadJSON(data,fn){
+/* ================================================================
+   FUNGSI WAJIB: downloadJSON
+   ================================================================ */
+function downloadJSON(data,filename){
   const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');
-  a.href=URL.createObjectURL(b);a.download=fn||'data.json';a.click();URL.revokeObjectURL(a.href);
+  a.href=URL.createObjectURL(b);a.download=filename;a.click();URL.revokeObjectURL(a.href);
+}
+function downloadText(text,filename){
+  const b=new Blob([text],{type:'text/plain'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download=filename;a.click();URL.revokeObjectURL(a.href);
 }
 
-function expLog(){
-  const txt=S.logs.map(l=>`[${l.time}][${l.type.toUpperCase()}] ${l.msg}`).join('\n');
-  const b=new Blob([txt],{type:'text/plain'}),a=document.createElement('a');
-  a.href=URL.createObjectURL(b);a.download=`neo-log-${Date.now()}.txt`;a.click();URL.revokeObjectURL(a.href);toast('Log diexport.','ok');
+/* ================================================================
+   PROGRESS & MONITORING
+   ================================================================ */
+function showProgressCard(type){const el=$('progress-card');if(el)el.style.display=''}
+function updateProgressUI(){
+  const p=state.progress;
+  const done=p.success+p.failed;
+  const pct=p.total>0?Math.round((done/p.total)*100):0;
+  const el=id=>document.getElementById(id);
+  if(el('prog-pct'))el('prog-pct').textContent=pct+'%';
+  if(el('prog-bar'))el('prog-bar').style.width=pct+'%';
+  if(el('prog-stats')) el('prog-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-num" style="color:var(--tx)">${p.total}</div><div class="stat-lbl">Total</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--ok)">${p.success}</div><div class="stat-lbl">Sukses</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--err)">${p.failed}</div><div class="stat-lbl">Gagal</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--warn)">${p.skipped}</div><div class="stat-lbl">Skip</div></div>`;
+}
+function updateFailedBtn(type){
+  const el=$('failed-btn-wrap');if(!el)return;
+  el.innerHTML=state.failedData.length>0?`<button class="btn btn-d mt-3" onclick="downloadJSON(state.failedData,'failed_${type}.json')"><i class="fa-solid fa-download"></i> Download ${state.failedData.length} Data Gagal</button>`:'';
 }
 
-function dlFail(){
-  if(!S.failArr.length){toast('Tidak ada data gagal.','info');return}
-  downloadJSON(S.failArr,`neo-gagal-${Date.now()}.json`);toast('Data gagal didownload.','ok');
-}
-
-function copyTxt(t){navigator.clipboard.writeText(t).then(()=>toast('Disalin.','ok')).catch(()=>toast('Gagal menyalin.','err'))}
-
-/* ============================================================
-   12. MONITORING
-   ============================================================ */
-function openMon(){$('mon-mod').classList.remove('hidden');$('mon-mod').classList.add('flex');$('mon-log').innerHTML='';$('mon-can').disabled=false;$('mon-dot').style.animation='pulse 1s infinite';$('mon-dot').style.background='var(--ok)';updMonSt()}
-function monClose(){$('mon-mod').classList.add('hidden');$('mon-mod').classList.remove('flex')}
-function updMonSt(){
-  const{tot,ok,fail,skip,ret}=S.mon,done=ok+fail+skip,pct=tot?Math.round(done/tot*100):0;
-  $('mon-bar').style.width=pct+'%';$('mon-pct').textContent=pct+'%';
-  $('mon-st').innerHTML=[
-    {l:'Total',v:tot,c:'var(--txt)'},{l:'Sukses',v:ok,c:'var(--ok)'},{l:'Gagal',v:fail,c:'var(--danger)'},
-    {l:'Skip',v:skip,c:'var(--warn)'},{l:'Retry',v:ret,c:'var(--retry)'}
-  ].map(s=>`<div class="sm"><div class="sv" style="color:${s.c}">${s.v}</div><div class="sl">${s.l}</div></div>`).join('');
-}
-
-/* ============================================================
-   13. KONFIRMASI
-   ============================================================ */
-let cfCb=null;
-function cfShow(title,msg,stats,ok){$('cf-t').textContent=title;$('cf-m').textContent=msg;$('cf-s').innerHTML=stats;cfCb=ok;$('cf-b').onclick=()=>{cfClose();if(cfCb)cfCb()};$('cf-mod').classList.remove('hidden');$('cf-mod').classList.add('flex')}
-function cfClose(){$('cf-mod').classList.add('hidden');$('cf-mod').classList.remove('flex');cfCb=null}
-
-/* ============================================================
-   14. TOKEN BADGE
-   ============================================================ */
-function updTk(){$('tk-ok').classList.toggle('hidden',!S.token);$('tk-no').classList.toggle('hidden',!!S.token)}
-
-/* ============================================================
-   15. NAVIGASI
-   ============================================================ */
-function nav(pg,param){
-  S.pg=pg;if(param!==undefined)S.ik=param;
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  const el=$('pg-'+pg);if(el)el.classList.add('active');
-  if(pg==='config')renderCfg();else if(pg==='docs')renderDocs();
-  else if(pg==='import'){S.step=0;S.raw=[];S.mapped=[];renderImp()}
-  else if(pg==='test')renderTest();
-  document.querySelectorAll('.sb-link').forEach(l=>l.classList.remove('on'));
-  const a=document.querySelector(`.sb-link[data-p="${pg}"][data-k="${param??''}"]`)||document.querySelector(`.sb-link[data-p="${pg}"]`);
-  if(a)a.classList.add('on');
-  const titles={config:'Konfigurasi API',docs:'Dokumentasi API',import:param?IT[param]?.lb||'Import':'Import Data',test:'Test API Manual'};
-  $('pg-title').textContent=titles[pg]||'';togSB(false);
-}
-function togSB(show){$('sidebar').classList.toggle('open',show);$('sb-ov').classList.toggle('open',show)}
-
-/* ============================================================
-   16. DARK MODE
-   ============================================================ */
-function togDark(){S.dark=!S.dark;document.documentElement.classList.toggle('dark',S.dark);localStorage.setItem('neo_dk',S.dark);$('dk-ic').className=S.dark?'fas fa-sun':'fas fa-moon'}
-
-/* ============================================================
-   17. SIDEBAR
-   ============================================================ */
-function renderSB(){
-  const n=$('sb-nav');let h='';
-  h+=`<div class="sb-link" data-p="config" onclick="nav('config')"><i class="fas fa-gear" style="width:18px;text-align:center;font-size:13px"></i><span>Konfigurasi API</span></div>`;
-  h+=`<div class="sb-link" data-p="docs" onclick="nav('docs')"><i class="fas fa-book" style="width:18px;text-align:center;font-size:13px"></i><span>Dokumentasi API</span></div>`;
-  h+=`<div style="height:1px;background:var(--bdr);margin:8px 10px"></div>`;
-  h+=`<div style="padding:2px 14px 6px;font-size:9.5px;font-weight:800;color:var(--txt-mute);letter-spacing:.1em;text-transform:uppercase">Urutan Import</div>`;
-  IO.forEach(k=>{const t=IT[k];h+=`<div class="sb-link" data-p="import" data-k="${k}" onclick="nav('import','${k}')"><span class="sb-num">${t.ord}</span><i class="fas ${t.ic}" style="width:16px;text-align:center;font-size:11px"></i><span>${t.lb}</span></div>`});
-  h+=`<div style="height:1px;background:var(--bdr);margin:8px 10px"></div>`;
-  h+=`<div class="sb-link" data-p="test" onclick="nav('test')"><i class="fas fa-flask" style="width:18px;text-align:center;font-size:13px"></i><span>Test API</span></div>`;
-  n.innerHTML=h;
-}
-
-/* ============================================================
-   18. CONFIG PAGE (TANPA LOGIN)
-   ============================================================ */
-function renderCfg(){
-  $('pg-config').innerHTML=`
-  <div class="card p-5">
-    <h2 class="font-bold text-base mb-1" style="color:var(--txt)"><i class="fas fa-plug mr-2" style="color:var(--accent)"></i>Konfigurasi Endpoint API</h2>
-    <p class="text-xs mb-4" style="color:var(--txt-sub)">Masukkan endpoint server Neo Feeder dan token yang sudah Anda dapatkan. Token bisa diperoleh melalui halaman <strong>Test API</strong> dengan method <code style="font-size:11px;background:var(--bg-hover);padding:1px 5px;border-radius:4px">GetToken</code>, atau dari tool eksternal seperti Postman.</p>
-    <div class="space-y-3">
-      <div>
-        <label class="block text-xs font-bold mb-1" style="color:var(--txt-sub)">Endpoint URL</label>
-        <input id="c-ep" class="input font-mono text-xs" value="${esc(S.ep)}" placeholder="http://localhost:3003/ws/live2.php">
-      </div>
-      <div>
-        <label class="block text-xs font-bold mb-1" style="color:var(--txt-sub)">Token API</label>
-        <div class="flex gap-2">
-          <input id="c-tk" type="text" class="input font-mono text-xs" value="${esc(S.token)}" placeholder="Tempel token Neo Feeder di sini..." style="flex:1">
-          <button class="btn btn-o btn-sm" onclick="copyTxt($('c-tk').value)" title="Salin token"><i class="fas fa-copy"></i></button>
-        </div>
-        <p class="text-[11px] mt-1" style="color:var(--txt-mute)">Dapatkan token via Test API → pilih GetToken → kirim → salin token dari response.</p>
-      </div>
-      <div class="flex gap-2 pt-1">
-        <button class="btn btn-p" onclick="saveCfg()"><i class="fas fa-floppy-disk"></i>Simpan Konfigurasi</button>
-        ${S.token?`<button class="btn btn-o" onclick="S.token='';localStorage.removeItem('neo_tk');updTk();renderCfg();toast('Token dihapus dari penyimpanan.','info')"><i class="fas fa-trash-can"></i>Hapus Token</button>`:''}
-      </div>
-      ${S.token?`<div class="p-3 rounded-lg" style="background:var(--ok-l);border:1px solid var(--ok)">
-        <div class="text-xs font-bold mb-1" style="color:var(--ok)"><i class="fas fa-circle-check mr-1"></i>Token Tersimpan</div>
-        <div class="font-mono text-xs break-all" style="color:var(--txt);opacity:.8">${esc(S.token.length>90?S.token.substring(0,90)+'...':S.token)}</div>
-      </div>`:`<div class="p-3 rounded-lg" style="background:var(--warn-l);border:1px solid var(--warn)">
-        <div class="text-xs font-bold" style="color:var(--warn)"><i class="fas fa-triangle-exclamation mr-1"></i>Belum ada token. Import data tidak akan berjalan tanpa token.</div>
-      </div>`}
-    </div>
-  </div>
-  <div class="card p-5">
-    <h2 class="font-bold text-base mb-1" style="color:var(--txt)"><i class="fas fa-lightbulb mr-2" style="color:var(--warn)"></i>Cara Mendapatkan Token</h2>
-    <div class="space-y-3 mt-3">
-      <div class="flex gap-3 items-start">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style="background:var(--accent-l);color:var(--accent-h)">1</div>
-        <div><p class="text-xs font-bold" style="color:var(--txt)">Pastikan endpoint sudah benar</p><p class="text-[11px]" style="color:var(--txt-sub)">Masukkan URL server Neo Feeder Anda di kolom Endpoint di atas.</p></div>
-      </div>
-      <div class="flex gap-3 items-start">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style="background:var(--accent-l);color:var(--accent-h)">2</div>
-        <div><p class="text-xs font-bold" style="color:var(--txt)">Simpan konfigurasi</p><p class="text-[11px]" style="color:var(--txt-sub)">Klik "Simpan Konfigurasi" agar endpoint tersimpan.</p></div>
-      </div>
-      <div class="flex gap-3 items-start">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style="background:var(--accent-l);color:var(--accent-h)">3</div>
-        <div><p class="text-xs font-bold" style="color:var(--txt)">Buka halaman Test API</p><p class="text-[11px]" style="color:var(--txt-sub)">Pilih method <code style="font-size:10px;background:var(--bg-hover);padding:1px 4px;border-radius:3px">GetToken</code>, masukkan username & password, lalu kirim.</p></div>
-      </div>
-      <div class="flex gap-3 items-start">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style="background:var(--accent-l);color:var(--accent-h)">4</div>
-        <div><p class="text-xs font-bold" style="color:var(--txt)">Salin token dari response</p><p class="text-[11px]" style="color:var(--txt-sub)">Temukan field <code style="font-size:10px;background:var(--bg-hover);padding:1px 4px;border-radius:3px">token</code> di response, salin, lalu tempel di kolom Token di atas.</p></div>
-      </div>
-      <div class="flex gap-3 items-start">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style="background:var(--ok-l);color:var(--ok)">5</div>
-        <div><p class="text-xs font-bold" style="color:var(--txt)">Simpan & mulai import</p><p class="text-[11px]" style="color:var(--txt-sub)">Klik "Simpan Konfigurasi" lagi. Badge "Token Aktif" akan muncul di header. Anda siap mengimport data.</p></div>
-      </div>
-    </div>
-    <button class="btn btn-o btn-sm mt-4" onclick="nav('test')"><i class="fas fa-arrow-right"></i>Buka Test API Sekarang</button>
-  </div>
-  <div class="card p-5">
-    <h2 class="font-bold text-base mb-4" style="color:var(--txt)"><i class="fas fa-sliders mr-2" style="color:var(--accent)"></i>Pengaturan Import</h2>
-    <div class="grid grid-cols-2 gap-3">
-      <div><label class="block text-xs font-bold mb-1" style="color:var(--txt-sub)">Parallel Request (1-5)</label><input id="c-par" type="number" min="1" max="5" class="input" value="${S.cfg.parLim}"></div>
-      <div><label class="block text-xs font-bold mb-1" style="color:var(--txt-sub)">Max Retry (0-5)</label><input id="c-ret" type="number" min="0" max="5" class="input" value="${S.cfg.maxRet}"></div>
-      <div><label class="block text-xs font-bold mb-1" style="color:var(--txt-sub)">Batch Size</label><input id="c-bsz" type="number" min="1" max="100" class="input" value="${S.cfg.batchSz}"></div>
-      <div><label class="block text-xs font-bold mb-1" style="color:var(--txt-sub)">Delay antar request (ms)</label><input id="c-dl" type="number" min="0" max="10000" step="100" class="input" value="${S.cfg.batchDl}"></div>
-      <div><label class="block text-xs font-bold mb-1" style="color:var(--txt-sub)">Preview Limit</label><input id="c-pv" type="number" min="10" max="500" class="input" value="${S.cfg.prevLim}"></div>
-    </div>
-    <button class="btn btn-o mt-4" onclick="saveStg()"><i class="fas fa-save"></i>Simpan Pengaturan</button>
-  </div>
-  <div class="card p-5">
-    <h2 class="font-bold text-base mb-2" style="color:var(--txt)"><i class="fas fa-flask-vial mr-2" style="color:var(--accent)"></i>Sample Data Testing</h2>
-    <p class="text-xs mb-3" style="color:var(--txt-sub)">Muat contoh data untuk testing alur import tanpa upload file.</p>
-    <div class="flex flex-wrap gap-2">${IO.map(k=>`<button class="btn btn-o btn-sm" onclick="loadSmp('${k}')"><i class="fas ${IT[k].ic}"></i>${IT[k].lb}</button>`).join('')}</div>
-  </div>`;
-}
-
-function saveCfg(){
-  S.ep=$('c-ep').value.trim();S.token=$('c-tk').value.trim();
-  if(!S.ep){toast('Endpoint wajib diisi.','err');return}
-  localStorage.setItem('neo_ep',S.ep);
-  if(S.token)localStorage.setItem('neo_tk',S.token);else localStorage.removeItem('neo_tk');
-  updTk();renderCfg();toast('Konfigurasi tersimpan.','ok');
-}
-
-function saveStg(){
-  S.cfg.parLim=Math.max(1,Math.min(5,parseInt($('c-par').value)||3));
-  S.cfg.maxRet=Math.max(0,Math.min(5,parseInt($('c-ret').value)||3));
-  S.cfg.batchSz=Math.max(1,Math.min(100,parseInt($('c-bsz').value)||10));
-  S.cfg.batchDl=Math.max(0,parseInt($('c-dl').value)||500);
-  S.cfg.prevLim=Math.max(10,parseInt($('c-pv').value)||50);
-  toast('Pengaturan tersimpan.','ok');
-}
-
-function loadSmp(k){
-  S.ik=k;S.raw=JSON.parse(JSON.stringify(IT[k].smp));S.srcH=Object.keys(S.raw[0]);
-  S.fMap=autoMap(S.srcH,IT[k].fl);applyMap();S.step=1;nav('import',k);toast(`Sample ${IT[k].lb} dimuat.`,'ok');
-}
-
-/* ============================================================
-   19. DOCS PAGE
-   ============================================================ */
-function renderDocs(q=''){
-  const keys=Object.keys(wsDocs).filter(k=>!q||k.toLowerCase().includes(q.toLowerCase())||wsDocs[k].label.toLowerCase().includes(q.toLowerCase()));
-  const m2t={};IO.forEach(k=>{m2t[IT[k].m]=k});
-  $('pg-docs').innerHTML=`
-  <div class="card p-5">
-    <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-      <h2 class="font-bold text-base" style="color:var(--txt)"><i class="fas fa-book-open mr-2" style="color:var(--accent)"></i>Dokumentasi API <span class="badge badge-info ml-1">${keys.length} method</span></h2>
-      <div class="flex-1"></div>
-      <input id="doc-q" class="input sm:w-64" placeholder="Cari method..." value="${esc(q)}" oninput="renderDocs(this.value)">
-    </div>
-    <div class="space-y-2">${keys.length?keys.map(key=>{
-      const d=wsDocs[key],tk=m2t[key]||'';
-      return`<details style="border:1px solid var(--bdr);border-radius:10px;overflow:hidden">
-        <summary class="flex items-center justify-between p-3.5 cursor-pointer font-semibold text-sm" style="color:var(--txt);background:var(--bg-card);transition:background .15s" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-card)'">
-          <span class="font-mono text-xs px-2 py-0.5 rounded" style="background:var(--accent-l);color:var(--accent-h)">${esc(d.label)}</span>
-          <i class="fas fa-chevron-down text-xs" style="color:var(--txt-mute)"></i>
-        </summary>
-        <div class="p-4 space-y-3" style="background:var(--bg-card);border-top:1px solid var(--bdr)">
-          <p class="text-xs leading-relaxed" style="color:var(--txt-sub)">${esc(d.desc)}</p>
-          <div><div class="text-xs font-bold mb-2" style="color:var(--txt)">Field:</div>
-            ${renderTbl(d.fields.map(f=>({Field:f.n,Label:f.l,Wajib:f.r?'Ya':'Tidak',Default:f.d?f.d:'-'})),['Field','Label','Wajib','Default'],null)}</div>
-          <div><div class="flex items-center justify-between mb-2"><div class="text-xs font-bold" style="color:var(--txt)">Contoh JSON:</div>
-            <button class="btn btn-o btn-sm" onclick="copyTxt(JSON.stringify(wsDocs['${key}'].example,null,2))"><i class="fas fa-copy"></i>Salin</button></div>
-            <div class="code">${esc(JSON.stringify(d.example,null,2))}</div></div>
-          ${tk?`<button class="btn btn-p btn-sm" onclick="nav('import','${tk}')"><i class="fas fa-arrow-right"></i>Gunakan Method</button>`:''}
-        </div></details>`}).join(''):'<p style="color:var(--txt-mute);font-size:13px;padding:16px">Tidak ada method yang cocok.</p>'}</div>
-  </div>`;
-}
-
-/* ============================================================
-   20. IMPORT PAGE
-   ============================================================ */
-function renderImp(){
-  const type=IT[S.ik];
-  if(!type){$('pg-import').innerHTML='<div class="card p-8 text-center"><p style="color:var(--txt-mute)">Pilih tipe import dari sidebar.</p></div>';return}
-  const stp=[{n:'Upload',s:0},{n:'Mapping',s:1},{n:'Review & Import',s:2}];
-  const stpBar=`<div class="flex items-center gap-0 mb-4">${stp.map((st,i)=>`<div class="px-3 py-1.5 text-xs font-bold" style="${S.step===st.s?'background:var(--accent-l);color:var(--accent-h);border:1px solid var(--accent)':S.step>st.s?'background:var(--ok-l);color:var(--ok);border:1px solid var(--ok)':'background:var(--bg-hover);color:var(--txt-mute);border:1px solid var(--bdr)'};border-radius:${i===0?'8px 0 0 8px':i===2?'0 8px 8px 0':'0'}">${S.step>st.s?'<i class="fas fa-check mr-1"></i>':''}${st.n}</div>${i<2?'<div style="width:20px;height:1px;background:var(--bdr)"></div>':''}`).join('')}</div>`;
-  let h='';
-  h+=`<div class="card p-4 flex items-start gap-3">
-    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--accent-l)"><i class="fas ${type.ic}" style="color:var(--accent);font-size:16px"></i></div>
-    <div class="min-w-0"><h2 class="font-bold text-sm" style="color:var(--txt)">${esc(type.lb)}</h2>
-      <div class="flex flex-wrap items-center gap-2 mt-1">
-        <span class="font-mono text-xs px-1.5 py-0.5 rounded" style="background:var(--bg-hover);color:var(--txt-sub)">${esc(type.m)}</span>
-        <span class="badge badge-info">Urutan ${type.ord}</span>
-        <span class="text-xs" style="color:var(--txt-mute)">Key: <strong>${type.kf.join(', ')}</strong></span>
-      </div>
-      <div class="flex flex-wrap gap-1 mt-1.5">${type.rf.map(f=>`<span class="text-[10px] font-bold px-1.5 py-0.5 rounded" style="background:var(--danger-l);color:var(--danger)">${esc(f)}</span>`).join('')}</div>
-    </div></div>`;
-  h+=stpBar;
-
-  if(S.step===0){
-    h+=`<div class="card p-5"><h3 class="font-bold text-sm mb-4" style="color:var(--txt)">Upload File Data</h3>
-      <div id="drop-z" class="drop" onclick="$('f-inp').click()" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="event.preventDefault();this.classList.remove('over');if(event.dataTransfer.files[0])handleFile(event.dataTransfer.files[0])">
-        <div style="position:relative;z-index:1"><i class="fas fa-cloud-arrow-up text-3xl mb-3" style="color:var(--txt-mute)"></i>
-        <p class="text-sm font-semibold" style="color:var(--txt-sub)">Drag & drop file di sini</p>
-        <p class="text-xs mt-1" style="color:var(--txt-mute)">atau klik untuk memilih file</p>
-        <p class="text-[10px] mt-2 font-bold" style="color:var(--txt-mute)">JSON &middot; CSV &middot; XLSX &middot; XLS</p></div></div>
-      <input id="f-inp" type="file" accept=".json,.csv,.xlsx,.xls" class="hidden" onchange="if(this.files[0]){handleFile(this.files[0]);this.value=''}">
-      <div class="mt-4"><button class="btn btn-o btn-sm" onclick="loadSmp('${type.k}')"><i class="fas fa-flask"></i>Muat Sample Data</button></div></div>`;
-  }else if(S.step===1){
-    const unm=type.rf.filter(f=>!S.fMap[f.n]);
-    h+=`<div class="card p-5"><h3 class="font-bold text-sm mb-1" style="color:var(--txt)">Mapping Field</h3>
-      <p class="text-xs mb-3" style="color:var(--txt-sub)">Sesuaikan kolom file sumber dengan field target. <span style="color:var(--danger)">*</span> = wajib.</p>
-      ${unm.length?`<div class="p-2.5 rounded-lg mb-3" style="background:var(--warn-l);border:1px solid var(--warn)"><p class="text-xs font-bold" style="color:var(--warn)"><i class="fas fa-triangle-exclamation mr-1"></i>${unm.length} field wajib belum dipetakan: ${unm.map(f=>`<code>${f}</code>`).join(', ')}</p></div>`:''}
-      ${renderTbl(type.fl.map(f=>{
-        const mapped=S.fMap[f.n]||'',opts=S.srcH.map(sh=>`<option value="${esc(sh)}"${sh===mapped?' selected':''}>${esc(sh)}</option>`).join('');
-        return{Field:`${f.r?'<span style="color:var(--danger);font-weight:900">*</span>':''}<code>${esc(f.n)}</code>`,Label:esc(f.l),Wajib:f.r?'<span style="color:var(--danger);font-weight:700">Ya</span>':'<span style="color:var(--txt-mute)">Tidak</span>',
-        'Kolom Sumber':`<select class="input" style="padding:4px 28px 4px 8px;font-size:11px;min-width:140px" onchange="updMap('${esc(f.n)}',this.value)"><option value="">-- tidak dipetakan --</option>${opts}</select>`};
-      }),['Field','Label','Wajib','Kolom Sumber'],null)}
-      <div class="flex gap-2 mt-4"><button class="btn btn-p" onclick="goReview()"><i class="fas fa-arrow-right"></i>Lanjutkan ke Review</button>
-        <button class="btn btn-o" onclick="S.step=0;renderImp()"><i class="fas fa-arrow-left"></i>Kembali</button></div></div>`;
-    h+=`<div class="card p-5"><h3 class="font-bold text-sm mb-3" style="color:var(--txt)">Preview Data Asli (${S.raw.length} baris)</h3>${renderTbl(S.raw,S.srcH,S.cfg.prevLim)}</div>`;
-  }else if(S.step===2){
-    const errs=validateData(S.ik,S.mapped),uniq=removeDuplicate(S.ik,S.mapped).length,dup=S.mapped.length-uniq;
-    h+=`<div class="card p-5"><h3 class="font-bold text-sm mb-3" style="color:var(--txt)">Ringkasan Data</h3>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-        <div class="sm"><div class="sv" style="color:var(--txt)">${S.mapped.length}</div><div class="sl">Total Baris</div></div>
-        <div class="sm"><div class="sv" style="color:${dup?'var(--warn)':'var(--ok)'}">${dup||0}</div><div class="sl">Duplikat Lokal</div></div>
-        <div class="sm"><div class="sv" style="color:var(--accent)">${uniq}</div><div class="sl">Setelah Dedup</div></div>
-        <div class="sm"><div class="sv" style="color:${errs.length?'var(--danger)':'var(--ok)'}">${errs.length}</div><div class="sl">Error Validasi</div></div>
-      </div>
-      ${errs.length?`<div class="p-3 rounded-lg mb-3" style="background:var(--danger-l);border:1px solid var(--danger)"><div class="text-xs font-bold mb-1" style="color:var(--danger)">${errs.length} Error Validasi:</div><ul class="text-xs space-y-0.5" style="color:var(--danger)">${errs.slice(0,8).map(e=>`<li>&bull; ${esc(e)}</li>`).join('')}${errs.length>8?`<li>&bull; ...dan ${errs.length-8} error lainnya</li>`:''}</ul></div>`:`<div class="p-3 rounded-lg mb-3" style="background:var(--ok-l);border:1px solid var(--ok)"><p class="text-xs font-bold" style="color:var(--ok)"><i class="fas fa-circle-check mr-1"></i>Semua data valid, siap diimport.</p></div>`}
-      <h4 class="font-bold text-xs mb-2" style="color:var(--txt)">Preview Data (${S.mapped.length} baris)</h4>
-      ${renderTbl(S.mapped,type.fl.map(f=>f.n),S.cfg.prevLim)}
-      <div class="flex gap-2 mt-4 flex-wrap">
-        <button class="btn btn-p" onclick="cfImp('${type.k}',${uniq})" ${errs.length?'disabled':''}><i class="fas fa-play"></i>Mulai Import (${uniq} data)</button>
-        <button class="btn btn-o" onclick="S.step=1;renderImp()"><i class="fas fa-arrow-left"></i>Kembali</button>
-        <button class="btn btn-o" onclick="copyTxt(JSON.stringify(S.mapped,null,2))"><i class="fas fa-copy"></i>Salin JSON</button>
-      </div></div>`;
+function updateAuthUI(){
+  const dot=$('status-dot'),txt=$('status-text'),ft=$('sidebar-footer');
+  if(state.token){
+    dot.style.background='var(--ok)';txt.textContent='Online';txt.style.color='var(--ok)';
+    ft.innerHTML=`<div class="text-xs" style="color:var(--tx3)"><i class="fa-solid fa-key mr-1" style="color:var(--accent)"></i>Token aktif<br><span class="font-mono text-[10px]" style="color:var(--tx2)">${state.token.slice(0,20)}...</span></div>`;
+  }else{
+    dot.style.background='var(--err)';txt.textContent='Offline';txt.style.color='var(--tx3)';
+    ft.innerHTML=`<div class="text-xs" style="color:var(--tx3)"><i class="fa-solid fa-key mr-1"></i>Belum ada token</div>`;
   }
-  $('pg-import').innerHTML=h;
 }
 
-function updMap(t,s){S.fMap[t]=s}
-function goReview(){applyMap();S.step=2;renderImp()}
-function cfImp(k,cnt){
-  const type=IT[k];
-  cfShow('Konfirmasi Import',`Anda akan mengimport ${cnt} data ${type.lb} ke Neo Feeder. Pastikan data sudah benar.`,
-    `<div class="sm"><div class="sv" style="color:var(--accent)">${cnt}</div><div class="sl">Data Akan Diimport</div></div>
-     <div class="sm"><div class="sv" style="color:var(--info)">${type.m}</div><div class="sl">Method</div></div>
-     <div class="sm"><div class="sv" style="color:var(--txt)">${S.cfg.parLim}</div><div class="sl">Parallel</div></div>
-     <div class="sm"><div class="sv" style="color:var(--txt)">${S.cfg.batchDl}ms</div><div class="sl">Delay</div></div>`,
-    ()=>startImport(k));
-}
-
-/* ============================================================
-   21. TEST API PAGE
-   ============================================================ */
-function renderTest(){
-  const methods=Object.keys(wsDocs);
-  $('pg-test').innerHTML=`
-  <div class="card p-5">
-    <h2 class="font-bold text-base mb-1" style="color:var(--txt)"><i class="fas fa-flask mr-2" style="color:var(--accent)"></i>Test API Manual</h2>
-    <p class="text-xs mb-4" style="color:var(--txt-sub)">Gunakan halaman ini untuk menguji endpoint API, termasuk mendapatkan token via <code style="font-size:11px;background:var(--bg-hover);padding:1px 5px;border-radius:4px">GetToken</code>.</p>
-    <div class="space-y-3">
-      <div><label class="block text-xs font-bold mb-1" style="color:var(--txt-sub)">Method (act)</label>
-        <select id="t-act" class="input" onchange="prefTest()"><option value="">-- Pilih Method --</option>${methods.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('')}</select></div>
-      <div><label class="block text-xs font-bold mb-1" style="color:var(--txt-sub)">JSON Body (field <code>data</code> saja — act & token otomatis)</label>
-        <textarea id="t-json" class="input font-mono text-xs" rows="10" placeholder='{"username": "...", "password": "..."}'></textarea></div>
-      <div class="flex gap-2"><button id="t-send" class="btn btn-p" onclick="doTest()"><i class="fas fa-paper-plane"></i>Kirim Request</button>
-        <button class="btn btn-o" onclick="copyTxt($('t-json').value)"><i class="fas fa-copy"></i>Salin JSON</button></div>
+/* ================================================================
+   PAGE: KONFIGURASI (tanpa auto-login)
+   ================================================================ */
+function renderConfigPage(){
+  const pc=$('page-container');
+  pc.innerHTML=`
+  <div class="grid gap-5 max-w-3xl">
+    <div class="card p-6 anim-fade">
+      <h2 class="text-lg font-bold mb-1" style="color:var(--tx)">Koneksi API</h2>
+      <p class="text-sm mb-5" style="color:var(--tx3)">Masukkan endpoint, kredensial, lalu klik Login untuk mendapatkan token.</p>
+      <div class="space-y-4">
+        <div><label class="block text-xs font-semibold mb-1.5" style="color:var(--tx2)">Endpoint URL</label>
+          <input class="ipt font-mono text-sm" id="cfg-url" value="${esc(state.apiUrl)}" placeholder="http://localhost:3003/ws/live2.php"></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div><label class="block text-xs font-semibold mb-1.5" style="color:var(--tx2)">Username</label>
+            <input class="ipt" id="cfg-user" value="${esc(state.username)}" placeholder="Username Feeder"></div>
+          <div><label class="block text-xs font-semibold mb-1.5" style="color:var(--tx2)">Password</label>
+            <input class="ipt" type="password" id="cfg-pass" value="${esc(state.password)}" placeholder="Password Feeder"></div>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <button class="btn btn-p" id="btn-login"><i class="fa-solid fa-right-to-bracket"></i> Login & Ambil Token</button>
+          <button class="btn btn-s" id="btn-save-cfg"><i class="fa-solid fa-floppy-disk"></i> Simpan Konfigurasi</button>
+          <button class="btn btn-d" id="btn-logout" ${!state.token?'disabled':''}><i class="fa-solid fa-trash-can"></i> Hapus Token</button>
+        </div>
+      </div>
     </div>
-  </div>
-  <div class="card p-5"><div class="flex items-center justify-between mb-3"><h3 class="font-bold text-sm" style="color:var(--txt)">Response</h3>
-    <button class="btn btn-o btn-sm" onclick="copyTxt($('t-res').textContent)"><i class="fas fa-copy"></i>Salin Response</button></div>
-    <div id="t-res" class="code" style="min-height:80px;color:var(--txt-mute)">Response akan muncul di sini setelah mengirim request.</div></div>`;
+    <div class="card p-6 anim-fade-d1">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-bold" style="color:var(--tx)">Token Tersimpan</h2>
+        ${state.token?`<button class="btn btn-s text-xs py-1 px-3" onclick="navigator.clipboard.writeText(state.token).then(()=>toast('Token disalin','ok'))"><i class="fa-solid fa-copy"></i> Salin</button>`:''}
+      </div>
+      <div class="p-3 rounded-lg font-mono text-xs break-all" style="background:var(--input);border:1px solid var(--bdr);color:${state.token?'var(--tx2)':'var(--tx3)'}">
+        ${state.token?esc(state.token):'Belum ada token — login terlebih dahulu'}
+      </div>
+    </div>
+    <div class="card p-6 anim-fade-d2">
+      <h2 class="text-lg font-bold mb-1" style="color:var(--tx)">Pengaturan Import</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+        <div><label class="block text-xs font-semibold mb-1.5" style="color:var(--tx2)">Batch Size</label><input class="ipt" type="number" id="set-batch" value="${state.settings.batchSize}" min="1" max="100"></div>
+        <div><label class="block text-xs font-semibold mb-1.5" style="color:var(--tx2)">Delay (ms)</label><input class="ipt" type="number" id="set-delay" value="${state.settings.batchDelay}" min="0" max="10000" step="100"></div>
+        <div><label class="block text-xs font-semibold mb-1.5" style="color:var(--tx2)">Max Retry</label><input class="ipt" type="number" id="set-retry" value="${state.settings.maxRetry}" min="0" max="10"></div>
+        <div><label class="block text-xs font-semibold mb-1.5" style="color:var(--tx2)">Parallel</label><input class="ipt" type="number" id="set-parallel" value="${state.settings.parallel}" min="1" max="10"></div>
+      </div>
+      <button class="btn btn-s text-sm mt-4" id="btn-save-settings"><i class="fa-solid fa-floppy-disk"></i> Simpan Pengaturan</button>
+    </div>
+  </div>`;
+
+  $('btn-login').onclick=handleLogin;
+  $('btn-save-cfg').onclick=handleSaveConfig;
+  $('btn-logout').onclick=handleLogout;
+  $('btn-save-settings').onclick=handleSaveSettings;
 }
-function prefTest(){const a=$('t-act').value,d=wsDocs[a];if(d)$('t-json').value=JSON.stringify(d.example.data||{},null,2)}
-async function doTest(){
-  const act=$('t-act').value,json=$('t-json').value.trim();
-  if(!act){toast('Pilih method.','err');return}
-  if(!json){toast('JSON body kosong.','err');return}
-  let data;try{data=JSON.parse(json)}catch(e){toast('JSON tidak valid: '+e.message,'err');return}
-  const btn=$('t-send');btn.disabled=true;btn.innerHTML='<span class="spin-i"></span>Mengirim...';
-  $('t-res').textContent='Mengirim request...';$('t-res').style.color='var(--info)';
-  try{const res=await requestNeo(act,data);$('t-res').textContent=JSON.stringify(res,null,2);$('t-res').style.color='var(--ok)';
-    /* Jika GetToken dan ada token, tampilkan banner */
-    if(act==='GetToken'){
-      const tk=res.token||res.data?.token||res.result?.token;
-      if(tk){$('t-res').textContent+='\n\n═══════════════════════════════════════\n  TOKEN DIDAPATKAN — Salin token di atas,\n  lalu tempel di halaman Konfigurasi API.\n═══════════════════════════════════════';$('t-res').style.color='var(--ok)'}
+
+async function handleLogin(){
+  const url=$('cfg-url').value.trim(),user=$('cfg-user').value.trim(),pass=$('cfg-pass').value.trim();
+  if(!url){toast('URL endpoint wajib diisi','err');return}
+  if(!user||!pass){toast('Username dan password wajib diisi','err');return}
+  state.apiUrl=url;state.username=user;state.password=pass;
+  const btn=$('btn-login');btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner spin-anim"></i> Mengambil token...';
+  try{
+    /* FIX: requestNeo('GetToken') sudah tidak kirim token */
+    const res=await requestNeo('GetToken',{username:user,password:pass});
+    if(res.token){
+      state.token=res.token;sv(SK.token,state.token);
+      toast('Login berhasil! Token tersimpan di localStorage.','ok');
+      updateAuthUI();addLog(`Login berhasil. Token: ${state.token.slice(0,24)}...`,'ok');
+      /* Re-render config page untuk update tampilan */
+      renderConfigPage();
+    }else{
+      const errMsg=res.error_desc||res.message||res.error||JSON.stringify(res);
+      toast('Login gagal: '+errMsg,'err');addLog('Login gagal: '+errMsg,'err');
     }
-    toast('Request berhasil.','ok');
-  }catch(e){$('t-res').textContent='ERROR: '+e.message;$('t-res').style.color='var(--danger)';toast('Request gagal.','err')}
-  finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-paper-plane"></i>Kirim Request'}
+  }catch(e){toast('Gagal menghubungi server: '+e.message,'err');addLog('Koneksi gagal: '+e.message,'err')}
+  finally{btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-right-to-bracket"></i> Login & Ambil Token';saveAll()}
+}
+function handleSaveConfig(){
+  state.apiUrl=$('cfg-url').value.trim()||DEFAULT_URL;
+  state.username=$('cfg-user').value.trim();state.password=$('cfg-pass').value.trim();
+  saveAll();toast('Konfigurasi tersimpan','ok');
+}
+function handleLogout(){state.token='';sv(SK.token,'');updateAuthUI();toast('Token dihapus','info');renderConfigPage()}
+function handleSaveSettings(){
+  state.settings.batchSize=Math.max(1,parseInt($('set-batch').value)||20);
+  state.settings.batchDelay=Math.max(0,parseInt($('set-delay').value)||300);
+  state.settings.maxRetry=Math.max(0,parseInt($('set-retry').value)||3);
+  state.settings.parallel=Math.max(1,parseInt($('set-parallel').value)||1);
+  saveAll();toast('Pengaturan tersimpan','ok');
 }
 
-/* ============================================================
-   22. KEYBOARD
-   ============================================================ */
-document.addEventListener('keydown',e=>{
-  if(e.ctrlKey&&e.key==='d'){e.preventDefault();togDark()}
-  if(e.key==='Escape'){monClose();cfClose();togSB(false)}
-});
+/* ================================================================
+   PAGE: IMPORT (generic untuk semua tipe)
+   ================================================================ */
+function renderImportPage(type){
+  const cfg=importCfg[type];if(!cfg)return;
+  const pc=$('page-container');
+  pc.innerHTML=`
+  <div class="grid gap-5 max-w-5xl">
+    <div class="flex items-center gap-4 anim-fade">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:var(--glow);border:1px solid var(--bdr)">
+        <i class="fa-solid ${cfg.icon} text-lg" style="color:var(--accent)"></i>
+      </div>
+      <div><h2 class="text-xl font-bold" style="color:var(--tx)">${cfg.label}</h2>
+        <p class="text-sm" style="color:var(--tx3)">${cfg.desc} &middot; <code class="font-mono text-xs" style="color:var(--accent)">${cfg.method}</code> &middot; Key: <strong>${cfg.keyFields.join(', ')}</strong></p>
+      </div>
+    </div>
+    <div class="card p-6 anim-fade-d1">
+      <h3 class="text-sm font-bold mb-3" style="color:var(--tx)">Upload File</h3>
+      <div class="drop-zone" id="drop-zone"><i class="fa-solid fa-cloud-arrow-up text-3xl mb-3 block" style="color:var(--tx3)"></i>
+        <p class="text-sm font-semibold" style="color:var(--tx2)">Drag & drop file di sini</p>
+        <p class="text-xs mt-1" style="color:var(--tx3)">atau klik untuk pilih file (JSON, CSV, Excel)</p>
+        <input type="file" accept=".json,.csv,.xlsx,.xls" class="hidden" id="file-input">
+      </div>
+    </div>
+    <div class="card p-6 anim-fade-d2" id="preview-card" style="display:none">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-bold" style="color:var(--tx)">Preview Data</h3>
+        <div class="flex items-center gap-2">
+          <span class="badge badge-info" id="preview-count">0 data</span>
+          <span class="badge" id="preview-dup"></span>
+        </div>
+      </div>
+      <div id="preview-table"></div>
+    </div>
+    <div class="card p-6 anim-fade-d2">
+      <h3 class="text-sm font-bold mb-3" style="color:var(--tx)">Pengaturan Import</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div><label class="block text-xs font-semibold mb-1.5" style="color:var(--tx2)">Batch Size</label><input class="ipt" type="number" id="imp-batch" value="${state.settings.batchSize}" min="1" max="100"></div>
+        <div><label class="block text-xs font-semibold mb-1.5" style="color:var(--tx2)">Delay (ms)</label><input class="ipt" type="number" id="imp-delay" value="${state.settings.batchDelay}" min="0" max="10000" step="100"></div>
+        <div><label class="block text-xs font-semibold mb-1.5" style="color:var(--tx2)">Max Retry</label><input class="ipt" type="number" id="imp-retry" value="${state.settings.maxRetry}" min="0" max="10"></div>
+        <div><label class="block text-xs font-semibold mb-1.5" style="color:var(--tx2)">Parallel</label><input class="ipt" type="number" id="imp-parallel" value="${state.settings.parallel}" min="1" max="10"></div>
+      </div>
+      <div class="flex flex-wrap gap-3 mt-5">
+        <button class="btn btn-p" id="btn-start" ${!state.previewData.length?'disabled':''}><i class="fa-solid fa-play"></i> Mulai Import</button>
+        <button class="btn btn-d" id="btn-cancel" ${!state.importing?'disabled':''}><i class="fa-solid fa-stop"></i> Batalkan</button>
+      </div>
+    </div>
+    <div class="card p-6 anim-fade-d3" id="progress-card" style="display:none">
+      <div class="flex items-center justify-between mb-3"><h3 class="text-sm font-bold" style="color:var(--tx)">Progress</h3><span class="text-sm font-bold" style="color:var(--accent)" id="prog-pct">0%</span></div>
+      <div class="progress-track mb-4"><div class="progress-fill" id="prog-bar" style="width:0%"></div></div>
+      <div class="grid grid-cols-4 gap-3" id="prog-stats">
+        <div class="stat-card"><div class="stat-num" style="color:var(--tx)">0</div><div class="stat-lbl">Total</div></div>
+        <div class="stat-card"><div class="stat-num" style="color:var(--ok)">0</div><div class="stat-lbl">Sukses</div></div>
+        <div class="stat-card"><div class="stat-num" style="color:var(--err)">0</div><div class="stat-lbl">Gagal</div></div>
+        <div class="stat-card"><div class="stat-num" style="color:var(--warn)">0</div><div class="stat-lbl">Skip</div></div>
+      </div>
+    </div>
+    <div class="card p-6 anim-fade-d3">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-bold" style="color:var(--tx)">Log</h3>
+        <div class="flex gap-2">
+          <button class="btn btn-s text-xs py-1 px-3" onclick="downloadText(state.logs.map(l=>`[${l.time}] [${l.type}] ${l.msg}`).join('\\n'),'import_log.txt')"><i class="fa-solid fa-download"></i> Export</button>
+          <button class="btn btn-s text-xs py-1 px-3" onclick="const el=$('log-area');if(el)el.innerHTML='';state.logs=[]"><i class="fa-solid fa-eraser"></i> Clear</button>
+        </div>
+      </div>
+      <div id="log-area" class="overflow-y-auto font-mono text-xs p-3 rounded-lg" style="background:var(--input);border:1px solid var(--bdr);max-height:250px;min-height:80px"></div>
+      <div id="failed-btn-wrap"></div>
+    </div>
+  </div>`;
 
-/* ============================================================
-   23. INIT
-   ============================================================ */
-(function init(){
-  if(S.dark){document.documentElement.classList.add('dark');$('dk-ic').className='fas fa-sun'}
-  updTk();renderSB();nav('config');
-})();
+  const dz=$('drop-zone'),fi=$('file-input');
+  dz.onclick=()=>fi.click();
+  fi.onchange=e=>{if(e.target.files[0])handleFileUpload(type,e.target.files[0]);fi.value=''};
+  dz.ondragover=e=>{e.preventDefault();dz.classList.add('over')};
+  dz.ondragleave=()=>dz.classList.remove('over');
+  dz.ondrop=e=>{e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])handleFileUpload(type,e.dataTransfer.files[0])};
+  $('btn-start').onclick=()=>handleStartImport(type);
+  $('btn-cancel').onclick=cancelImport;
+}
+
+async function handleFileUpload(type,file){
+  try{
+    const data=await parseFile(file);
+    if(!data.length){toast('File kosong atau tidak valid','warn');return}
+    state.previewData=data;state.previewType=type;
+    $('preview-card').style.display='';
+    $('preview-count').textContent=data.length+' data';
+    /* FIX: gunakan countDuplicate (tanpa log) bukan removeDuplicate (dengan log) */
+    const dupCount=countDuplicate(data,type);
+    const dupEl=$('preview-dup');
+    if(dupCount>0){dupEl.textContent=dupCount+' duplikat';dupEl.className='badge badge-warn'}
+    else{dupEl.textContent='Tidak ada duplikat';dupEl.className='badge badge-ok'}
+    renderTable(data,$('preview-table'),50);
+    $('btn-start').disabled=false;
+    toast(`"${file.name}" dimuat: ${data.length} data`,'ok');
+  }catch(e){toast(e.message,'err')}
+}
+
+async function handleStartImport(type){
+  if(state.importing||!state.token||!state.previewData.length) return;
+  const opts={
+    batchSize:Math.max(1,parseInt($('imp-batch').value)||state.settings.batchSize),
+    batchDelay:Math.max(0,parseInt($('imp-delay').value)||state.settings.batchDelay),
+    maxRetry:Math.max(0,parseInt($('imp-retry').value)||state.settings.maxRetry),
+    parallel:Math.max(1,Math.min(10,parseInt($('imp-parallel').value)||state.settings.parallel))
+  };
+  const logArea=$('log-area');if(logArea)logArea.innerHTML='';
+  await startImport(state.previewData,type,opts);
+}
+
+/* ================================================================
+   PAGE: TEST API
+   ================================================================ */
+function renderTestApiPage(){
+  const methods=Object.keys(wsDocs);
+  const pc=$('page-container');
+  pc.innerHTML=`
+  <div class="grid gap-5 max-w-3xl">
+    <div class="card p-6 anim-fade">
+      <h2 class="text-lg font-bold mb-1" style="color:var(--tx)">Test API</h2>
+      <p class="text-sm mb-4" style="color:var(--tx3)">Kirim request manual. Untuk GetToken, token tidak dikirim otomatis.</p>
+      <div class="space-y-4">
+        <div><label class="block text-xs font-semibold mb-1.5" style="color:var(--tx2)">Method (act)</label>
+          <select class="ipt" id="test-act"><option value="">-- Pilih Method --</option>${methods.map(m=>`<option value="${m}">${m}</option>`).join('')}<option value="__custom">Custom</option></select></div>
+        <div id="test-custom-wrap" style="display:none"><label class="block text-xs font-semibold mb-1.5" style="color:var(--tx2)">Custom act</label><input class="ipt" id="test-act-input" placeholder="Nama method"></div>
+        <div><label class="block text-xs font-semibold mb-1.5" style="color:var(--tx2)">Data (JSON)</label>
+          <textarea class="ipt" id="test-data" placeholder='{"key": "value"}'>{}</textarea></div>
+        <button class="btn btn-p" id="btn-test-send"><i class="fa-solid fa-paper-plane"></i> Kirim Request</button>
+      </div>
+    </div>
+    <div class="card p-6 anim-fade-d1">
+      <div class="flex items-center justify-between mb-3"><h3 class="text-sm font-bold" style="color:var(--tx)">Response</h3>
+        <button class="btn btn-s text-xs py-1 px-3" onclick="navigator.clipboard.writeText($('test-response').textContent).then(()=>toast('Disalin','ok'))"><i class="fa-solid fa-copy"></i> Copy</button></div>
+      <pre class="p-4 rounded-lg text-xs font-mono overflow-auto" id="test-response" style="background:var(--input);border:1px solid var(--bdr);min-height:100px;max-height:400px;color:var(--tx2);white-space:pre-wrap">Belum ada response</pre>
+    </div>
+  </div>`;
+
+  $('test-act').onchange=e=>{
+    $('test-custom-wrap').style.display=e.target.value==='__custom'?'block':'none';
+    const doc=wsDocs[e.target.value];
+    if(doc) $('test-data').value=JSON.stringify(doc.example,null,2);
+    else if(e.target.value==='GetToken') $('test-data').value=JSON.stringify({username:state.username,password:state.password},null,2);
+    else $('test-data').value='{}';
+  };
+  $('btn-test-send').onclick=handleTestApi;
+}
+
+async function handleTestApi(){
+  const sel=$('test-act');
+  let act=sel.value==='__custom'?$('test-act-input').value.trim():sel.value;
+  const dataStr=$('test-data').value.trim();
+  if(!act){toast('Pilih atau isi method','err');return}
+  let data;try{data=JSON.parse(dataStr)}catch(e){toast('JSON tidak valid: '+e.message,'err');return}
+  const respEl=$('test-response'),btn=$('btn-test-send');
+  btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner spin-anim"></i> Mengirim...';
+  respEl.textContent='Mengirim request...';respEl.style.color='var(--info)';
+  try{
+    const res=await requestNeo(act,data);
+    respEl.textContent=JSON.stringify(res,null,2);
+    const isOk=res.token||(res.error_code==='0')||(res.status==='ok')||(!res.error&&!res.error_code);
+    respEl.style.color=isOk?'var(--ok)':'var(--err)';
+    if(act==='GetToken'&&res.token){
+      state.token=res.token;sv(SK.token,state.token);updateAuthUI();
+      toast('Token diperbarui dari Test API dan tersimpan.','ok');
+      respEl.textContent+='\n\n══ TOKEN TERSIMPAN DI KONFIGURASI ══';
+    }
+  }catch(e){respEl.textContent='ERROR: '+e.message;respEl.style.color='var(--err)'}
+  finally{btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> Kirim Request'}
+}
+
+/* ================================================================
+   PAGE: REFERENCE WS
+   ================================================================ */
+function renderReferencePage(){
+  const methods=Object.keys(wsDocs);
+  const pc=$('page-container');
+  pc.innerHTML=`
+  <div class="grid gap-5 max-w-4xl">
+    <div class="card p-5 anim-fade">
+      <div class="relative mb-4"><i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-sm" style="color:var(--tx3)"></i>
+        <input class="ipt pl-10" id="ref-search" placeholder="Cari method..."></div>
+      <div class="grid gap-3" id="ref-cards">${methods.map((m,i)=>renderRefCard(m,i)).join('')}</div>
+    </div>
+  </div>`;
+  $('ref-search').oninput=e=>{const q=e.target.value.toLowerCase();document.querySelectorAll('.ref-card-item').forEach(el=>{el.style.display=el.dataset.search.includes(q)?'':'none'})};
+}
+
+function renderRefCard(method,idx){
+  const doc=wsDocs[method],req=doc.fields.filter(f=>f.req);
+  return`<div class="ref-card-item p-4 rounded-xl cursor-pointer transition-all" data-search="${method.toLowerCase()} ${doc.desc.toLowerCase()} ${doc.fields.map(f=>f.name).join(' ')}" style="background:var(--input);border:1px solid var(--bdr);animation:fadeUp .35s ${idx*0.04}s ease-out both" onclick="showMethodDetail('${method}')">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-sm font-bold" style="color:var(--accent)">${method}</span>
+      <div class="flex gap-1"><span class="badge badge-info">${doc.fields.length} field</span>${req.length?`<span class="badge badge-warn">${req.length} wajib</span>`:''}</div>
+    </div>
+    <p class="text-xs mb-2" style="color:var(--tx2)">${doc.desc}</p>
+    <div class="flex flex-wrap gap-1">${doc.fields.slice(0,6).map(f=>`<span class="text-[10px] px-2 py-0.5 rounded-full" style="background:var(--card2);color:${f.req?'var(--warn)':'var(--tx3)'}">${f.req?'*':''}${f.name}</span>`).join('')}${doc.fields.length>6?`<span class="text-[10px] px-2 py-0.5 rounded-full" style="background:var(--card2);color:var(--tx3)">+${doc.fields.length-6}</span>`:''}</div>
+  </div>`;
+}
+
+function showMethodDetail(method){
+  const doc=wsDocs[method];if(!doc)return;
+  const payload={act:method,token:'TOKEN_ANDA',data:doc.example};
+  const req=doc.fields.filter(f=>f.req),opt=doc.fields.filter(f=>!f.req);
+  $('modal-root').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()">
+    <div class="modal-box p-6">
+      <div class="flex items-center justify-between mb-4"><h2 class="text-lg font-bold" style="color:var(--accent)">${method}</h2>
+        <button class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--card2);color:var(--tx3)" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+      <p class="text-sm mb-4" style="color:var(--tx2)">${doc.desc}</p>
+      <h3 class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--tx3)">Field Wajib</h3>
+      <div class="space-y-1.5 mb-4">${req.length?req.map(f=>`<div class="flex items-center gap-2 text-xs p-2 rounded-lg" style="background:var(--input)"><span class="badge badge-warn text-[10px]">wajib</span><code class="font-mono font-semibold" style="color:var(--tx)">${f.name}</code><span style="color:var(--tx3)">(${f.type})</span><span class="ml-auto" style="color:var(--tx3)">${f.desc}</span></div>`).join(''):'<div class="text-xs" style="color:var(--tx3)">Tidak ada</div>'}</div>
+      ${opt.length?`<h3 class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--tx3)">Field Opsional</h3><div class="space-y-1.5 mb-4">${opt.map(f=>`<div class="flex items-center gap-2 text-xs p-2 rounded-lg" style="background:var(--input)"><span class="badge badge-info text-[10px]">opsional</span><code class="font-mono" style="color:var(--tx2)">${f.name}</code><span style="color:var(--tx3)">(${f.type})</span><span class="ml-auto" style="color:var(--tx3)">${f.desc}</span></div>`).join('')}</div>`:''}
+      <h3 class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--tx3)">Contoh Payload</h3>
+      <div class="relative"><pre class="p-4 rounded-lg text-xs font-mono overflow-auto" style="background:var(--input);border:1px solid var(--bdr);max-height:280px;color:var(--tx2);white-space:pre-wrap">${esc(JSON.stringify(payload,null,2))}</pre>
+        <button class="absolute top-2 right-2 btn btn-s text-xs py-1 px-2" onclick="navigator.clipboard.writeText(JSON.stringify(${JSON.stringify(JSON.stringify(payload))},null,2)).then(()=>toast('JSON disalin','ok'))"><i class="fa-solid fa-copy"></i></button></div>
+      <div class="flex gap-2 mt-4"><button class="btn btn-p text-sm flex-1" onclick="quickUse('${method}')"><i class="fa-solid fa-rocket"></i> Gunakan Method</button></div>
+    </div></div>`;
+}
+function closeModal(){$('modal-root').innerHTML=''}
+function quickUse(method){
+  closeModal();
+  if(method==='GetToken'){navigateTo('config');return}
+  const typeKey=Object.keys(importCfg).find(k=>importCfg[k].method===method);
+  navigateTo(typeKey?'import-'+typeKey:'testapi');
+}
+
+/* ================================================================
+   NAVIGASI
+   ================================================================ */
+function navigateTo(page){
+  state.page=page;state.previewData=[];state.previewType='';state.importing=false;
+  document.querySelectorAll('.sidebar-link').forEach(el=>el.classList.toggle('active',el.dataset.page===page));
+  const item=menuItems.find(m=>m.id===page);
+  $('page-title').textContent=item?.label||'Neo Feeder';
+  $('page-subtitle').textContent=item?.group?`${item.group} > ${item.label}`:'Atur koneksi ke server Neo Feeder';
+  $('sidebar').classList.remove('open');$('overlay').classList.remove('show');
+  const pc=$('page-container');pc.innerHTML='';
+  /* Dispatch ke renderer yang tepat */
+  if(importCfg[page]) renderImportPage(page);
+  else if(page==='config') renderConfigPage();
+  else if(page==='testapi') renderTestApiPage();
+  else if(page==='reference') renderReferencePage();
+}
+
+function initSidebar(){
+  const nav=$('sidebar-nav');let html='',lastG=null;
+  for(const item of menuItems){
+    if(item.group&&item.group!==lastG){html+=`<div class="sidebar-group">${item.group}</div>`;lastG=item.group}
+    const numHtml=item.ord?`<span class="sidebar-num">${item.ord}</span>`:'';
+    html+=`<div class="sidebar-link ${item.id===state.page?'active':''}" data-page="${item.id}" onclick="navigateTo('${item.id}')">${numHtml}<i class="fa-solid ${item.icon} w-5 text-center text-sm"></i><span>${item.label}</span></div>`;
+  }
+  nav.innerHTML=html;
+}
+
+function toggleSidebar(){$('sidebar').classList.toggle('open');$('overlay').classList.toggle('show')}
+ $('overlay').onclick=()=>{$('sidebar').classList.remove('open');$('overlay').classList.remove('show')};
+
+function toggleTheme(){
+  state.darkMode=!state.darkMode;document.body.classList.toggle('light',!state.darkMode);
+  const ic=$('theme-icon');ic.className=state.darkMode?'fa-solid fa-moon text-sm':'fa-solid fa-sun text-sm';
+  ic.style.color=state.darkMode?'var(--tx2)':'var(--accent)';sv(SK.dark,String(state.darkMode));
+}
+
+/* ================================================================
+   KEYBOARD
+   ================================================================ */
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+/* ================================================================
+   HELPER
+   ================================================================ */
+function $(id){return document.getElementById(id)}
+
+/* ================================================================
+   INIT — TANPA AUTO-LOGIN
+   ================================================================ */
+function init(){
+  loadState();
+  document.body.classList.toggle('light',!state.darkMode);
+  const ic=$('theme-icon');ic.className=state.darkMode?'fa-solid fa-moon text-sm':'fa-solid fa-sun text-sm';
+  ic.style.color=state.darkMode?'var(--tx2)':'var(--accent)';
+  initSidebar();updateAuthUI();navigateTo(state.page);
+  /* Tidak ada auto-login — user login manual di halaman Konfigurasi */
+}
+document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
 </html>
