@@ -8,740 +8,535 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-        
         :root {
-            --font-main: 'Inter', sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
-            --bg-base: #f8fafc;
-            --bg-surface: #ffffff;
-            --bg-elevated: #f1f5f9;
-            --border-subtle: #e2e8f0;
-            --border-faint: #f1f5f9;
-            --text-primary: #0f172a;
-            --text-secondary: #64748b;
-            --text-tertiary: #94a3b8;
-            --accent: #6366f1;
-            --accent-light: #818cf8;
-            --accent-subtle: #eef2ff;
-            --success: #10b981;
-            --error: #ef4444;
-            --warning: #f59e0b;
+            --font-main:'Inter',sans-serif; --font-mono:'JetBrains Mono',monospace;
+            --bg-base:#f8fafc; --bg-surface:#ffffff; --bg-elevated:#f1f5f9;
+            --border-subtle:#e2e8f0; --border-faint:#f1f5f9;
+            --text-primary:#0f172a; --text-secondary:#64748b; --text-tertiary:#94a3b8;
+            --accent:#6366f1; --accent-light:#818cf8; --accent-subtle:#eef2ff;
+            --success:#10b981; --error:#ef4444; --warning:#f59e0b;
         }
-
         .dark {
-            --bg-base: #0a0a0f;
-            --bg-surface: #111118;
-            --bg-elevated: #1a1a24;
-            --border-subtle: #1e1e2e;
-            --border-faint: #141420;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --text-tertiary: #475569;
-            --accent: #818cf8;
-            --accent-light: #a5b4fc;
-            --accent-subtle: #1e1b4b;
+            --bg-base:#0a0a0f; --bg-surface:#111118; --bg-elevated:#1a1a24;
+            --border-subtle:#1e1e2e; --border-faint:#141420;
+            --text-primary:#f1f5f9; --text-secondary:#94a3b8; --text-tertiary:#475569;
+            --accent:#818cf8; --accent-light:#a5b4fc; --accent-subtle:#1e1b4b;
         }
-
-        * { box-sizing: border-box; }
-
-        body {
-            font-family: var(--font-main);
-            background: var(--bg-base);
-            color: var(--text-primary);
-            scroll-behavior: smooth;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .code-font { font-family: var(--font-mono); }
-
-        /* Scrollbar */
-        .thin-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
-        .thin-scroll::-webkit-scrollbar-track { background: transparent; }
-        .thin-scroll::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 99px; }
-        .thin-scroll::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
-
-        /* Loader */
-        .spin-loader { animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Pulse */
-        @keyframes soft-pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
-        .pulse-soft { animation: soft-pulse 1.2s ease-in-out infinite; }
-
-        /* Float animation for hero icons */
-        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-        .float-anim { animation: float 3s ease-in-out infinite; }
-        .float-anim-delay { animation: float 3s ease-in-out 0.5s infinite; }
-        .float-anim-delay2 { animation: float 3s ease-in-out 1s infinite; }
-
-        /* Gradient mesh background for hero */
-        .mesh-gradient {
-            background: 
-                radial-gradient(ellipse 80% 50% at 20% 40%, rgba(99,102,241,0.08) 0%, transparent 70%),
-                radial-gradient(ellipse 60% 40% at 80% 20%, rgba(16,185,129,0.06) 0%, transparent 70%),
-                radial-gradient(ellipse 50% 50% at 60% 80%, rgba(245,158,11,0.05) 0%, transparent 70%);
-        }
-        .dark .mesh-gradient {
-            background: 
-                radial-gradient(ellipse 80% 50% at 20% 40%, rgba(99,102,241,0.12) 0%, transparent 70%),
-                radial-gradient(ellipse 60% 40% at 80% 20%, rgba(16,185,129,0.08) 0%, transparent 70%),
-                radial-gradient(ellipse 50% 50% at 60% 80%, rgba(245,158,11,0.06) 0%, transparent 70%);
-        }
-
-        /* Glass card */
-        .glass {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-subtle);
-            backdrop-filter: blur(12px);
-        }
-
-        /* JSON Colors */
-        .json-key { color: #a5b4fc; }
-        .json-string { color: #6ee7b7; }
-        .json-number { color: #fcd34d; }
-        .json-boolean { color: #c4b5fd; }
-        .json-null { color: #fca5a5; font-style: italic; }
-        .json-punctuation { color: #475569; }
-
-        /* Toast */
-        .toast-show { transform: translateY(0); opacity: 1; }
-        .toast-hide { transform: translateY(4rem); opacity: 0; }
-
-        /* Subtle noise texture overlay */
-        .noise-overlay::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            opacity: 0.015;
-            pointer-events: none;
-            z-index: 9999;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-        }
-        .dark .noise-overlay::before { opacity: 0.03; }
-
-        /* Sidebar active glow */
-        .sidebar-active {
-            background: var(--accent-subtle);
-            color: var(--accent);
-            box-shadow: inset 0 0 0 1px rgba(99,102,241,0.15);
-        }
+        *{box-sizing:border-box}
+        body{font-family:var(--font-main);background:var(--bg-base);color:var(--text-primary);scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+        .code-font{font-family:var(--font-mono)}
+        .thin-scroll::-webkit-scrollbar{width:4px;height:4px}
+        .thin-scroll::-webkit-scrollbar-track{background:transparent}
+        .thin-scroll::-webkit-scrollbar-thumb{background:var(--border-subtle);border-radius:99px}
+        .thin-scroll::-webkit-scrollbar-thumb:hover{background:var(--text-tertiary)}
+        .spin-loader{animation:spin .8s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes soft-pulse{0%,100%{opacity:1}50%{opacity:.3}}
+        .pulse-soft{animation:soft-pulse 1.2s ease-in-out infinite}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+        .float-anim{animation:float 3s ease-in-out infinite}
+        .float-anim-d1{animation:float 3s ease-in-out .5s infinite}
+        .float-anim-d2{animation:float 3s ease-in-out 1s infinite}
+        .mesh-gradient{background:radial-gradient(ellipse 80% 50% at 20% 40%,rgba(99,102,241,.08) 0%,transparent 70%),radial-gradient(ellipse 60% 40% at 80% 20%,rgba(16,185,129,.06) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 60% 80%,rgba(245,158,11,.05) 0%,transparent 70%)}
+        .dark .mesh-gradient{background:radial-gradient(ellipse 80% 50% at 20% 40%,rgba(99,102,241,.12) 0%,transparent 70%),radial-gradient(ellipse 60% 40% at 80% 20%,rgba(16,185,129,.08) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 60% 80%,rgba(245,158,11,.06) 0%,transparent 70%)}
+        .glass{background:var(--bg-surface);border:1px solid var(--border-subtle);backdrop-filter:blur(12px)}
+        .json-key{color:#a5b4fc}.json-string{color:#6ee7b7}.json-number{color:#fcd34d}
+        .json-boolean{color:#c4b5fd}.json-null{color:#fca5a5;font-style:italic}.json-punctuation{color:#475569}
+        .toast-show{transform:translateY(0);opacity:1}.toast-hide{transform:translateY(4rem);opacity:0}
+        .noise-overlay::before{content:'';position:fixed;inset:0;opacity:.015;pointer-events:none;z-index:9999;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+        .dark .noise-overlay::before{opacity:.03}
+        .sidebar-active{background:var(--accent-subtle);color:var(--accent)!important;box-shadow:inset 0 0 0 1px rgba(99,102,241,.15)}
+        .method-get{color:var(--success)}.method-insert{color:#22d3ee}.method-update{color:var(--warning)}.method-delete{color:var(--error)}.method-export{color:var(--accent-light)}
     </style>
 </head>
 <body class="noise-overlay">
+<div class="flex h-screen overflow-hidden">
 
-    <div class="flex h-screen overflow-hidden">
-
-        <!-- ===== SIDEBAR ===== -->
-        <aside class="w-[280px] flex-shrink-0 flex flex-col border-r transition-colors duration-300"
-               style="background:var(--bg-surface); border-color:var(--border-subtle);">
-            
-            <!-- Logo -->
-            <div class="px-5 py-5 border-b" style="border-color:var(--border-subtle);">
-                <div class="flex items-center gap-3">
-                    <div class="relative">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--accent);">
-                            <i data-lucide="book-open" class="text-white w-[18px] h-[18px]"></i>
-                        </div>
-                        <div class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2" style="background:var(--success); border-color:var(--bg-surface);"></div>
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-[15px] tracking-tight leading-none">NeoDocs</h1>
-                        <span class="text-[10px] font-semibold uppercase tracking-[0.15em]" style="color:var(--accent);">Web Service</span>
-                    </div>
+    <!-- SIDEBAR -->
+    <aside class="w-[280px] flex-shrink-0 flex flex-col border-r transition-colors duration-300" style="background:var(--bg-surface);border-color:var(--border-subtle)">
+        <div class="px-5 py-5 border-b" style="border-color:var(--border-subtle)">
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--accent)"><i data-lucide="book-open" class="text-white w-[18px] h-[18px]"></i></div>
+                    <div id="onlineDot" class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2" style="background:var(--error);border-color:var(--bg-surface)"></div>
                 </div>
-                <!-- Search -->
-                <div class="relative mt-4">
-                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color:var(--text-tertiary);"></i>
-                    <input type="text" id="searchInput" placeholder="Cari fungsi..." 
-                        class="w-full pl-9 pr-3 py-2 rounded-lg text-[13px] outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/30"
-                        style="background:var(--bg-elevated); color:var(--text-primary);">
+                <div>
+                    <h1 class="font-bold text-[15px] tracking-tight leading-none">NeoDocs</h1>
+                    <span class="text-[10px] font-semibold uppercase tracking-[.15em]" style="color:var(--accent)">Web Service</span>
+                </div>
+            </div>
+            <div class="relative mt-4">
+                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color:var(--text-tertiary)"></i>
+                <input type="text" id="searchInput" placeholder="Cari fungsi..." class="w-full pl-9 pr-3 py-2 rounded-lg text-[13px] outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/30" style="background:var(--bg-elevated);color:var(--text-primary)">
+            </div>
+        </div>
+        <div id="endpointList" class="flex-grow overflow-y-auto thin-scroll px-3 py-3 space-y-4">
+            <div class="flex items-center justify-center h-20" style="color:var(--text-tertiary)"><p class="text-xs">Memuat data...</p></div>
+        </div>
+        <div class="px-4 py-3 border-t flex items-center justify-between" style="border-color:var(--border-subtle);background:var(--bg-elevated)">
+            <span id="connStatus" class="flex items-center gap-1.5 text-[11px] font-medium" style="color:var(--error)"><span class="w-1.5 h-1.5 rounded-full" style="background:currentColor"></span>Offline</span>
+            <button id="themeToggle" class="w-7 h-7 rounded-lg flex items-center justify-center transition-colors duration-200" style="color:var(--text-tertiary)"><i data-lucide="moon" class="w-3.5 h-3.5"></i></button>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="flex-grow flex flex-col overflow-hidden relative" style="background:var(--bg-base)">
+        <header class="h-14 flex items-center justify-between px-6 border-b z-10" style="background:var(--bg-surface);border-color:var(--border-subtle)">
+            <button id="configBtn" class="flex items-center gap-2 px-3 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-200" style="background:var(--bg-elevated);color:var(--text-secondary)"><i data-lucide="settings" class="w-3.5 h-3.5"></i>Konfigurasi API</button>
+            <div id="statsInfo" class="hidden md:flex gap-5 text-[11px] font-medium" style="color:var(--text-tertiary)"></div>
+        </header>
+
+        <div id="contentArea" class="flex-grow overflow-y-auto thin-scroll p-8">
+            <!-- WELCOME -->
+            <div id="welcomeView" class="max-w-4xl mx-auto pt-16 pb-10 mesh-gradient rounded-3xl">
+                <div class="text-center space-y-5 mb-14">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-wider" style="background:var(--accent-subtle);color:var(--accent)"><span class="w-1.5 h-1.5 rounded-full pulse-soft" style="background:var(--accent)"></span>Documentation Explorer v2.0</div>
+                    <h2 class="text-5xl font-extrabold tracking-tight leading-[1.1]">Selamat Datang<br>di <span style="color:var(--accent)">NeoDocs</span></h2>
+                    <p class="text-base max-w-lg mx-auto leading-relaxed" style="color:var(--text-secondary)">Sistem dokumentasi interaktif untuk Web Service Neo Feeder. Kelola token, eksplorasi dictionary, dan uji coba endpoint langsung dari browser.</p>
+                </div>
+                <div class="grid md:grid-cols-3 gap-5">
+                    <div class="glass rounded-2xl p-6 hover:shadow-lg transition-all duration-300"><div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 float-anim" style="background:rgba(99,102,241,.1)"><i data-lucide="shield-check" class="w-5 h-5" style="color:var(--accent)"></i></div><h3 class="font-bold text-[15px] mb-1.5">Manajemen Token</h3><p class="text-[13px] leading-relaxed" style="color:var(--text-secondary)">Dapatkan token akses otomatis dan simpan dengan aman di local storage.</p></div>
+                    <div class="glass rounded-2xl p-6 hover:shadow-lg transition-all duration-300"><div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 float-anim-d1" style="background:rgba(16,185,129,.1)"><i data-lucide="database" class="w-5 h-5" style="color:var(--success)"></i></div><h3 class="font-bold text-[15px] mb-1.5">Auto Dictionary</h3><p class="text-[13px] leading-relaxed" style="color:var(--text-secondary)">Mengambil struktur parameter langsung dari server Neo Feeder.</p></div>
+                    <div class="glass rounded-2xl p-6 hover:shadow-lg transition-all duration-300"><div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 float-anim-d2" style="background:rgba(245,158,11,.1)"><i data-lucide="zap" class="w-5 h-5" style="color:var(--warning)"></i></div><h3 class="font-bold text-[15px] mb-1.5">Uji Coba Langsung</h3><p class="text-[13px] leading-relaxed" style="color:var(--text-secondary)">Kirim request ke server dan lihat response secara realtime.</p></div>
                 </div>
             </div>
 
-            <!-- Endpoint List -->
-            <div id="endpointList" class="flex-grow overflow-y-auto thin-scroll px-3 py-3 space-y-4">
-                <div class="flex items-center justify-center h-20" style="color:var(--text-tertiary);">
-                    <p class="text-xs">Memuat data...</p>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="px-4 py-3 border-t flex items-center justify-between" style="border-color:var(--border-subtle); background:var(--bg-elevated);">
-                <span id="connStatus" class="flex items-center gap-1.5 text-[11px] font-medium" style="color:var(--error);">
-                    <span class="w-1.5 h-1.5 rounded-full" style="background:currentColor;"></span>
-                    Offline
-                </span>
-                <button id="themeToggle" class="w-7 h-7 rounded-lg flex items-center justify-center transition-colors duration-200" style="color:var(--text-tertiary);"
-                    onmouseover="this.style.background='var(--border-subtle)'" onmouseout="this.style.background='transparent'">
-                    <i data-lucide="moon" class="w-3.5 h-3.5"></i>
-                </button>
-            </div>
-        </aside>
-
-        <!-- ===== MAIN ===== -->
-        <main class="flex-grow flex flex-col overflow-hidden relative" style="background:var(--bg-base);">
-
-            <!-- Header Bar -->
-            <header class="h-14 flex items-center justify-between px-6 border-b z-10 transition-colors duration-300"
-                    style="background:var(--bg-surface); border-color:var(--border-subtle);">
-                <button id="configBtn" class="flex items-center gap-2 px-3 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-200 hover:shadow-sm"
-                    style="background:var(--bg-elevated); color:var(--text-secondary);"
-                    onmouseover="this.style.background='var(--accent)'; this.style.color='white';"
-                    onmouseout="this.style.background='var(--bg-elevated)'; this.style.color='var(--text-secondary)';">
-                    <i data-lucide="settings" class="w-3.5 h-3.5"></i>
-                    Konfigurasi API
-                </button>
-                <div id="statsInfo" class="hidden md:flex gap-5 text-[11px] font-medium" style="color:var(--text-tertiary);"></div>
-            </header>
-
-            <!-- Content -->
-            <div id="contentArea" class="flex-grow overflow-y-auto thin-scroll p-8">
-
-                <!-- ===== WELCOME VIEW ===== -->
-                <div id="welcomeView" class="max-w-4xl mx-auto pt-16 pb-10 mesh-gradient rounded-3xl">
-                    <div class="text-center space-y-5 mb-14">
-                        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-wider"
-                             style="background:var(--accent-subtle); color:var(--accent);">
-                            <span class="w-1.5 h-1.5 rounded-full pulse-soft" style="background:var(--accent);"></span>
-                            Documentation Explorer v2.0
-                        </div>
-                        <h2 class="text-5xl font-extrabold tracking-tight leading-[1.1]">Selamat Datang<br>di <span style="color:var(--accent);">NeoDocs</span></h2>
-                        <p class="text-base max-w-lg mx-auto leading-relaxed" style="color:var(--text-secondary);">
-                            Sistem dokumentasi interaktif untuk Web Service Neo Feeder. Kelola token, eksplorasi dictionary, dan uji coba endpoint langsung dari browser.
-                        </p>
-                    </div>
-
-                    <div class="grid md:grid-cols-3 gap-5">
-                        <div class="glass rounded-2xl p-6 group hover:shadow-lg transition-all duration-300 cursor-default">
-                            <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 float-anim"
-                                 style="background:rgba(99,102,241,0.1);">
-                                <i data-lucide="shield-check" class="w-5 h-5" style="color:var(--accent);"></i>
-                            </div>
-                            <h3 class="font-bold text-[15px] mb-1.5">Manajemen Token</h3>
-                            <p class="text-[13px] leading-relaxed" style="color:var(--text-secondary);">Dapatkan token akses otomatis dan simpan dengan aman di local storage.</p>
-                        </div>
-                        <div class="glass rounded-2xl p-6 group hover:shadow-lg transition-all duration-300 cursor-default">
-                            <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 float-anim-delay"
-                                 style="background:rgba(16,185,129,0.1);">
-                                <i data-lucide="database" class="w-5 h-5" style="color:var(--success);"></i>
-                            </div>
-                            <h3 class="font-bold text-[15px] mb-1.5">Auto Dictionary</h3>
-                            <p class="text-[13px] leading-relaxed" style="color:var(--text-secondary);">Mengambil struktur parameter langsung dari server Neo Feeder.</p>
-                        </div>
-                        <div class="glass rounded-2xl p-6 group hover:shadow-lg transition-all duration-300 cursor-default">
-                            <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 float-anim-delay2"
-                                 style="background:rgba(245,158,11,0.1);">
-                                <i data-lucide="zap" class="w-5 h-5" style="color:var(--warning);"></i>
-                            </div>
-                            <h3 class="font-bold text-[15px] mb-1.5">Uji Coba Langsung</h3>
-                            <p class="text-[13px] leading-relaxed" style="color:var(--text-secondary);">Kirim request ke server dan lihat response secara realtime.</p>
-                        </div>
+            <!-- DETAIL -->
+            <div id="detailView" class="hidden max-w-5xl mx-auto space-y-7">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6" style="border-bottom:1px solid var(--border-subtle)">
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider" style="color:var(--accent)"><i data-lucide="folder" class="w-3 h-3"></i><span id="detailCategory">KATEGORI</span></div>
+                        <div class="flex items-center gap-3"><h2 id="detailAct" class="text-3xl font-extrabold tracking-tight code-font">GetListMahasiswa</h2><span id="detailMethod" class="hidden px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider"></span></div>
+                        <p id="detailDesc" class="text-sm leading-relaxed" style="color:var(--text-secondary)">Deskripsi fungsi.</p>
                     </div>
                 </div>
-
-                <!-- ===== DETAIL VIEW ===== -->
-                <div id="detailView" class="hidden max-w-5xl mx-auto space-y-7">
-                    
-                    <!-- Breadcrumb & Title -->
-                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6" style="border-bottom:1px solid var(--border-subtle);">
-                        <div class="space-y-2">
-                            <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider" style="color:var(--accent);">
-                                <i data-lucide="folder" class="w-3 h-3"></i>
-                                <span id="detailCategory">KATEGORI</span>
-                            </div>
-                            <h2 id="detailAct" class="text-3xl font-extrabold tracking-tight code-font">GetListMahasiswa</h2>
-                            <p id="detailDesc" class="text-sm leading-relaxed" style="color:var(--text-secondary);">Deskripsi fungsi akan tampil di sini.</p>
-                        </div>
+                <div class="grid lg:grid-cols-2 gap-6">
+                    <div class="glass rounded-2xl overflow-hidden">
+                        <div class="px-5 py-3.5 flex items-center gap-2" style="background:var(--bg-elevated);border-bottom:1px solid var(--border-subtle)"><i data-lucide="list" class="w-4 h-4" style="color:var(--accent)"></i><h4 class="font-semibold text-[13px]">Parameter Request</h4></div>
+                        <div class="overflow-x-auto"><table class="w-full text-[13px]"><thead><tr style="background:var(--bg-elevated)"><th class="px-5 py-2.5 text-left font-semibold text-[11px] uppercase tracking-wider" style="color:var(--text-tertiary)">Field</th><th class="px-5 py-2.5 text-left font-semibold text-[11px] uppercase tracking-wider" style="color:var(--text-tertiary)">Tipe</th><th class="px-5 py-2.5 text-left font-semibold text-[11px] uppercase tracking-wider" style="color:var(--text-tertiary)">Ket</th></tr></thead><tbody id="paramsTableBody"></tbody></table></div>
                     </div>
-
-                    <!-- Grid: Params + Try API -->
-                    <div class="grid lg:grid-cols-1 gap-6">
-
-                        <!-- Params Card -->
-                        <div class="glass rounded-2xl overflow-hidden">
-                            <div class="px-5 py-3.5 flex items-center gap-2" style="background:var(--bg-elevated); border-bottom:1px solid var(--border-subtle);">
-                                <i data-lucide="list" class="w-4 h-4" style="color:var(--accent);"></i>
-                                <h4 class="font-semibold text-[13px]">Parameter Request</h4>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-[13px]">
-                                    <thead>
-                                        <tr style="background:var(--bg-elevated);">
-                                            <th class="px-5 py-2.5 text-left font-semibold text-[11px] uppercase tracking-wider" style="color:var(--text-tertiary);">Field</th>
-                                            <th class="px-5 py-2.5 text-left font-semibold text-[11px] uppercase tracking-wider" style="color:var(--text-tertiary);">Tipe</th>
-                                            <th class="px-5 py-2.5 text-left font-semibold text-[11px] uppercase tracking-wider" style="color:var(--text-tertiary);">Ket</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="paramsTableBody"></tbody>
-                                </table>
-                            </div>
+                    <div class="glass rounded-2xl flex flex-col">
+                        <div class="px-5 py-3.5 flex items-center justify-between" style="background:var(--bg-elevated);border-bottom:1px solid var(--border-subtle)">
+                            <div class="flex items-center gap-2"><i data-lucide="play-circle" class="w-4 h-4" style="color:var(--accent)"></i><h4 class="font-semibold text-[13px]">Try API</h4></div>
+                            <button id="sendRequestBtn" class="px-4 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 hover:shadow-md" style="background:var(--accent);color:white">Kirim</button>
                         </div>
-
-                        <!-- Try API Card -->
-                        <div class="glass rounded-2xl flex flex-col">
-                            <div class="px-5 py-3.5 flex items-center justify-between" style="background:var(--bg-elevated); border-bottom:1px solid var(--border-subtle);">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="play-circle" class="w-4 h-4" style="color:var(--accent);"></i>
-                                    <h4 class="font-semibold text-[13px]">Try API</h4>
-                                </div>
-                                <button id="sendRequestBtn" class="px-4 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 hover:shadow-md"
-                                    style="background:var(--accent); color:white;">
-                                    Kirim
-                                </button>
-                            </div>
-                            <div class="p-5 space-y-4 flex-grow flex flex-col">
-                                <!-- Payload -->
-                                <div>
-                                    <label class="text-[10px] font-bold uppercase tracking-[0.12em] mb-2 block" style="color:var(--text-tertiary);">Payload JSON</label>
-                                    <textarea id="requestPayload" spellcheck="false"
-                                        class="code-font w-full h-36 p-4 rounded-xl text-[12px] leading-relaxed outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/20 resize-none"
-                                        style="background:var(--bg-elevated); color:var(--text-primary); border:1px solid var(--border-subtle);"></textarea>
-                                </div>
-                                <!-- Response -->
-                                <div class="flex-grow flex flex-col">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <label class="text-[10px] font-bold uppercase tracking-[0.12em]" style="color:var(--text-tertiary);">Response</label>
-                                        <div class="flex items-center gap-1.5">
-                                            <span id="responseStatusBadge" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider"
-                                                  style="background:rgba(100,116,139,0.15); color:var(--text-tertiary);">
-                                                <span class="w-1.5 h-1.5 rounded-full" style="background:currentColor;"></span>
-                                                Waiting
-                                            </span>
-                                            <button id="copyResponseBtn" onclick="copyResponse()" title="Salin JSON mentah"
-                                                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider transition-all duration-200"
-                                                style="background:rgba(100,116,139,0.15); color:var(--text-tertiary);"
-                                                onmouseover="this.style.background='rgba(100,116,139,0.3)'" onmouseout="this.style.background='rgba(100,116,139,0.15)'">
-                                                <i data-lucide="clipboard" class="w-3 h-3"></i> Salin
-                                            </button>
-                                        </div>
+                        <div class="p-5 space-y-4 flex-grow flex flex-col">
+                            <div><label class="text-[10px] font-bold uppercase tracking-[.12em] mb-2 block" style="color:var(--text-tertiary)">Payload JSON</label><textarea id="requestPayload" spellcheck="false" class="code-font w-full h-[165px] p-4 rounded-xl text-[12px] leading-relaxed outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/20 resize-none" style="background:var(--bg-elevated);color:var(--text-primary);border:1px solid var(--border-subtle)"></textarea></div>
+                            <div class="flex-grow flex flex-col">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="text-[10px] font-bold uppercase tracking-[.12em]" style="color:var(--text-tertiary)">Response</label>
+                                    <div class="flex items-center gap-1.5">
+                                        <span id="responseStatusBadge" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider" style="background:rgba(100,116,139,.15);color:var(--text-tertiary)"><span class="w-1.5 h-1.5 rounded-full" style="background:currentColor"></span>Waiting</span>
+                                        <button id="copyResponseBtn" onclick="copyResponse()" title="Salin JSON mentah" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider transition-all duration-200" style="background:rgba(100,116,139,.15);color:var(--text-tertiary)"><i data-lucide="clipboard" class="w-3 h-3"></i>Salin</button>
                                     </div>
-                                    <div id="responseContainer" class="code-font w-full flex-grow min-h-[240px] p-4 rounded-xl text-[11px] leading-relaxed overflow-auto thin-scroll whitespace-pre tab-size-2"
-                                         style="background:#0c0c14; color:#94a3b8; border:1px solid #1e1e2e;"></div>
                                 </div>
+                                <div id="responseContainer" class="code-font w-full flex-grow min-h-[240px] p-4 rounded-xl text-[11px] leading-relaxed overflow-auto thin-scroll whitespace-pre tab-size-2" style="background:#0c0c14;color:#94a3b8;border:1px solid #1e1e2e"></div>
                             </div>
                         </div>
                     </div>
-
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- ===== CONFIG MODAL ===== -->
-    <div id="configModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-200" style="background:rgba(0,0,0,0.5); backdrop-filter:blur(8px);">
-        <div class="w-full max-w-md rounded-3xl shadow-2xl overflow-hidden transition-all duration-200" style="background:var(--bg-surface); border:1px solid var(--border-subtle);">
-            <div class="p-7 space-y-5">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-bold tracking-tight">Pengaturan API</h3>
-                    <button id="closeConfig" class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200" style="color:var(--text-tertiary);"
-                        onmouseover="this.style.background='var(--bg-elevated)'" onmouseout="this.style.background='transparent'">
-                        <i data-lucide="x" class="w-4 h-4"></i>
-                    </button>
-                </div>
-                <div class="space-y-3.5">
-                    <div>
-                        <label class="text-[12px] font-medium mb-1.5 block" style="color:var(--text-secondary);">WS URL</label>
-                        <input type="text" id="wsUrlInput" placeholder="http://localhost:3003/ws/live2.php" 
-                            class="w-full px-4 py-2.5 rounded-xl text-[13px] outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/30 code-font"
-                            style="background:var(--bg-elevated); color:var(--text-primary);">
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-[12px] font-medium mb-1.5 block" style="color:var(--text-secondary);">Username</label>
-                            <input type="text" id="wsUserInput" 
-                                class="w-full px-4 py-2.5 rounded-xl text-[13px] outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/30"
-                                style="background:var(--bg-elevated); color:var(--text-primary);">
-                        </div>
-                        <div>
-                            <label class="text-[12px] font-medium mb-1.5 block" style="color:var(--text-secondary);">Password</label>
-                            <input type="password" id="wsPassInput" 
-                                class="w-full px-4 py-2.5 rounded-xl text-[13px] outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/30"
-                                style="background:var(--bg-elevated); color:var(--text-primary);">
-                        </div>
-                    </div>
-                    <button id="saveConfigBtn" class="w-full py-3 rounded-xl font-semibold text-[13px] transition-all duration-200 hover:shadow-lg flex items-center justify-center gap-2"
-                        style="background:var(--accent); color:white;">
-                        <i data-lucide="save" class="w-4 h-4"></i> Simpan & Ambil Token
-                    </button>
-                </div>
-                <div class="p-4 rounded-xl" style="background:var(--bg-elevated);">
-                    <div class="flex items-center justify-between text-[11px]">
-                        <span style="color:var(--text-tertiary);">Current Token:</span>
-                        <span id="tokenStatus" class="code-font truncate ml-4 max-w-[200px]" style="color:var(--accent);">Tidak ada token</span>
-                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
+</div>
 
-    <!-- ===== TOAST ===== -->
-    <div id="toast" class="fixed bottom-6 right-6 z-[100] toast-hide transition-all duration-300">
-        <div class="flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-2xl text-[13px] font-medium"
-             style="background:var(--text-primary); color:var(--bg-surface);">
-            <i data-lucide="info" class="w-4 h-4" style="color:var(--accent-light);"></i>
-            <span id="toastMessage">Message here</span>
+<!-- CONFIG MODAL -->
+<div id="configModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,.5);backdrop-filter:blur(8px)">
+    <div class="w-full max-w-md rounded-3xl shadow-2xl overflow-hidden" style="background:var(--bg-surface);border:1px solid var(--border-subtle)">
+        <div class="p-7 space-y-5">
+            <div class="flex items-center justify-between"><h3 class="text-lg font-bold tracking-tight">Pengaturan API</h3><button id="closeConfig" class="w-8 h-8 rounded-lg flex items-center justify-center" style="color:var(--text-tertiary)"><i data-lucide="x" class="w-4 h-4"></i></button></div>
+            <div class="space-y-3.5">
+                <div><label class="text-[12px] font-medium mb-1.5 block" style="color:var(--text-secondary)">WS URL</label><input type="text" id="wsUrlInput" placeholder="http://localhost:3003/ws/live2.php" class="w-full px-4 py-2.5 rounded-xl text-[13px] outline-none focus:ring-2 focus:ring-indigo-500/30 code-font" style="background:var(--bg-elevated);color:var(--text-primary)"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="text-[12px] font-medium mb-1.5 block" style="color:var(--text-secondary)">Username</label><input type="text" id="wsUserInput" class="w-full px-4 py-2.5 rounded-xl text-[13px] outline-none focus:ring-2 focus:ring-indigo-500/30" style="background:var(--bg-elevated);color:var(--text-primary)"></div>
+                    <div><label class="text-[12px] font-medium mb-1.5 block" style="color:var(--text-secondary)">Password</label><input type="password" id="wsPassInput" class="w-full px-4 py-2.5 rounded-xl text-[13px] outline-none focus:ring-2 focus:ring-indigo-500/30" style="background:var(--bg-elevated);color:var(--text-primary)"></div>
+                </div>
+                <button id="saveConfigBtn" class="w-full py-3 rounded-xl font-semibold text-[13px] transition-all duration-200 hover:shadow-lg flex items-center justify-center gap-2" style="background:var(--accent);color:white"><i data-lucide="save" class="w-4 h-4"></i>Simpan & Ambil Token</button>
+            </div>
+            <div class="p-4 rounded-xl" style="background:var(--bg-elevated)"><div class="flex items-center justify-between text-[11px]"><span style="color:var(--text-tertiary)">Current Token:</span><span id="tokenStatus" class="code-font truncate ml-4 max-w-[200px]" style="color:var(--accent)">Tidak ada token</span></div></div>
         </div>
     </div>
+</div>
 
-    <script>
-        // ============================================================
-        //  DATA
-        // ============================================================
-        var FALLBACK_ENDPOINTS = [
-            { act: "GetToken", desc: "Mendapatkan token autentikasi", cat: "Utility" },
-            { act: "GetDictionary", desc: "Melihat struktur tabel/fungsi", cat: "Utility" },
-            { act: "GetAllPT", desc: "Daftar semua perguruan tinggi", cat: "Referensi" },
-            { act: "GetProfilPT", desc: "Profil lengkap PT", cat: "Referensi" },
-            { act: "GetAllProdi", desc: "Daftar semua prodi", cat: "Referensi" },
-            { act: "GetProdi", desc: "Detail prodi tertentu", cat: "Referensi" },
-            { act: "GetPeriode", desc: "Daftar periode/semester", cat: "Referensi" },
-            { act: "GetFakultas", desc: "Daftar fakultas", cat: "Referensi" },
-            { act: "GetListMahasiswa", desc: "Daftar mahasiswa terdaftar", cat: "Mahasiswa" },
-            { act: "GetBiodataMahasiswa", desc: "Detail biodata mahasiswa", cat: "Mahasiswa" },
-            { act: "GetDataLengkapMahasiswaProdi", desc: "Data komprehensif mahasiswa per prodi", cat: "Mahasiswa" },
-            { act: "GetListRiwayatPendidikanMahasiswa", desc: "Riwayat pendidikan PT mahasiswa", cat: "Mahasiswa" },
-            { act: "GetKRSMahasiswa", desc: "Kartu Rencana Studi mahasiswa", cat: "Mahasiswa" },
-            { act: "GetRiwayatNilaiMahasiswa", desc: "Transkrip nilai per semester", cat: "Mahasiswa" },
-            { act: "GetAktivitasKuliahMahasiswa", desc: "Status aktif mahasiswa", cat: "Mahasiswa" },
-            { act: "GetTranskripMahasiswa", desc: "Transkrip nilai keseluruhan", cat: "Mahasiswa" },
-            { act: "GetListDosen", desc: "Daftar dosen terdaftar", cat: "Dosen" },
-            { act: "DetailBiodataDosen", desc: "Profil lengkap dosen", cat: "Dosen" },
-            { act: "GetListPenugasanDosen", desc: "Daftar penugasan dosen ke prodi", cat: "Dosen" },
-            { act: "GetAktivitasMengajarDosen", desc: "Jadwal mengajar dosen", cat: "Dosen" },
-            { act: "GetMahasiswaBimbinganDosen", desc: "Daftar bimbingan akademik/tugas akhir", cat: "Dosen" },
-            { act: "GetListMataKuliah", desc: "Daftar mata kuliah kurikulum", cat: "Akademik" },
-            { act: "GetListKelasKuliah", desc: "Daftar kelas yang dibuka", cat: "Akademik" },
-            { act: "GetPesertaKelasKuliah", desc: "Daftar peserta mahasiswa di kelas", cat: "Akademik" },
-            { act: "GetListNilaiPerkuliahanKelas", desc: "Daftar nilai mahasiswa di kelas", cat: "Akademik" },
-            { act: "GetListKurikulum", desc: "Daftar kurikulum prodi", cat: "Akademik" },
-            { act: "GetListMahasiswaLulusDO", desc: "Daftar mahasiswa yang keluar", cat: "Kelulusan" },
-            { act: "GetListAktivitasMahasiswa", desc: "Daftar aktivitas (skripsi, magang, dll)", cat: "Kelulusan" },
-            { act: "GetRekapLaporan", desc: "Rekapitulasi data pelaporan", cat: "Rekap" },
-            { act: "GetRekapJumlahMahasiswa", desc: "Statistik jumlah mahasiswa", cat: "Rekap" },
-            { act: "GetAgama", desc: "Master data agama", cat: "Referensi" },
-            { act: "GetWilayah", desc: "Master data wilayah/kecamatan", cat: "Referensi" },
-            { act: "GetJenjangPendidikan", desc: "Master data jenjang pendidikan", cat: "Referensi" },
-            { act: "GetStatusMahasiswa", desc: "Master data status keaktifan", cat: "Referensi" },
-            { act: "GetCountMahasiswa", desc: "Jumlah total mahasiswa", cat: "Statistik" },
-            { act: "GetCountDosen", desc: "Jumlah total dosen", cat: "Statistik" },
-            { act: "GetCountKelasKuliah", desc: "Jumlah total kelas", cat: "Statistik" }
-        ];
+<!-- TOAST -->
+<div id="toast" class="fixed bottom-6 right-6 z-[100] toast-hide transition-all duration-300">
+    <div class="flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-2xl text-[13px] font-medium" style="background:var(--text-primary);color:var(--bg-surface)"><i data-lucide="info" class="w-4 h-4" style="color:var(--accent-light)"></i><span id="toastMessage">Message</span></div>
+</div>
 
-        // ============================================================
-        //  STATE
-        // ============================================================
-        var appState = {
-            config: {
-                url: 'http://localhost:3003/ws/live2.php',
-                user: '',
-                pass: '',
-                token: localStorage.getItem('neo_token') || ''
-            },
-            currentAct: null,
-            isOnline: false,
-            darkMode: localStorage.getItem('theme') === 'dark',
-            lastRawResponse: ''
-        };
+<script>
+var E=[
+// ── Utility ──
+{act:"GetToken",desc:"Mendapatkan token",cat:"Utility"},
+{act:"GetDictionary",desc:"Mendapatkan dictionary fungsi ws",cat:"Utility"},
+// ── Referensi PT ──
+{act:"GetAllPT",desc:"Mendapatkan semua data perguruan tinggi",cat:"Referensi PT"},
+{act:"GetProfilPT",desc:"Mendapatkan profil PT",cat:"Referensi PT"},
+{act:"GetAllProdi",desc:"Mendapatkan semua data program studi",cat:"Referensi PT"},
+{act:"GetProdi",desc:"Mendapatkan program studi",cat:"Referensi PT"},
+{act:"GetPeriode",desc:"Mendapatkan periode aktif",cat:"Referensi PT"},
+{act:"GetFakultas",desc:"Mendapatkan fakultas",cat:"Referensi PT"},
+{act:"GetPeriodeLampau",desc:"Mendapatkan pembukaan periode lampau",cat:"Referensi PT"},
+// ── Biodata Mahasiswa ──
+{act:"GetListMahasiswa",desc:"Mendapatkan daftar mahasiswa",cat:"Biodata Mahasiswa"},
+{act:"GetListDaftarLampau",desc:"Mendapatkan daftar mahasiswa periode lampau",cat:"Biodata Mahasiswa"},
+{act:"GetBiodataMahasiswa",desc:"Mendapatkan biodata mahasiswa",cat:"Biodata Mahasiswa"},
+{act:"InsertBiodataMahasiswa",desc:"Menambah biodata mahasiswa",cat:"Biodata Mahasiswa"},
+{act:"UpdateBiodataMahasiswa",desc:"Mengubah biodata mahasiswa",cat:"Biodata Mahasiswa"},
+{act:"DeleteBiodataMahasiswa",desc:"Menghapus biodata mahasiswa",cat:"Biodata Mahasiswa"},
+{act:"GetDataLengkapMahasiswaProdi",desc:"Mendapatkan data lengkap mahasiswa prodi",cat:"Biodata Mahasiswa"},
+{act:"GetDataTerhapus",desc:"Mendapatkan biodata mahasiswa yang sudah terhapus",cat:"Biodata Mahasiswa"},
+{act:"GetListBidangMinat",desc:"Mendapatkan data bidang minat PT",cat:"Biodata Mahasiswa"},
+{act:"GetCountBiodataMahasiswa",desc:"Menghitung jumlah data biodata mahasiswa",cat:"Biodata Mahasiswa"},
+// ── Riwayat Mahasiswa ──
+{act:"GetListRiwayatPendidikanMahasiswa",desc:"Mendapatkan daftar riwayat pendidikan mahasiswa",cat:"Riwayat Mahasiswa"},
+{act:"InsertRiwayatPendidikanMahasiswa",desc:"Menambah riwayat pendidikan mahasiswa",cat:"Riwayat Mahasiswa"},
+{act:"UpdateRiwayatPendidikanMahasiswa",desc:"Mengubah riwayat pendidikan mahasiswa",cat:"Riwayat Mahasiswa"},
+{act:"DeleteRiwayatPendidikanMahasiswa",desc:"Menghapus riwayat pendidikan mahasiswa",cat:"Riwayat Mahasiswa"},
+{act:"GetListPerubahanRiwayatPendidikan",desc:"Mendapatkan list perubahan prodi",cat:"Riwayat Mahasiswa"},
+{act:"InsertPerubahanRiwayatPendidikan",desc:"Mengubah fakultas yang mengampu menjadi program studi",cat:"Riwayat Mahasiswa"},
+{act:"UpdatePerubahanRiwayatPendidikan",desc:"Mengubah hasil dari ubah fakultas ke program studi",cat:"Riwayat Mahasiswa"},
+{act:"GetNilaiTransferPendidikanMahasiswa",desc:"Mendapatkan nilai transfer mahasiswa",cat:"Riwayat Mahasiswa"},
+{act:"InsertNilaiTransferPendidikanMahasiswa",desc:"Menambah nilai transfer mahasiswa",cat:"Riwayat Mahasiswa"},
+{act:"UpdateNilaiTransferPendidikanMahasiswa",desc:"Mengubah nilai transfer mahasiswa",cat:"Riwayat Mahasiswa"},
+{act:"DeleteNilaiTransferPendidikanMahasiswa",desc:"Menghapus nilai transfer mahasiswa",cat:"Riwayat Mahasiswa"},
+{act:"GetCountRiwayatPendidikanMahasiswa",desc:"Menghitung jumlah data riwayat pendidikan mahasiswa",cat:"Riwayat Mahasiswa"},
+{act:"GetCountNilaiTransferPendidikanMahasiswa",desc:"Menghitung jumlah data nilai transfer mahasiswa",cat:"Riwayat Mahasiswa"},
+// ── Akademik Mahasiswa ──
+{act:"GetKRSMahasiswa",desc:"Mendapatkan KRS mahasiswa",cat:"Akademik Mahasiswa"},
+{act:"GetRiwayatNilaiMahasiswa",desc:"Mendapatkan riwayat nilai mahasiswa",cat:"Akademik Mahasiswa"},
+{act:"GetAktivitasKuliahMahasiswa",desc:"Mendapatkan aktivitas kuliah mahasiswa",cat:"Akademik Mahasiswa"},
+{act:"GetTranskripMahasiswa",desc:"Mendapatkan transkrip mahasiswa",cat:"Akademik Mahasiswa"},
+{act:"InsertTranskripMahasiswa",desc:"Menambah data transkrip mahasiswa",cat:"Akademik Mahasiswa"},
+{act:"DeleteTranskripMahasiswa",desc:"Menghapus transkrip mahasiswa",cat:"Akademik Mahasiswa"},
+{act:"HitungTranskripAngkatan",desc:"Menghitung transkrip mahasiswa per angkatan pada tiap program studi",cat:"Akademik Mahasiswa"},
+{act:"GetCountRiwayatNilaiMahasiswa",desc:"Menghitung jumlah data riwayat nilai mahasiswa",cat:"Akademik Mahasiswa"},
+// ── Lulus / DO ──
+{act:"GetListMahasiswaLulusDO",desc:"Mendapatkan daftar mahasiswa lulus / DO",cat:"Lulus / DO"},
+{act:"GetDetailMahasiswaLulusDO",desc:"Mendapatkan detail mahasiswa lulus / DO",cat:"Lulus / DO"},
+{act:"InsertMahasiswaLulusDO",desc:"Menambah mahasiswa lulus / DO",cat:"Lulus / DO"},
+{act:"UpdateMahasiswaLulusDO",desc:"Mengubah data mahasiswa lulus / DO",cat:"Lulus / DO"},
+{act:"DeleteMahasiswaLulusDO",desc:"Menghapus mahasiswa lulus / DO",cat:"Lulus / DO"},
+{act:"GetCountMahasiswaLulusDO",desc:"Menghitung jumlah data mahasiswa lulus / DO",cat:"Lulus / DO"},
+// ── Dosen ──
+{act:"GetListDosen",desc:"Mendapatkan daftar dosen",cat:"Dosen"},
+{act:"DetailBiodataDosen",desc:"Mendapatkan detail biodata dosen",cat:"Dosen"},
+{act:"GetListPenugasanDosen",desc:"Mendapatkan daftar penugasan dosen",cat:"Dosen"},
+{act:"GetAktivitasMengajarDosen",desc:"Mendapatkan daftar aktivitas mengajar dosen",cat:"Dosen"},
+{act:"GetRiwayatFungsionalDosen",desc:"Mendapatkan daftar riwayat fungsional dosen",cat:"Dosen"},
+{act:"GetRiwayatPangkatDosen",desc:"Mendapatkan daftar riwayat pangkat golongan dosen",cat:"Dosen"},
+{act:"GetRiwayatPendidikanDosen",desc:"Mendapatkan daftar riwayat pendidikan dosen",cat:"Dosen"},
+{act:"GetRiwayatSertifikasiDosen",desc:"Mendapatkan daftar riwayat sertifikasi dosen",cat:"Dosen"},
+{act:"GetRiwayatPenelitianDosen",desc:"Mendapatkan daftar riwayat penelitian dosen",cat:"Dosen"},
+{act:"GetMahasiswaBimbinganDosen",desc:"Mendapatkan daftar mahasiswa bimbingan dosen",cat:"Dosen"},
+{act:"GetListPenugasanSemuaDosen",desc:"Mendapatkan daftar semua penugasan dosen",cat:"Dosen"},
+{act:"GetDetailPenugasanDosen",desc:"Mendapatkan detail penugasan dosen",cat:"Dosen"},
+{act:"GetDosenPembimbing",desc:"Mendapatkan daftar dosen pembimbing mahasiswa",cat:"Dosen"},
+{act:"InsertDosenPembimbing",desc:"Menambah dosen pembimbing",cat:"Dosen"},
+{act:"DeleteDosenPembimbing",desc:"Menghapus dosen pembimbing",cat:"Dosen"},
+{act:"GetCountDosen",desc:"Menghitung jumlah data dosen",cat:"Dosen"},
+{act:"GetCountPenugasanSemuaDosen",desc:"Menghitung jumlah data penugasan semua dosen",cat:"Dosen"},
+{act:"GetCountAktivitasMengajarDosen",desc:"Menghitung jumlah data aktivitas mengajar dosen",cat:"Dosen"},
+{act:"GetCountMahasiswaBimbinganDosen",desc:"Menghitung jumlah data mahasiswa bimbingan dosen",cat:"Dosen"},
+{act:"GetCountDosenPembimbing",desc:"Menghitung jumlah data dosen pembimbing",cat:"Dosen"},
+// ── Mata Kuliah ──
+{act:"GetListMataKuliah",desc:"Mendapatkan daftar mata kuliah",cat:"Mata Kuliah"},
+{act:"GetDetailMataKuliah",desc:"Mendapatkan detail mata kuliah",cat:"Mata Kuliah"},
+{act:"InsertMataKuliah",desc:"Menambah mata kuliah",cat:"Mata Kuliah"},
+{act:"UpdateMataKuliah",desc:"Mengubah mata kuliah",cat:"Mata Kuliah"},
+{act:"DeleteMataKuliah",desc:"Menghapus mata kuliah",cat:"Mata Kuliah"},
+{act:"GetListSubstansiKuliah",desc:"Mendapatkan substansi kuliah",cat:"Mata Kuliah"},
+{act:"InsertSubstansiKuliah",desc:"Menambah substansi kuliah",cat:"Mata Kuliah"},
+{act:"UpdateSubstansiKuliah",desc:"Mengubah substansi kuliah",cat:"Mata Kuliah"},
+{act:"DeleteSubstansiKuliah",desc:"Menghapus substansi kuliah",cat:"Mata Kuliah"},
+{act:"GetCountMataKuliah",desc:"Menghitung jumlah data mata kuliah",cat:"Mata Kuliah"},
+{act:"GetCountSubstansiKuliah",desc:"Menghitung jumlah data substansi kuliah",cat:"Mata Kuliah"},
+// ── Rencana Pembelajaran ──
+{act:"GetListRencanaPembelajaran",desc:"Mendapatkan daftar rencana pembelajaran",cat:"Rencana Pembelajaran"},
+{act:"InsertRencanaPembelajaran",desc:"Menambah rencana pembelajaran",cat:"Rencana Pembelajaran"},
+{act:"UpdateRencanaPembelajaran",desc:"Mengubah rencana pembelajaran",cat:"Rencana Pembelajaran"},
+{act:"DeleteRencanaPembelajaran",desc:"Menghapus rencana pembelajaran",cat:"Rencana Pembelajaran"},
+{act:"GetListRencanaEvaluasi",desc:"Mendapatkan daftar rencana evaluasi",cat:"Rencana Pembelajaran"},
+{act:"InsertRencanaEvaluasi",desc:"Menambah rencana evaluasi",cat:"Rencana Pembelajaran"},
+{act:"UpdateRencanaEvaluasi",desc:"Mengubah rencana evaluasi",cat:"Rencana Pembelajaran"},
+{act:"DeleteRencanaEvaluasi",desc:"Menghapus rencana evaluasi",cat:"Rencana Pembelajaran"},
+{act:"GetCountRencanaPembelajaran",desc:"Menghitung jumlah data rencana pembelajaran",cat:"Rencana Pembelajaran"},
+{act:"GetCountRencanaEvaluasi",desc:"Menghitung jumlah data rencana evaluasi",cat:"Rencana Pembelajaran"},
+// ── Kurikulum ──
+{act:"GetListKurikulum",desc:"Mendapatkan daftar kurikulum",cat:"Kurikulum"},
+{act:"GetDetailKurikulum",desc:"Mendapatkan detail kurikulum",cat:"Kurikulum"},
+{act:"InsertKurikulum",desc:"Menambah kurikulum",cat:"Kurikulum"},
+{act:"UpdateKurikulum",desc:"Mengubah kurikulum",cat:"Kurikulum"},
+{act:"DeleteKurikulum",desc:"Menghapus kurikulum",cat:"Kurikulum"},
+{act:"GetMatkulKurikulum",desc:"Mendapatkan mata kuliah kurikulum",cat:"Kurikulum"},
+{act:"InsertMatkulKurikulum",desc:"Menambah mata kuliah kurikulum",cat:"Kurikulum"},
+{act:"DeleteMatkulKurikulum",desc:"Menghapus mata kuliah kurikulum",cat:"Kurikulum"},
+{act:"GetCountKurikulum",desc:"Menghitung jumlah data kurikulum perkuliahan",cat:"Kurikulum"},
+{act:"GetCountMatkulKurikulum",desc:"Menghitung jumlah data mata kuliah kurikulum",cat:"Kurikulum"},
+// ── Kelas Kuliah ──
+{act:"GetListKelasKuliah",desc:"Mendapatkan daftar kelas kuliah",cat:"Kelas Kuliah"},
+{act:"GetDetailKelasKuliah",desc:"Mendapatkan detail kelas kuliah",cat:"Kelas Kuliah"},
+{act:"InsertKelasKuliah",desc:"Menambah kelas kuliah",cat:"Kelas Kuliah"},
+{act:"UpdateKelasKuliah",desc:"Mengubah kelas kuliah",cat:"Kelas Kuliah"},
+{act:"DeleteKelasKuliah",desc:"Menghapus kelas kuliah",cat:"Kelas Kuliah"},
+{act:"GetDosenPengajarKelasKuliah",desc:"Mendapatkan detail dosen pengajar kelas kuliah",cat:"Kelas Kuliah"},
+{act:"InsertDosenPengajarKelasKuliah",desc:"Menambah dosen pengajar kelas kuliah",cat:"Kelas Kuliah"},
+{act:"UpdateDosenPengajarKelasKuliah",desc:"Mengubah dosen pengajar kelas kuliah",cat:"Kelas Kuliah"},
+{act:"DeleteDosenPengajarKelasKuliah",desc:"Menghapus dosen pengajar kelas kuliah",cat:"Kelas Kuliah"},
+{act:"GetPerhitunganSKS",desc:"Mendapatkan perhitungan sks",cat:"Kelas Kuliah"},
+{act:"GetPesertaKelasKuliah",desc:"Mendapatkan detail peserta kelas kuliah",cat:"Kelas Kuliah"},
+{act:"InsertPesertaKelasKuliah",desc:"Menambah peserta kelas kuliah",cat:"Kelas Kuliah"},
+{act:"DeletePesertaKelasKuliah",desc:"Menghapus peserta kelas kuliah",cat:"Kelas Kuliah"},
+{act:"GetListKomponenEvaluasiKelas",desc:"Mendapatkan semua data kelas komponen evaluasi",cat:"Kelas Kuliah"},
+{act:"DeleteKomponenEvaluasiKelas",desc:"Menghapus komponen evaluasi",cat:"Kelas Kuliah"},
+{act:"GetCountKelasKuliah",desc:"Menghitung jumlah data kelas kuliah",cat:"Kelas Kuliah"},
+{act:"GetCountDosenPengajarKelasKuliah",desc:"Menghitung jumlah data dosen pengajar kelas kuliah",cat:"Kelas Kuliah"},
+{act:"GetCountPesertaKelasKuliah",desc:"Menghitung jumlah data peserta kelas kuliah",cat:"Kelas Kuliah"},
+// ── Nilai & Perkuliahan ──
+{act:"GetListNilaiPerkuliahanKelas",desc:"Mendapatkan daftar nilai kelas perkuliahan",cat:"Nilai & Perkuliahan"},
+{act:"GetDetailNilaiPerkuliahanKelas",desc:"Mendapatkan detail nilai kelas perkuliahan",cat:"Nilai & Perkuliahan"},
+{act:"UpdateNilaiPerkuliahanKelas",desc:"Menambahkan nilai kelas perkuliahan",cat:"Nilai & Perkuliahan"},
+{act:"GetCountNilaiPerkuliahanKelas",desc:"Menghitung jumlah data nilai perkuliahan",cat:"Nilai & Perkuliahan"},
+{act:"GetListPerkuliahanMahasiswa",desc:"Mendapatkan daftar aktivitas kuliah mahasiswa",cat:"Nilai & Perkuliahan"},
+{act:"GetDetailPerkuliahanMahasiswa",desc:"Mendapatkan detail aktivitas kuliah mahasiswa",cat:"Nilai & Perkuliahan"},
+{act:"InsertPerkuliahanMahasiswa",desc:"Menambah aktivitas kuliah mahasiswa",cat:"Nilai & Perkuliahan"},
+{act:"UpdatePerkuliahanMahasiswa",desc:"Mengubah aktivitas kuliah mahasiswa",cat:"Nilai & Perkuliahan"},
+{act:"DeletePerkuliahanMahasiswa",desc:"Menghapus aktivitas kuliah mahasiswa",cat:"Nilai & Perkuliahan"},
+{act:"GetCountPerkuliahanMahasiswa",desc:"Menghitung jumlah data perkuliahan mahasiswa",cat:"Nilai & Perkuliahan"},
+// ── Skala & Periode ──
+{act:"GetListSkalaNilaiProdi",desc:"Mendapatkan daftar skala nilai prodi",cat:"Skala & Periode"},
+{act:"GetDetailSkalaNilaiProdi",desc:"Mendapatkan detail skala nilai prodi",cat:"Skala & Periode"},
+{act:"InsertSkalaNilaiProdi",desc:"Menambah skala nilai prodi",cat:"Skala & Periode"},
+{act:"UpdateSkalaNilaiProdi",desc:"Mengubah skala nilai prodi",cat:"Skala & Periode"},
+{act:"DeleteSkalaNilaiProdi",desc:"Menghapus skala nilai prodi",cat:"Skala & Periode"},
+{act:"GetCountSkalaNilaiProdi",desc:"Menghitung jumlah data skala nilai prodi",cat:"Skala & Periode"},
+{act:"GetListPeriodePerkuliahan",desc:"Mendapatkan daftar daya tampung mahasiswa baru",cat:"Skala & Periode"},
+{act:"GetDetailPeriodePerkuliahan",desc:"Mendapatkan detail daya tampung mahasiswa baru",cat:"Skala & Periode"},
+{act:"InsertPeriodePerkuliahan",desc:"Menambah periode perkuliahan",cat:"Skala & Periode"},
+{act:"UpdatePeriodePerkuliahan",desc:"Mengubah periode perkuliahan",cat:"Skala & Periode"},
+{act:"DeletePeriodePerkuliahan",desc:"Menghapus periode perkuliahan",cat:"Skala & Periode"},
+{act:"GetCountPeriodePerkuliahan",desc:"Menghitung jumlah data periode perkuliahan",cat:"Skala & Periode"},
+// ── Prestasi & Kampus Merdeka ──
+{act:"GetListPrestasiMahasiswa",desc:"Mendapatkan daftar prestasi mahasiswa",cat:"Prestasi & KM"},
+{act:"InsertPrestasiMahasiswa",desc:"Menambah data prestasi mahasiswa",cat:"Prestasi & KM"},
+{act:"UpdatePrestasiMahasiswa",desc:"Mengubah data prestasi mahasiswa",cat:"Prestasi & KM"},
+{act:"DeletePrestasiMahasiswa",desc:"Menghapus data prestasi mahasiswa",cat:"Prestasi & KM"},
+{act:"GetCountPrestasiMahasiswa",desc:"Menghitung jumlah data prestasi mahasiswa",cat:"Prestasi & KM"},
+{act:"GetListKonversiKampusMerdeka",desc:"Mendapatkan daftar konversi nilai dari aktivitas kampus merdeka",cat:"Prestasi & KM"},
+{act:"InsertKonversiKampusMerdeka",desc:"Menambah data konversi nilai aktivitas kampus merdeka",cat:"Prestasi & KM"},
+{act:"UpdateKonversiKampusMerdeka",desc:"Mengubah data konversi nilai aktivitas kampus merdeka",cat:"Prestasi & KM"},
+{act:"DeleteKonversiKampusMerdeka",desc:"Menghapus data konversi nilai aktivitas kampus merdeka",cat:"Prestasi & KM"},
+{act:"GetCountKonversiKampusMerdeka",desc:"Menghitung jumlah data pemadanan mata kuliah dengan aktivitas kampus merdeka",cat:"Prestasi & KM"},
+// ── Aktivitas Mahasiswa ──
+{act:"GetListAktivitasMahasiswa",desc:"Mendapatkan daftar aktivitas mahasiswa",cat:"Aktivitas Mahasiswa"},
+{act:"InsertAktivitasMahasiswa",desc:"Menambah data aktivitas mahasiswa",cat:"Aktivitas Mahasiswa"},
+{act:"UpdateAktivitasMahasiswa",desc:"Mengubah data aktivitas mahasiswa",cat:"Aktivitas Mahasiswa"},
+{act:"DeleteAktivitasMahasiswa",desc:"Menghapus data aktivitas mahasiswa",cat:"Aktivitas Mahasiswa"},
+{act:"GetListAnggotaAktivitasMahasiswa",desc:"Mendapatkan daftar anggota aktivitas mahasiswa",cat:"Aktivitas Mahasiswa"},
+{act:"InsertAnggotaAktivitasMahasiswa",desc:"Menambah data anggota aktivitas mahasiswa",cat:"Aktivitas Mahasiswa"},
+{act:"DeleteAnggotaAktivitasMahasiswa",desc:"Menghapus data anggota aktivitas mahasiswa",cat:"Aktivitas Mahasiswa"},
+{act:"GetCountAktivitasMahasiswa",desc:"Menghitung jumlah data aktivitas mahasiswa",cat:"Aktivitas Mahasiswa"},
+{act:"GetListBimbingMahasiswa",desc:"Mendapatkan daftar bimbing mahasiswa",cat:"Aktivitas Mahasiswa"},
+{act:"InsertBimbingMahasiswa",desc:"Menambah data bimbing mahasiswa",cat:"Aktivitas Mahasiswa"},
+{act:"UpdateBimbingMahasiswa",desc:"Mengubah data bimbing mahasiswa",cat:"Aktivitas Mahasiswa"},
+{act:"DeleteBimbingMahasiswa",desc:"Menghapus data bimbing mahasiswa",cat:"Aktivitas Mahasiswa"},
+{act:"GetListUjiMahasiswa",desc:"Mendapatkan daftar uji mahasiswa",cat:"Aktivitas Mahasiswa"},
+{act:"InsertUjiMahasiswa",desc:"Menambah data uji mahasiswa",cat:"Aktivitas Mahasiswa"},
+{act:"UpdateUjiMahasiswa",desc:"Mengubah data uji mahasiswa",cat:"Aktivitas Mahasiswa"},
+{act:"DeleteUjiMahasiswa",desc:"Menghapus data uji mahasiswa",cat:"Aktivitas Mahasiswa"},
+// ── Rekap ──
+{act:"GetRekapLaporan",desc:"Mendapatkan rekapitulasi pelaporan",cat:"Rekap"},
+{act:"GetRekapJumlahDosen",desc:"Mendapatkan rekapitulasi pelaporan jumlah dosen",cat:"Rekap"},
+{act:"GetRekapJumlahMahasiswa",desc:"Mendapatkan rekapitulasi pelaporan jumlah mahasiswa",cat:"Rekap"},
+{act:"GetRekapIPSMahasiswa",desc:"Mendapatkan rekapitulasi pelaporan ips mahasiswa",cat:"Rekap"},
+{act:"GetRekapKRSMahasiswa",desc:"Mendapatkan rekapitulasi pelaporan krs mahasiswa",cat:"Rekap"},
+{act:"GetRekapKHSMahasiswa",desc:"Mendapatkan rekapitulasi pelaporan khs mahasiswa",cat:"Rekap"},
+// ── Export ──
+{act:"ExportDataMahasiswa",desc:"Mengekspor data mahasiswa pt",cat:"Export"},
+{act:"ExportDataNilaiTransfer",desc:"Mengekspor data nilai transfer mahasiswa",cat:"Export"},
+{act:"ExportDataPenugasanDosenProdi",desc:"Mengekspor daftar penugasan dosen per prodi",cat:"Export"},
+{act:"ExportDataMatkulProdi",desc:"Mengekspor data mata kuliah",cat:"Export"},
+{act:"ExportDataKelasPerkuliahan",desc:"Mengekspor data jadwal dan kelas perkuliahan",cat:"Export"},
+{act:"ExportDataMahasiswaKRS",desc:"Mengekspor data krs mahasiswa",cat:"Export"},
+{act:"ExportDataMengajarDosen",desc:"Mengekspor data mengajar dosen",cat:"Export"},
+{act:"ExportDataAktivitasKuliah",desc:"Mengekspor data aktivitas kuliah mahasiswa",cat:"Export"},
+{act:"ExportDataMahasiswaLulus",desc:"Mengekspor data mahasiswa lulus",cat:"Export"},
+// ── Referensi Master ──
+{act:"GetAgama",desc:"Mendapatkan agama",cat:"Referensi Master"},
+{act:"GetBentukPendidikan",desc:"Mendapatkan bentuk pendidikan",cat:"Referensi Master"},
+{act:"GetIkatanKerjaSdm",desc:"Mendapatkan ikatan kerja sdm",cat:"Referensi Master"},
+{act:"GetJabfung",desc:"Mendapatkan jabatan fungsional",cat:"Referensi Master"},
+{act:"GetJalurMasuk",desc:"Mendapatkan jalur masuk",cat:"Referensi Master"},
+{act:"GetJenisEvaluasi",desc:"Mendapatkan jenis evaluasi",cat:"Referensi Master"},
+{act:"GetJenisKeluar",desc:"Mendapatkan jenis keluar",cat:"Referensi Master"},
+{act:"GetJenisSertifikasi",desc:"Mendapatkan jenis sertifikasi",cat:"Referensi Master"},
+{act:"GetJenisPendaftaran",desc:"Mendapatkan jenis pendaftaran",cat:"Referensi Master"},
+{act:"GetJenisSMS",desc:"Mendapatkan jenis SMS",cat:"Referensi Master"},
+{act:"GetJenisSubstansi",desc:"Mendapatkan jenis substansi",cat:"Referensi Master"},
+{act:"GetJenisTinggal",desc:"Mendapatkan jenis tinggal",cat:"Referensi Master"},
+{act:"GetJenjangPendidikan",desc:"Mendapatkan jenjang pendidikan",cat:"Referensi Master"},
+{act:"GetKebutuhanKhusus",desc:"Mendapatkan kebutuhan khusus",cat:"Referensi Master"},
+{act:"GetLembagaPengangkat",desc:"Mendapatkan lembaga pengangkat",cat:"Referensi Master"},
+{act:"GetLevelWilayah",desc:"Mendapatkan level wilayah",cat:"Referensi Master"},
+{act:"GetNegara",desc:"Mendapatkan negara",cat:"Referensi Master"},
+{act:"GetPangkatGolongan",desc:"Mendapatkan pangkat golongan",cat:"Referensi Master"},
+{act:"GetPekerjaan",desc:"Mendapatkan pekerjaan",cat:"Referensi Master"},
+{act:"GetPenghasilan",desc:"Mendapatkan penghasilan",cat:"Referensi Master"},
+{act:"GetSemester",desc:"Mendapatkan semester",cat:"Referensi Master"},
+{act:"GetStatusKeaktifanPegawai",desc:"Mendapatkan status keaktifan pegawai",cat:"Referensi Master"},
+{act:"GetStatusKepegawaian",desc:"Mendapatkan status kepegawaian",cat:"Referensi Master"},
+{act:"GetStatusMahasiswa",desc:"Mendapatkan status mahasiswa",cat:"Referensi Master"},
+{act:"GetTahunAjaran",desc:"Mendapatkan tahun ajaran",cat:"Referensi Master"},
+{act:"GetWilayah",desc:"Mendapatkan wilayah",cat:"Referensi Master"},
+{act:"GetAlatTransportasi",desc:"Mendapatkan alat transportasi",cat:"Referensi Master"},
+{act:"GetPembiayaan",desc:"Mendapatkan pembiayaan",cat:"Referensi Master"},
+{act:"GetJenisPrestasi",desc:"Mendapatkan jenis prestasi",cat:"Referensi Master"},
+{act:"GetTingkatPrestasi",desc:"Mendapatkan tingkat prestasi",cat:"Referensi Master"},
+{act:"GetJenisAktivitasMahasiswa",desc:"Mendapatkan jenis aktivitas mahasiswa",cat:"Referensi Master"},
+{act:"GetKategoriKegiatan",desc:"Mendapatkan kategori kegiatan",cat:"Referensi Master"},
+// ── Statistik ──
+{act:"GetCountMahasiswa",desc:"Menghitung jumlah data mahasiswa",cat:"Statistik"},
+{act:"GetCountPerguruanTinggi",desc:"Menghitung jumlah data semua perguruan tinggi",cat:"Statistik"},
+{act:"GetCountProdi",desc:"Menghitung jumlah data semua program studi",cat:"Statistik"}
+];
 
-        // ============================================================
-        //  INIT
-        // ============================================================
-        window.addEventListener('DOMContentLoaded', function() {
-            lucide.createIcons();
-            initTheme();
-            renderEndpoints(FALLBACK_ENDPOINTS);
-            updateStats(FALLBACK_ENDPOINTS);
-            if (appState.config.token) checkConnection();
-            document.getElementById('requestPayload').value = JSON.stringify({ filter: "", order: "", limit: 10, offset: 0 }, null, 2);
+var appState={config:{url:'http://localhost:3003/ws/live2.php',user:'',pass:'',token:localStorage.getItem('neo_token')||''},currentAct:null,isOnline:false,darkMode:localStorage.getItem('theme')==='dark',lastRawResponse:''};
+
+window.addEventListener('DOMContentLoaded',function(){lucide.createIcons();initTheme();renderEndpoints(E);updateStats(E);if(appState.config.token)checkConnection();document.getElementById('requestPayload').value=JSON.stringify({fungsi:"",filter:"",order:"",limit:10,offset:0},null,2)});
+
+function initTheme(){document.documentElement.classList.toggle('dark',appState.darkMode)}
+
+function getMethod(act){
+    if(act.indexOf('Insert')===0)return{label:'INSERT',cls:'method-insert'};
+    if(act.indexOf('Update')===0)return{label:'UPDATE',cls:'method-update'};
+    if(act.indexOf('Delete')===0)return{label:'DELETE',cls:'method-delete'};
+    if(act.indexOf('Export')===0)return{label:'EXPORT',cls:'method-export'};
+    if(act.indexOf('Get')===0||act.indexOf('Detail')===0||act.indexOf('Hitung')===0)return{label:'GET',cls:'method-get'};
+    return{label:'',cls:''};
+}
+
+function syntaxHighlight(json){
+    if(typeof json!=='string')json=JSON.stringify(json,null,2);
+    json=json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return json.replace(/("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(?:true|false)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?|\bnull\b|[{}\[\],])/g,function(m){
+        var c='json-number';
+        if(/^"/.test(m))c=/:$/.test(m)?'json-key':'json-string';
+        else if(/true|false/.test(m))c='json-boolean';
+        else if(/null/.test(m))c='json-null';
+        else if(/[{}\[\],]/.test(m))c='json-punctuation';
+        return'<span class="'+c+'">'+m+'</span>';
+    });
+}
+
+function setResponseStatus(state){
+    var b=document.getElementById('responseStatusBadge'),m={
+        waiting:{bg:'rgba(100,116,139,.15)',fg:'var(--text-tertiary)',a:'',l:'Waiting'},
+        loading:{bg:'rgba(245,158,11,.15)',fg:'var(--warning)',a:'pulse-soft',l:'Loading'},
+        success:{bg:'rgba(16,185,129,.15)',fg:'var(--success)',a:'',l:'Success'},
+        error:{bg:'rgba(239,68,68,.15)',fg:'var(--error)',a:'',l:'Error'}
+    },c=m[state]||m.waiting;
+    b.style.background=c.bg;b.style.color=c.fg;
+    b.innerHTML='<span class="w-1.5 h-1.5 rounded-full '+(c.a||'')+'" style="background:currentColor"></span>'+c.l;
+}
+
+function copyResponse(){
+    if(!appState.lastRawResponse){showToast("Belum ada respons untuk disalin","warning");return}
+    navigator.clipboard.writeText(appState.lastRawResponse).then(function(){showToast("Respons JSON disalin ke clipboard");animCopy()}).catch(function(){var t=document.createElement('textarea');t.value=appState.lastRawResponse;t.style.cssText='position:fixed;opacity:0';document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);showToast("Respons JSON disalin ke clipboard");animCopy()});
+}
+function animCopy(){var b=document.getElementById('copyResponseBtn'),o=b.innerHTML;b.innerHTML='<i data-lucide="check" class="w-3 h-3"></i> OK';b.style.background='rgba(16,185,129,.2)';b.style.color='var(--success)';lucide.createIcons();setTimeout(function(){b.innerHTML=o;b.style.background='rgba(100,116,139,.15)';b.style.color='var(--text-tertiary)';lucide.createIcons()},1500)}
+
+function renderResponse(data){appState.lastRawResponse=JSON.stringify(data,null,2);document.getElementById('responseContainer').innerHTML=syntaxHighlight(data)}
+
+function showToast(msg,type){var t=document.getElementById('toast');document.getElementById('toastMessage').innerText=msg;var i=t.querySelector('[data-lucide]'),n=type==='error'?'alert-circle':type==='warning'?'alert-triangle':'info',c=type==='error'?'var(--error)':type==='warning'?'var(--warning)':'var(--accent-light)';if(i){i.setAttribute('data-lucide',n);i.style.color=c;lucide.createIcons()}t.classList.remove('toast-hide');t.classList.add('toast-show');clearTimeout(window._tt);window._tt=setTimeout(function(){t.classList.add('toast-hide');t.classList.remove('toast-show')},3000)}
+
+async function requestNeo(act,data,cfg){var c=cfg||appState.config;if(!c.url){showToast("URL API belum dikonfigurasi","error");return null}try{var b=Object.assign({act:act,token:c.token,username:c.user,password:c.pass},data),r=await fetch(c.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}),res=await r.json();if(res.error_code!=0&&res.error_code!="0"&&res.error_desc&&res.error_desc.includes("Token")){appState.config.token="";localStorage.removeItem('neo_token');updateConnUI(false,"Token Expired")}return res}catch(e){return{error_code:500,error_desc:"Koneksi gagal ke server. Pastikan Neo Feeder menyala dan CORS diizinkan."}}}
+
+async function getToken(){var r=await requestNeo("GetToken");if(r&&r.data&&r.data.token){appState.config.token=r.data.token;localStorage.setItem('neo_token',r.data.token);updateConnUI(true,"Terhubung");showToast("Token berhasil didapatkan!");return true}showToast((r&&r.error_desc)||"Gagal mendapatkan token","error");updateConnUI(false,"Auth Gagal");return false}
+
+function updateConnUI(on,txt){var el=document.getElementById('connStatus'),dot=document.getElementById('onlineDot');appState.isOnline=on;el.innerHTML='<span class="w-1.5 h-1.5 rounded-full" style="background:currentColor"></span> '+txt;el.style.color=on?'var(--success)':'var(--error)';dot.style.background=on?'var(--success)':'var(--error)';document.getElementById('tokenStatus').innerText=appState.config.token?appState.config.token.substring(0,20)+'...':'Tidak ada token'}
+
+async function checkConnection(){updateConnUI(true,"Checking...");var r=await requestNeo("GetProfilPT");updateConnUI(r&&r.error_code==0,r&&r.error_code==0?"Online":"Expired/Error")}
+
+function renderEndpoints(data){
+    var c=document.getElementById('endpointList');c.innerHTML='';
+    var cats=[];data.forEach(function(i){if(cats.indexOf(i.cat)===-1)cats.push(i.cat)});
+    cats.forEach(function(cat){
+        var g=document.createElement('div');g.className='space-y-0.5';
+        var count=data.filter(function(i){return i.cat===cat}).length;
+        g.innerHTML='<h3 class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[.12em] flex items-center justify-between" style="color:var(--text-tertiary)"><span>'+cat+'</span><span class="font-mono text-[9px] opacity-60">'+count+'</span></h3>';
+        data.filter(function(i){return i.cat===cat}).forEach(function(item){
+            var btn=document.createElement('button'),active=appState.currentAct===item.act,m=getMethod(item.act);
+            btn.className='w-full text-left px-3 py-[7px] rounded-lg text-[12px] font-medium transition-all duration-150 flex items-center gap-2 group';
+            btn.style.color=active?'var(--accent)':'var(--text-secondary)';
+            if(active)btn.classList.add('sidebar-active');
+            btn.onmouseover=function(){if(!active)this.style.background='var(--bg-elevated)'};
+            btn.onmouseout=function(){if(!active)this.style.background='transparent'};
+            btn.innerHTML='<span class="w-[42px] text-[9px] font-bold code-font '+m.cls+' opacity-70 flex-shrink-0">'+m.label+'</span><span class="truncate code-font text-[11px] flex-grow">'+item.act+'</span>';
+            btn.onclick=function(){selectEndpoint(item)};
+            g.appendChild(btn);
         });
+        c.appendChild(g);
+    });
+    lucide.createIcons();
+}
 
-        function initTheme() {
-            document.documentElement.classList.toggle('dark', appState.darkMode);
-        }
+function selectEndpoint(item){
+    appState.currentAct=item.act;appState.lastRawResponse='';
+    document.getElementById('welcomeView').classList.add('hidden');
+    document.getElementById('detailView').classList.remove('hidden');
+    document.getElementById('detailAct').innerText=item.act;
+    document.getElementById('detailCategory').innerText=item.cat;
+    document.getElementById('detailDesc').innerText=item.desc;
+    var m=getMethod(item.act),badge=document.getElementById('detailMethod');
+    badge.classList.remove('hidden');badge.innerText=m.label;badge.className='px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider '+m.cls;
+    renderResponse({status:"Ready to test"});setResponseStatus('waiting');
+    renderEndpoints(getFilteredEndpoints());renderParams();
+    if(appState.isOnline)requestNeo("GetDictionary",{fungsi:item.act});
+}
 
-        // ============================================================
-        //  SYNTAX HIGHLIGHTING
-        // ============================================================
-        function syntaxHighlight(json) {
-            if (typeof json !== 'string') json = JSON.stringify(json, null, 2);
-            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            return json.replace(
-                /("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(?:true|false)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?|\bnull\b|[{}\[\],])/g,
-                function (match) {
-                    var cls = 'json-number';
-                    if (/^"/.test(match)) { cls = /:$/.test(match) ? 'json-key' : 'json-string'; }
-                    else if (/true|false/.test(match)) { cls = 'json-boolean'; }
-                    else if (/null/.test(match)) { cls = 'json-null'; }
-                    else if (/[{}\[\],]/.test(match)) { cls = 'json-punctuation'; }
-                    return '<span class="' + cls + '">' + match + '</span>';
-                }
-            );
-        }
+function renderParams(){
+    var tb=document.getElementById('paramsTableBody');tb.innerHTML='';
+    [
+        {n:'token',t:'string',d:'Token akses'},
+        {n:'act',t:'string',d:'Nama fungsi'},
+        {n:'fungsi',t:'string',d:'Mendapatkan dictionary character WS '},
+        {n:'filter',t:'string',d:'Filter data (SQL Like)'},
+        {n:'order',t:'string',d:'Pengurutan data'},
+        {n:'limit',t:'int',d:'Jumlah data per page'},
+        {n:'offset',t:'int',d:'Start data'}
+    ].forEach(function(p){
+        var tr=document.createElement('tr');tr.style.borderBottom='1px solid var(--border-faint)';
+        tr.innerHTML='<td class="px-5 py-2.5 code-font text-[11px]" style="color:var(--accent)">'+p.n+'</td><td class="px-5 py-2.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider" style="background:var(--bg-elevated);color:var(--text-tertiary)">'+p.t+'</span></td><td class="px-5 py-2.5 text-[12px]" style="color:var(--text-secondary)">'+p.d+'</td>';
+        tb.appendChild(tr);
+    });
+}
 
-        // ============================================================
-        //  STATUS BADGE
-        // ============================================================
-        function setResponseStatus(state) {
-            var badge = document.getElementById('responseStatusBadge');
-            var map = {
-                waiting: { bg:'rgba(100,116,139,0.15)', fg:'var(--text-tertiary)', dot:'var(--text-tertiary)', anim:'', label:'Waiting' },
-                loading: { bg:'rgba(245,158,11,0.15)',  fg:'var(--warning)',        dot:'var(--warning)',        anim:'pulse-soft', label:'Loading' },
-                success: { bg:'rgba(16,185,129,0.15)',  fg:'var(--success)',        dot:'var(--success)',        anim:'', label:'Success' },
-                error:   { bg:'rgba(239,68,68,0.15)',   fg:'var(--error)',          dot:'var(--error)',          anim:'', label:'Error' }
-            };
-            var c = map[state] || map.waiting;
-            badge.style.background = c.bg;
-            badge.style.color = c.fg;
-            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full ' + c.anim + '" style="background:currentColor;"></span>' + c.label;
-        }
+function updateStats(data){
+    var el=document.getElementById('statsInfo');el.classList.remove('hidden');
+    el.innerHTML='<span>Total: <b style="color:var(--text-primary)">'+data.length+'</b> endpoint</span><span>Kategori: <b style="color:var(--text-primary)">'+(function(){var c=[];data.forEach(function(i){if(c.indexOf(i.cat)===-1)c.push(i.cat)});return c.length})()+'</b></span>';
+}
 
-        // ============================================================
-        //  COPY RESPONSE
-        // ============================================================
-        function copyResponse() {
-            if (!appState.lastRawResponse) { showToast("Belum ada respons untuk disalin", "warning"); return; }
-            navigator.clipboard.writeText(appState.lastRawResponse).then(function() {
-                showToast("Respons JSON disalin ke clipboard");
-                animateCopyBtn();
-            }).catch(function() {
-                var ta = document.createElement('textarea');
-                ta.value = appState.lastRawResponse;
-                ta.style.cssText = 'position:fixed;opacity:0';
-                document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-                showToast("Respons JSON disalin ke clipboard");
-                animateCopyBtn();
-            });
-        }
+function getFilteredEndpoints(){var t=document.getElementById('searchInput').value.toLowerCase();return E.filter(function(i){return i.act.toLowerCase().indexOf(t)!==-1||i.desc.toLowerCase().indexOf(t)!==-1})}
 
-        function animateCopyBtn() {
-            var btn = document.getElementById('copyResponseBtn');
-            var orig = btn.innerHTML;
-            btn.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> OK';
-            btn.style.background = 'rgba(16,185,129,0.2)';
-            btn.style.color = 'var(--success)';
-            lucide.createIcons();
-            setTimeout(function() {
-                btn.innerHTML = orig;
-                btn.style.background = 'rgba(100,116,139,0.15)';
-                btn.style.color = 'var(--text-tertiary)';
-                lucide.createIcons();
-            }, 1500);
-        }
+var searchTimer;
+document.getElementById('searchInput').oninput=function(){clearTimeout(searchTimer);searchTimer=setTimeout(function(){renderEndpoints(getFilteredEndpoints())},300)};
 
-        // ============================================================
-        //  RENDER RESPONSE
-        // ============================================================
-        function renderResponse(data) {
-            appState.lastRawResponse = JSON.stringify(data, null, 2);
-            document.getElementById('responseContainer').innerHTML = syntaxHighlight(data);
-        }
+document.getElementById('themeToggle').onclick=function(){appState.darkMode=!appState.darkMode;localStorage.setItem('theme',appState.darkMode?'dark':'light');initTheme()};
 
-        // ============================================================
-        //  TOAST
-        // ============================================================
-        function showToast(message, type) {
-            var toast = document.getElementById('toast');
-            document.getElementById('toastMessage').innerText = message;
-            var iconEl = toast.querySelector('[data-lucide]');
-            var n = type === 'error' ? 'alert-circle' : type === 'warning' ? 'alert-triangle' : 'info';
-            var c = type === 'error' ? 'var(--error)' : type === 'warning' ? 'var(--warning)' : 'var(--accent-light)';
-            if (iconEl) { iconEl.setAttribute('data-lucide', n); iconEl.style.color = c; lucide.createIcons(); }
-            toast.classList.remove('toast-hide'); toast.classList.add('toast-show');
-            clearTimeout(window._toastTimer);
-            window._toastTimer = setTimeout(function() { toast.classList.add('toast-hide'); toast.classList.remove('toast-show'); }, 3000);
-        }
+var cm=document.getElementById('configModal');
+document.getElementById('configBtn').onclick=function(){document.getElementById('wsUrlInput').value=appState.config.url;document.getElementById('wsUserInput').value=appState.config.user;document.getElementById('wsPassInput').value=appState.config.pass;cm.classList.remove('hidden')};
+document.getElementById('closeConfig').onclick=function(){cm.classList.add('hidden')};
+document.getElementById('saveConfigBtn').onclick=async function(){appState.config.url=document.getElementById('wsUrlInput').value;appState.config.user=document.getElementById('wsUserInput').value;appState.config.pass=document.getElementById('wsPassInput').value;if(await getToken())cm.classList.add('hidden')};
 
-        // ============================================================
-        //  CORE API
-        // ============================================================
-        async function requestNeo(act, data, customConfig) {
-            var config = customConfig || appState.config;
-            if (!config.url) { showToast("URL API belum dikonfigurasi", "error"); return null; }
-            try {
-                var body = Object.assign({ act: act, token: config.token, username: config.user, password: config.pass }, data);
-                var res = await fetch(config.url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-                var result = await res.json();
-                if (result.error_code != 0 && result.error_code != "0" && result.error_desc && result.error_desc.includes("Token")) {
-                    appState.config.token = ""; localStorage.removeItem('neo_token'); updateConnUI(false, "Token Expired");
-                }
-                return result;
-            } catch (e) {
-                return { error_code: 500, error_desc: "Koneksi gagal ke server. Pastikan Neo Feeder menyala dan CORS diizinkan." };
-            }
-        }
+document.getElementById('sendRequestBtn').onclick=async function(){
+    var btn=document.getElementById('sendRequestBtn'),ct=document.getElementById('responseContainer'),payload;
+    try{payload=JSON.parse(document.getElementById('requestPayload').value)}catch(e){showToast("Format JSON payload tidak valid","error");return}
+    btn.disabled=true;btn.innerHTML='<svg class="spin-loader w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="30 70" stroke-linecap="round"/></svg>';
+    setResponseStatus('loading');ct.innerHTML='<span style="color:var(--text-tertiary)">// Mengirim request ke <span class="json-key">'+appState.currentAct+'</span>...\n// Menunggu respons server...</span>';
+    var result=await requestNeo(appState.currentAct,payload);
+    btn.disabled=false;btn.innerHTML='Kirim';renderResponse(result);
+    if(result&&(result.error_code==0||result.error_code=="0")){setResponseStatus('success');showToast("Request Berhasil")}else{setResponseStatus('error');showToast("Request Gagal: "+((result&&result.error_desc)||"Unknown error"),"error")}
+};
 
-        async function getToken() {
-            var res = await requestNeo("GetToken");
-            if (res && res.data && res.data.token) {
-                appState.config.token = res.data.token;
-                localStorage.setItem('neo_token', res.data.token);
-                updateConnUI(true, "Terhubung");
-                showToast("Token berhasil didapatkan!");
-                return true;
-            }
-            showToast((res && res.error_desc) || "Gagal mendapatkan token", "error");
-            updateConnUI(false, "Auth Gagal");
-            return false;
-        }
-
-        function updateConnUI(isOnline, text) {
-            var el = document.getElementById('connStatus');
-            appState.isOnline = isOnline;
-            el.innerHTML = '<span class="w-1.5 h-1.5 rounded-full" style="background:currentColor;"></span> ' + text;
-            el.style.color = isOnline ? 'var(--success)' : 'var(--error)';
-            document.getElementById('tokenStatus').innerText = appState.config.token ? appState.config.token.substring(0, 20) + '...' : 'Tidak ada token';
-        }
-
-        async function checkConnection() {
-            updateConnUI(true, "Checking...");
-            var res = await requestNeo("GetProfilPT");
-            updateConnUI(res && res.error_code == 0, res && res.error_code == 0 ? "Online" : "Expired/Error");
-        }
-
-        // ============================================================
-        //  SIDEBAR RENDER
-        // ============================================================
-        function renderEndpoints(data) {
-            var container = document.getElementById('endpointList');
-            container.innerHTML = '';
-            var cats = [];
-            data.forEach(function(i) { if (cats.indexOf(i.cat) === -1) cats.push(i.cat); });
-
-            cats.forEach(function(cat) {
-                var group = document.createElement('div');
-                group.className = 'space-y-0.5';
-                group.innerHTML = '<h3 class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em]" style="color:var(--text-tertiary);">' + cat + '</h3>';
-
-                data.filter(function(i) { return i.cat === cat; }).forEach(function(item) {
-                    var btn = document.createElement('button');
-                    var active = appState.currentAct === item.act;
-                    btn.className = 'w-full text-left px-3 py-[7px] rounded-lg text-[12.5px] font-medium transition-all duration-150 flex items-center justify-between group';
-                    btn.style.color = active ? 'var(--accent)' : 'var(--text-secondary)';
-                    if (active) btn.classList.add('sidebar-active');
-                    btn.onmouseover = function() { if (!active) this.style.background = 'var(--bg-elevated)'; };
-                    btn.onmouseout  = function() { if (!active) this.style.background = 'transparent'; };
-                    btn.innerHTML = '<span class="truncate code-font text-[12px]">' + item.act + '</span>'
-                        + '<i data-lucide="chevron-right" class="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity"></i>';
-                    btn.onclick = function() { selectEndpoint(item); };
-                    group.appendChild(btn);
-                });
-                container.appendChild(group);
-            });
-            lucide.createIcons();
-        }
-
-        // ============================================================
-        //  SELECT ENDPOINT
-        // ============================================================
-        function selectEndpoint(item) {
-            appState.currentAct = item.act;
-            appState.lastRawResponse = '';
-            document.getElementById('welcomeView').classList.add('hidden');
-            document.getElementById('detailView').classList.remove('hidden');
-            document.getElementById('detailAct').innerText = item.act;
-            document.getElementById('detailCategory').innerText = item.cat;
-            document.getElementById('detailDesc').innerText = item.desc;
-            renderResponse({ status: "Ready to test" });
-            setResponseStatus('waiting');
-            renderEndpoints(getFilteredEndpoints());
-            renderParams();
-            if (appState.isOnline) requestNeo("GetDictionary", { fungsi: item.act });
-        }
-
-        function renderParams() {
-            var tbody = document.getElementById('paramsTableBody');
-            tbody.innerHTML = '';
-            [
-                { name:'token', type:'string', desc:'Token akses' },
-                { name:'act', type:'string', desc:'Nama fungsi' },
-                { name:'filter', type:'string', desc:'Filter data (SQL Like)' },
-                { name:'order', type:'string', desc:'Pengurutan data' },
-                { name:'limit', type:'int', desc:'Jumlah data per page' },
-                { name:'offset', type:'int', desc:'Start data' }
-            ].forEach(function(p) {
-                var tr = document.createElement('tr');
-                tr.style.borderBottom = '1px solid var(--border-faint)';
-                tr.innerHTML = '<td class="px-5 py-2.5 code-font text-[11px]" style="color:var(--accent);">' + p.name + '</td>'
-                    + '<td class="px-5 py-2.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider" style="background:var(--bg-elevated); color:var(--text-tertiary);">' + p.type + '</span></td>'
-                    + '<td class="px-5 py-2.5 text-[12px]" style="color:var(--text-secondary);">' + p.desc + '</td>';
-                tbody.appendChild(tr);
-            });
-        }
-
-        function updateStats(data) {
-            var el = document.getElementById('statsInfo');
-            el.classList.remove('hidden');
-            el.innerHTML = '<span>Total: <b style="color:var(--text-primary);">' + data.length + '</b></span>'
-                + '<span>Statistik: <b style="color:var(--text-primary);">' + data.filter(function(i){return i.cat==='Statistik'}).length + '</b></span>'
-                + '<span>Referensi: <b style="color:var(--text-primary);">' + data.filter(function(i){return i.cat==='Referensi'}).length + '</b></span>';
-        }
-
-        function getFilteredEndpoints() {
-            var t = document.getElementById('searchInput').value.toLowerCase();
-            return FALLBACK_ENDPOINTS.filter(function(i) { return i.act.toLowerCase().indexOf(t) !== -1; });
-        }
-
-        // ============================================================
-        //  EVENT LISTENERS
-        // ============================================================
-        var searchTimer;
-        document.getElementById('searchInput').oninput = function() {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(function() { renderEndpoints(getFilteredEndpoints()); }, 300);
-        };
-
-        document.getElementById('themeToggle').onclick = function() {
-            appState.darkMode = !appState.darkMode;
-            localStorage.setItem('theme', appState.darkMode ? 'dark' : 'light');
-            initTheme();
-        };
-
-        var configModal = document.getElementById('configModal');
-        document.getElementById('configBtn').onclick = function() {
-            document.getElementById('wsUrlInput').value = appState.config.url;
-            document.getElementById('wsUserInput').value = appState.config.user;
-            document.getElementById('wsPassInput').value = appState.config.pass;
-            configModal.classList.remove('hidden');
-        };
-        document.getElementById('closeConfig').onclick = function() { configModal.classList.add('hidden'); };
-        document.getElementById('saveConfigBtn').onclick = async function() {
-            appState.config.url = document.getElementById('wsUrlInput').value;
-            appState.config.user = document.getElementById('wsUserInput').value;
-            appState.config.pass = document.getElementById('wsPassInput').value;
-            if (await getToken()) configModal.classList.add('hidden');
-        };
-
-        // ============================================================
-        //  SEND REQUEST
-        // ============================================================
-        document.getElementById('sendRequestBtn').onclick = async function() {
-            var btn = document.getElementById('sendRequestBtn');
-            var container = document.getElementById('responseContainer');
-            var payload;
-            try { payload = JSON.parse(document.getElementById('requestPayload').value); }
-            catch (e) { showToast("Format JSON payload tidak valid", "error"); return; }
-
-            btn.disabled = true;
-            btn.innerHTML = '<svg class="spin-loader w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="30 70" stroke-linecap="round"/></svg>';
-            setResponseStatus('loading');
-            container.innerHTML = '<span style="color:var(--text-tertiary);">// Mengirim request ke <span class="json-key">' + appState.currentAct + '</span>...\n// Menunggu respons server...</span>';
-
-            var result = await requestNeo(appState.currentAct, payload);
-
-            btn.disabled = false;
-            btn.innerHTML = 'Kirim';
-            renderResponse(result);
-
-            if (result && (result.error_code == 0 || result.error_code == "0")) {
-                setResponseStatus('success');
-                showToast("Request Berhasil");
-            } else {
-                setResponseStatus('error');
-                showToast("Request Gagal: " + ((result && result.error_desc) || "Unknown error"), "error");
-            }
-        };
-
-
-    </script>
+</script>
 </body>
 </html>
