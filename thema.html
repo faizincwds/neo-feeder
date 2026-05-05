@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIS FEEDER — Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { display: ['Space Grotesk','sans-serif'], body: ['Plus Jakarta Sans','sans-serif'] },
+                    colors: {
+                        brand: { 50:'#effef7',100:'#d9ffee',200:'#b5fcdd',300:'#7cf8c2',400:'#3aed9f',500:'#0fd47e',600:'#05b165',700:'#068b51',800:'#096d42',900:'#0a5937',950:'#00321e' },
+                        surface: { 50:'#f8fafc',100:'#f1f5f9',200:'#e2e8f0',300:'#cbd5e1',400:'#94a3b8',500:'#64748b',600:'#475569',700:'#334155',800:'#1e293b',900:'#0f172a',950:'#020617' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root { --sidebar-w:268px; --header-h:60px; }
+        * { box-sizing: border-box; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; background:#eef2f6; color:#0f172a; margin:0; }
+        ::-webkit-scrollbar { width:5px; height:5px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:#94a3b8; border-radius:99px; }
+
+        .sidebar { width:var(--sidebar-w); background:linear-gradient(180deg,#043d25 0%,#0a5937 40%,#0d6b43 100%); position:fixed; top:0; left:0; bottom:0; z-index:40; overflow-y:auto; overflow-x:hidden; transition:width .3s cubic-bezier(.4,0,.2,1),transform .3s cubic-bezier(.4,0,.2,1); }
+        .sidebar.collapsed { width:68px; }
+        .sidebar.collapsed .sb-hide { display:none !important; }
+        .sidebar.collapsed .mi { justify-content:center; padding-left:0; padding-right:0; }
+        .sidebar.collapsed .mi i { margin-right:0; }
+        .sidebar.collapsed .submenu { display:none !important; }
+
+        .main-wrap { margin-left:var(--sidebar-w); transition:margin-left .3s cubic-bezier(.4,0,.2,1); min-height:100vh; display:flex; flex-direction:column; }
+        .main-wrap.exp { margin-left:68px; }
+
+        .mi { display:flex; align-items:center; padding:9px 18px; margin:1px 8px; border-radius:10px; cursor:pointer; transition:all .15s; color:rgba(217,255,238,.72); font-size:13px; font-weight:500; position:relative; white-space:nowrap; }
+        .mi:hover { background:rgba(255,255,255,.1); color:#fff; }
+        .mi.active { background:rgba(255,255,255,.14); color:#fff; box-shadow:inset 3px 0 0 #3aed9f; }
+        .mi i { width:18px; text-align:center; margin-right:11px; font-size:14px; flex-shrink:0; }
+        .mi-arrow { margin-left:auto; font-size:10px; transition:transform .2s; }
+        .mi-arrow.open { transform:rotate(90deg); }
+        .mi-badge { font-size:9px; background:#f59e0b; color:#00321e; padding:1px 6px; border-radius:99px; font-weight:700; margin-left:6px; }
+        .sb-section { font-size:9.5px; text-transform:uppercase; letter-spacing:1.4px; color:rgba(217,255,238,.3); padding:16px 22px 5px; font-weight:700; }
+        .submenu { max-height:0; overflow:hidden; transition:max-height .3s ease; }
+        .submenu.open { max-height:600px; }
+        .submenu a { display:block; padding:6px 12px 6px 50px; font-size:12px; color:rgba(217,255,238,.5); border-radius:8px; transition:all .15s; text-decoration:none; cursor:pointer; }
+        .submenu a:hover { color:#fff; background:rgba(255,255,255,.06); }
+        .submenu a.active { color:#3aed9f; }
+
+        .top-header { height:var(--header-h); background:rgba(255,255,255,.85); backdrop-filter:blur(16px) saturate(1.8); border-bottom:1px solid #e2e8f0; position:sticky; top:0; z-index:30; flex-shrink:0; }
+
+        .dc { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:22px; transition:box-shadow .25s,transform .25s; }
+        .dc:hover { box-shadow:0 6px 24px rgba(10,89,55,.07); transform:translateY(-1px); }
+
+        .skeleton { background:linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:5px; }
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+        .tag { display:inline-flex; align-items:center; gap:3px; padding:2px 9px; border-radius:99px; font-size:10.5px; font-weight:600; }
+        .stat-num { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.75rem; line-height:1; background:linear-gradient(135deg,#0a5937,#0fd47e); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+        .pulse-dot { width:7px; height:7px; border-radius:50%; background:#0fd47e; position:relative; }
+        .pulse-dot::after { content:''; position:absolute; inset:-3px; border-radius:50%; animation:pr 2s infinite; }
+        @keyframes pr { 0%{box-shadow:0 0 0 0 rgba(15,212,126,.45)} 70%{box-shadow:0 0 0 7px rgba(15,212,126,0)} 100%{box-shadow:0 0 0 0 rgba(15,212,126,0)} }
+
+        .page-in { animation:pgIn .3s ease; }
+        @keyframes pgIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+        .tbl-wrap { overflow-x:auto; border-radius:10px; border:1px solid #e2e8f0; }
+        .tbl-wrap table { width:100%; border-collapse:collapse; font-size:12.5px; }
+        .tbl-wrap th { background:#f8fafc; padding:10px 14px; text-align:left; font-weight:600; color:#475569; border-bottom:2px solid #e2e8f0; white-space:nowrap; font-size:11px; text-transform:uppercase; letter-spacing:.5px; }
+        .tbl-wrap td { padding:9px 14px; border-bottom:1px solid #f1f5f9; color:#334155; }
+        .tbl-wrap tr:hover td { background:#f8fafc; }
+        .tbl-wrap tr:last-child td { border-bottom:none; }
+
+        .btn-sm { padding:5px 12px; border-radius:8px; font-size:11px; font-weight:600; border:none; cursor:pointer; transition:all .15s; display:inline-flex; align-items:center; gap:4px; }
+        .btn-primary { background:#0a5937; color:#fff; }
+        .btn-primary:hover { background:#064e2f; }
+        .btn-ghost { background:#f1f5f9; color:#475569; }
+        .btn-ghost:hover { background:#e2e8f0; }
+        .btn-danger { background:#fef2f2; color:#dc2626; }
+        .btn-danger:hover { background:#fee2e2; }
+
+        .toast-c { position:fixed; bottom:20px; right:20px; z-index:999; display:flex; flex-direction:column; gap:6px; }
+        .toast { background:#0f172a; color:#fff; padding:12px 18px; border-radius:11px; font-size:12.5px; display:flex; align-items:center; gap:9px; box-shadow:0 10px 36px rgba(0,0,0,.22); animation:tin .35s ease; max-width:340px; }
+        @keyframes tin { from{opacity:0;transform:translateY(16px) scale(.96)} to{opacity:1;transform:translateY(0) scale(1)} }
+        .toast.out { animation:tout .25s ease forwards; }
+        @keyframes tout { to{opacity:0;transform:translateY(8px) scale(.96)} }
+
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); backdrop-filter:blur(4px); z-index:50; display:none; align-items:center; justify-content:center; }
+        .modal-overlay.show { display:flex; }
+        .modal-box { background:#fff; border-radius:18px; max-width:560px; width:92%; max-height:80vh; overflow-y:auto; animation:mIn .3s ease; }
+        @keyframes mIn { from{opacity:0;transform:scale(.95) translateY(10px)} to{opacity:1;transform:scale(1) translateY(0)} }
+
+        .progress-bar { height:7px; border-radius:99px; background:#e2e8f0; overflow:hidden; }
+        .progress-fill { height:100%; border-radius:99px; transition:width 1s cubic-bezier(.4,0,.2,1); background:linear-gradient(90deg,#0a5937,#0fd47e); }
+
+        .hero-blob { position:absolute; border-radius:50%; filter:blur(80px); opacity:.25; animation:bf 8s ease-in-out infinite alternate; }
+        @keyframes bf { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(30px,-20px) scale(1.1)} }
+
+        .hero-illust { background:linear-gradient(135deg,#effef7,#d9ffee 50%,#b5fcdd); border-radius:16px; position:relative; overflow:hidden; }
+        .hero-illust::before { content:''; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23068851' fill-opacity='.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+
+        .search-box { display:flex; align-items:center; background:#f1f5f9; border-radius:10px; padding:7px 14px; gap:8px; border:1px solid transparent; transition:all .2s; }
+        .search-box:focus-within { border-color:#3aed9f; background:#fff; box-shadow:0 0 0 3px rgba(58,237,159,.12); }
+        .search-box input { background:transparent; outline:none; border:none; font-size:12.5px; color:#334155; width:100%; }
+        .search-box input::placeholder { color:#94a3b8; }
+
+        @media(max-width:1024px) {
+            .sidebar { transform:translateX(-100%); width:268px !important; }
+            .sidebar.mob-open { transform:translateX(0); }
+            .main-wrap,.main-wrap.exp { margin-left:0 !important; }
+            .mob-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:35; }
+            .mob-overlay.show { display:block; }
+        }
+        @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="mob-overlay" id="mobOverlay" onclick="closeMob()"></div>
+
+    <!-- ========== SIDEBAR ========== -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu utama">
+        <div class="flex items-center gap-3 px-4 py-4 border-b border-white/10">
+            <div class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center flex-shrink-0">
+                <i class="fa-solid fa-graduation-cap text-brand-300 text-sm"></i>
+            </div>
+            <div class="sb-hide">
+                <div class="text-white font-display font-bold text-sm leading-tight">SIS FEEDER</div>
+                <div class="text-brand-300/50 text-[9px] font-medium tracking-wider uppercase">PDDIKTI v3.0.0</div>
+            </div>
+        </div>
+        <nav class="py-2" id="sideNav">
+            <div class="sb-section">Utama</div>
+            <div class="mi active" data-page="dashboard" onclick="go('dashboard',this)"><i class="fa-solid fa-grid-2"></i><span class="sb-hide">Dashboard</span></div>
+            <div class="mi" data-page="periode" onclick="go('periode',this)"><i class="fa-regular fa-calendar"></i><span class="sb-hide">Periode Perkuliahan</span></div>
+
+            <div class="sb-section">Akademik</div>
+            <div class="mi" onclick="togSub(this)"><i class="fa-solid fa-user-graduate"></i><span class="sb-hide">Mahasiswa</span><span class="mi-badge sb-hide">2.847</span><i class="fa-solid fa-chevron-right mi-arrow sb-hide"></i></div>
+            <div class="submenu">
+                <a data-page="mhs-biodata" onclick="go('mhs-biodata',this)">Biodata Mahasiswa</a>
+                <a data-page="mhs-registrasi" onclick="go('mhs-registrasi',this)">Registrasi</a>
+                <a data-page="mhs-aktif" onclick="go('mhs-aktif',this)">Aktivitas Kuliah</a>
+                <a data-page="mhs-cuti" onclick="go('mhs-cuti',this)">Cuti Akademik</a>
+                <a data-page="mhs-keluar" onclick="go('mhs-keluar',this)">Pengunduran Diri</a>
+                <a data-page="mhs-lulus" onclick="go('mhs-lulus',this)">Kelulusan</a>
+            </div>
+            <div class="mi" onclick="togSub(this)"><i class="fa-solid fa-chalkboard-user"></i><span class="sb-hide">Dosen</span><span class="mi-badge sb-hide">186</span><i class="fa-solid fa-chevron-right mi-arrow sb-hide"></i></div>
+            <div class="submenu">
+                <a data-page="dsn-tetap" onclick="go('dsn-tetap',this)">Dosen Tetap</a>
+                <a data-page="dsn-ttidak" onclick="go('dsn-ttidak',this)">Dosen Tidak Tetap</a>
+                <a data-page="dsn-honorer" onclick="go('dsn-honorer',this)">Dosen Honorer</a>
+            </div>
+            <div class="mi" data-page="mk" onclick="go('mk',this)"><i class="fa-solid fa-book-open"></i><span class="sb-hide">Mata Kuliah</span></div>
+            <div class="mi" data-page="kurikulum" onclick="go('kurikulum',this)"><i class="fa-solid fa-sitemap"></i><span class="sb-hide">Kurikulum</span></div>
+            <div class="mi" data-page="kelas" onclick="go('kelas',this)"><i class="fa-solid fa-users-rectangle"></i><span class="sb-hide">Kelas Kuliah</span></div>
+            <div class="mi" data-page="penilaian" onclick="go('penilaian',this)"><i class="fa-solid fa-clipboard-check"></i><span class="sb-hide">Penilaian</span></div>
+
+            <div class="sb-section">Data & Laporan</div>
+            <div class="mi" data-page="export" onclick="go('export',this)"><i class="fa-solid fa-file-export"></i><span class="sb-hide">Export Data</span></div>
+            <div class="mi" data-page="kapitulasi" onclick="go('kapitulasi',this)"><i class="fa-solid fa-chart-pie"></i><span class="sb-hide">Kapitulasi</span></div>
+            <div class="mi" onclick="togSub(this)"><i class="fa-solid fa-arrows-rotate"></i><span class="sb-hide">RPL</span><i class="fa-solid fa-chevron-right mi-arrow sb-hide"></i></div>
+            <div class="submenu">
+                <a data-page="rpl-transfer" onclick="go('rpl-transfer',this)">Transfer SKS</a>
+                <a data-page="rpl-perolehan" onclick="go('rpl-perolehan',this)">Perolehan SKS</a>
+            </div>
+
+            <div class="sb-section">Sistem</div>
+            <div class="mi" data-page="pengaturan" onclick="go('pengaturan',this)"><i class="fa-solid fa-gear"></i><span class="sb-hide">Pengaturan</span></div>
+            <div class="mi" data-page="bantuan" onclick="go('bantuan',this)"><i class="fa-solid fa-circle-question"></i><span class="sb-hide">Bantuan</span></div>
+        </nav>
+        <div class="sb-hide mt-auto px-4 py-3 border-t border-white/10">
+            <div class="flex items-center gap-3">
+                <img src="https://picsum.photos/seed/admin42/40/40.jpg" alt="Avatar" class="w-8 h-8 rounded-full ring-2 ring-brand-400/30 object-cover">
+                <div><div class="text-white text-[11px] font-semibold">Dr. Ahmad Fauzi</div><div class="text-brand-300/40 text-[9px]">Administrator</div></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ========== MAIN ========== -->
+    <div class="main-wrap" id="mainWrap">
+        <header class="top-header flex items-center justify-between px-5">
+            <div class="flex items-center gap-3">
+                <button onclick="togSB()" class="w-8 h-8 rounded-lg bg-surface-100 hover:bg-surface-200 flex items-center justify-center transition-colors" aria-label="Toggle menu"><i class="fa-solid fa-bars text-surface-600 text-xs"></i></button>
+                <div>
+                    <h1 class="font-display font-bold text-surface-900 text-sm leading-tight">Universitas Nusantara Mandiri</h1>
+                    <p class="text-surface-400 text-[10.5px] font-medium mt-0.5"><i class="fa-regular fa-calendar mr-1"></i>Semester Genap 2025/2026 <span class="ml-1.5 inline-flex items-center gap-1 text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded-full text-[9px] font-bold"><span class="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse"></span>AKTIF</span></p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2.5">
+                <div class="hidden md:flex search-box w-56" style="padding:6px 12px;">
+                    <i class="fa-solid fa-magnifying-glass text-surface-400 text-[10px]"></i>
+                    <input type="text" placeholder="Cari..." id="globalSearch" onkeyup="globalSearchHandler(this.value)">
+                </div>
+                <button onclick="toast('Tidak ada notifikasi baru','info')" class="relative w-8 h-8 rounded-lg bg-surface-100 hover:bg-surface-200 flex items-center justify-center transition-colors" aria-label="Notifikasi"><i class="fa-regular fa-bell text-surface-600 text-xs"></i><span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-red-500 rounded-full text-[8px] text-white font-bold flex items-center justify-center">3</span></button>
+                <button onclick="doSync()" class="hidden sm:flex items-center gap-1.5 bg-brand-700 hover:bg-brand-800 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-colors"><i class="fa-solid fa-rotate" id="syncIco"></i><span id="syncTxt">Sync</span></button>
+            </div>
+        </header>
+        <main class="p-5 flex-1" id="pageContent"></main>
+        <footer class="px-5 py-3 border-t border-surface-200 bg-white/40 text-center flex-shrink-0"><p class="text-surface-400 text-[10.5px]">SIS FEEDER v3.0.0 — Universitas Nusantara Mandiri &copy; 2026</p></footer>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal"><div class="modal-box" id="modalBox"></div></div>
+    <!-- Toast -->
+    <div class="toast-c" id="toastC"></div>
+
+<script>
+// ======================== DATA ========================
+const D = {
+mhsBio: {
+    cols:['NIM','Nama','L/P','Tempat Lahir','Tgl Lahir','Prodi','Semester','IPK','Status'],
+    badge:{8:{'Aktif':'bg-green-50 text-green-700','Cuti':'bg-amber-50 text-amber-700','Lulus':'bg-sky-50 text-sky-700','Keluar':'bg-red-50 text-red-700'}},
+    rows:[
+        ['2024001001','Ahmad Rizky Pratama','L','Jakarta','2001-03-15','Teknik Informatika','4','3.72','Aktif'],
+        ['2024001002','Siti Nurhaliza Putri','P','Bandung','2002-07-22','Sistem Informasi','4','3.65','Aktif'],
+        ['2023001023','Muhammad Farhan Hakim','L','Surabaya','2001-11-08','Teknik Informatika','6','3.81','Aktif'],
+        ['2023001045','Dewi Anggraini','P','Semarang','2001-01-30','Manajemen','6','3.45','Aktif'],
+        ['2022002011','Budi Santoso','L','Yogyakarta','2000-09-12','Akuntansi','8','3.58','Cuti'],
+        ['2024002003','Rina Wulandari','P','Medan','2002-05-18','Manajemen','4','3.33','Aktif'],
+        ['2023002008','Fajar Nugroho','L','Makassar','2001-12-03','Akuntansi','6','3.27','Aktif'],
+        ['2022003005','Anisa Rahma','P','Palembang','2000-04-25','Ilmu Komunikasi','8','3.91','Aktif'],
+        ['2021004012','Dian Permana','L','Denpasar','1999-08-14','Teknik Informatika','10','3.55','Lulus'],
+        ['2024003007','Hendra Wijaya','L','Bogor','2002-02-28','Ilmu Komunikasi','4','3.10','Aktif'],
+        ['2023003001','Lestari Dewi','P','Malang','2001-06-19','Ilmu Komunikasi','6','3.48','Aktif'],
+        ['2024001008','Rizky Aditya','L','Tangerang','2002-10-05','Teknik Informatika','4','3.60','Aktif'],
+        ['2022001009','Putri Maharani','P','Bekasi','2000-03-17','Sistem Informasi','8','3.74','Aktif'],
+        ['2023002015','Yoga Pratama','L','Depok','2001-08-21','Manajemen','6','3.15','Keluar'],
+        ['2024002009','Sari Indah','P','Cirebon','2002-12-11','Manajemen','4','3.42','Aktif'],
+        ['2022003010','Andi Saputra','L','Padang','2000-07-04','Ilmu Komunikasi','8','3.38','Aktif'],
+        ['2023001006','Nadia Fitriani','P','Solo','2001-09-29','Sistem Informasi','6','3.69','Aktif'],
+        ['2024003003','Dimas Arya','L','Lampung','2002-04-08','Ilmu Komunikasi','4','3.20','Aktif'],
+        ['2021002005','Maya Sari','P','Pontianak','1999-11-22','Manajemen','10','3.87','Lulus'],
+        ['2023002019','Bayu Prasetyo','L','Pekanbaru','2001-02-14','Akuntansi','6','3.51','Aktif'],
+    ]
+},
+mhsReg: {
+    cols:['NIM','Nama','Prodi','Semester','Tgl Registrasi','SKS Ambil','Status'],
+    badge:{6:{'Terverifikasi':'bg-green-50 text-green-700','Menunggu':'bg-amber-50 text-amber-700','Ditolak':'bg-red-50 text-red-700'}},
+    rows:[
+        ['2024001001','Ahmad Rizky Pratama','Teknik Informatika','4','2025-02-01','22','Terverifikasi'],
+        ['2024001002','Siti Nurhaliza Putri','Sistem Informasi','4','2025-02-01','20','Terverifikasi'],
+        ['2024002003','Rina Wulandari','Manajemen','4','2025-02-03','21','Terverifikasi'],
+        ['2024003007','Hendra Wijaya','Ilmu Komunikasi','4','2025-02-03','20','Menunggu'],
+        ['2024001008','Rizky Aditya','Teknik Informatika','4','2025-02-04','22','Terverifikasi'],
+        ['2024002009','Sari Indah','Manajemen','4','2025-02-04','21','Terverifikasi'],
+        ['2024003003','Dimas Arya','Ilmu Komunikasi','4','2025-02-05','20','Menunggu'],
+        ['2023001023','Muhammad Farhan Hakim','Teknik Informatika','6','2025-02-01','24','Terverifikasi'],
+        ['2023001045','Dewi Anggraini','Manajemen','6','2025-02-02','22','Terverifikasi'],
+        ['2023002008','Fajar Nugroho','Akuntansi','6','2025-02-02','22','Terverifikasi'],
+        ['2023003001','Lestari Dewi','Ilmu Komunikasi','6','2025-02-03','21','Terverifikasi'],
+        ['2023001006','Nadia Fitriani','Sistem Informasi','6','2025-02-03','21','Terverifikasi'],
+        ['2023002015','Yoga Pratama','Manajemen','6','2025-02-04','0','Ditolak'],
+        ['2023002019','Bayu Prasetyo','Akuntansi','6','2025-02-05','22','Terverifikasi'],
+    ]
+},
+mhsAktif: {
+    cols:['NIM','Nama','Prodi','Semester','SKS Ambil','SKS Lulus','IPS','Status'],
+    badge:{7:{'Aktif':'bg-green-50 text-green-700','Peringatan':'bg-amber-50 text-amber-700'}},
+    rows:[
+        ['2024001001','Ahmad Rizky Pratama','Teknik Informatika','4','22','22','3.72','Aktif'],
+        ['2024001002','Siti Nurhaliza Putri','Sistem Informasi','4','20','20','3.65','Aktif'],
+        ['2023001023','Muhammad Farhan Hakim','Teknik Informatika','6','24','24','3.81','Aktif'],
+        ['2023001045','Dewi Anggraini','Manajemen','6','22','22','3.45','Aktif'],
+        ['2024002003','Rina Wulandari','Manajemen','4','21','21','3.33','Aktif'],
+        ['2023002008','Fajar Nugroho','Akuntansi','6','22','20','2.45','Peringatan'],
+        ['2022003005','Anisa Rahma','Ilmu Komunikasi','8','21','21','3.91','Aktif'],
+        ['2024001008','Rizky Aditya','Teknik Informatika','4','22','22','3.60','Aktif'],
+        ['2022001009','Putri Maharani','Sistem Informasi','8','20','20','3.74','Aktif'],
+        ['2023001006','Nadia Fitriani','Sistem Informasi','6','21','21','3.69','Aktif'],
+        ['2023003001','Lestari Dewi','Ilmu Komunikasi','6','21','21','3.48','Aktif'],
+        ['2023002019','Bayu Prasetyo','Akuntansi','6','22','22','3.51','Aktif'],
+    ]
+},
+mhsCuti: {
+    cols:['NIM','Nama','Prodi','Semester Cuti','Alasan','Tgl Mulai','Tgl Selesai','Status'],
+    badge:{7:{'Disetujui':'bg-green-50 text-green-700','Menunggu':'bg-amber-50 text-amber-700','Ditolak':'bg-red-50 text-red-700'}},
+    rows:[
+        ['2022002011','Budi Santoso','Akuntansi','Ganjil 2024/2025','Sakit menahun','2024-09-01','2025-01-31','Disetujui'],
+        ['2023001045','Dewi Anggraini','Manajemen','Genap 2024/2025','Persiapan ujian sertifikasi','2025-02-01','2025-07-31','Disetujui'],
+        ['2022001009','Putri Maharani','Sistem Informasi','Ganjil 2024/2025','Magang di perusahaan','2024-09-01','2025-01-31','Disetujui'],
+        ['2024003007','Hendra Wijaya','Ilmu Komunikasi','Genap 2025/2026','Masalah keluarga','2025-08-01','2026-01-31','Menunggu'],
+        ['2023002015','Yoga Pratama','Manajemen','Genap 2024/2025','Pindah kerja','2025-02-01','2025-07-31','Ditolak'],
+    ]
+},
+mhsKeluar: {
+    cols:['NIM','Nama','Prodi','Semester','Tgl Pengajuan','Alasan','Status'],
+    badge:{6:{'Disetujui':'bg-green-50 text-green-700','Menunggu':'bg-amber-50 text-amber-700','Ditolak':'bg-red-50 text-red-700'}},
+    rows:[
+        ['2023002015','Yoga Pratama','Manajemen','6','2025-01-20','Pindah ke universitas lain','Disetujui'],
+        ['2024003003','Dimas Arya','Ilmu Komunikasi','4','2025-03-10','Tidak mampu biaya kuliah','Menunggu'],
+        ['2022002011','Budi Santoso','Akuntansi','8','2024-12-15','Kesehatan','Menunggu'],
+    ]
+},
+mhsLulus: {
+    cols:['NIM','Nama','Prodi','Tgl Lulus','IPK','Predikat','No. Ijazah'],
+    badge:{5:{'Cum Laude':'bg-amber-50 text-amber-700','Sangat Memuaskan':'bg-green-50 text-green-700','Memuaskan':'bg-sky-50 text-sky-700'}},
+    rows:[
+        ['2021004012','Dian Permana','Teknik Informatika','2025-02-15','3.55','Sangat Memuaskan','IJH/2025/TI/001'],
+        ['2021002005','Maya Sari','Manajemen','2025-02-15','3.87','Cum Laude','IJH/2025/MN/001'],
+        ['2020001015','Rahmat Hidayat','Teknik Informatika','2024-09-20','3.92','Cum Laude','IJH/2024/TI/012'],
+        ['2020002010','Fitri Handayani','Sistem Informasi','2024-09-20','3.61','Sangat Memuaskan','IJH/2024/SI/008'],
+        ['2020003003','Wahyu Setiawan','Ilmu Komunikasi','2024-09-20','3.42','Memuaskan','IJH/2024/IK/005'],
+        ['2019004020','Sri Wahyuni','Akuntansi','2024-02-28','3.78','Cum Laude','IJH/2024/AK/003'],
+        ['2019001018','Agus Firmansyah','Teknik Informatika','2024-02-28','3.35','Memuaskan','IJH/2024/TI/015'],
+        ['2019002008','Dina Marlina','Manajemen','2024-02-28','3.53','Sangat Memuaskan','IJH/2024/MN/010'],
+    ]
+},
+dsnTetap: {
+    cols:['NIDN','Nama','Home Base','Jabatan Fungsional','Pendidikan','Sertifikasi','Status'],
+    badge:{6:{'Tersertifikasi':'bg-green-50 text-green-700','Belum':'bg-surface-100 text-surface-500'}},
+    rows:[
+        ['0012345678','Prof. Dr. Ir. Bambang Susilo, M.Sc.','Teknik Informatika','Guru Besar','S3','Tersertifikasi','Aktif'],
+        ['0023456789','Dr. Siti Aminah, M.Kom.','Sistem Informasi','Lektor Kepala','S3','Tersertifikasi','Aktif'],
+        ['0034567890','Dr. Hendra Kusuma, M.T.','Teknik Informatika','Lektor Kepala','S3','Tersertifikasi','Aktif'],
+        ['0045678901','Ir. Yulianto Prabowo, M.Kom.','Teknik Informatika','Lektor','S2','Tersertifikasi','Aktif'],
+        ['0056789012','Dra. Ratna Dewi, M.M.','Manajemen','Lektor Kepala','S2','Tersertifikasi','Aktif'],
+        ['0067890123','Dr. Agus Salim, M.Si.','Manajemen','Lektor','S3','Tersertifikasi','Aktif'],
+        ['0078901234','Drs. Joko Widodo, M.Ak.','Akuntansi','Lektor Kepala','S2','Tersertifikasi','Aktif'],
+        ['0089012345','Dr. Rina Marlina, M.I.Kom.','Ilmu Komunikasi','Lektor','S3','Belum','Aktif'],
+        ['0090123456','Dewi Safitri, S.Kom., M.Kom.','Sistem Informasi','Asisten Ahli','S2','Belum','Aktif'],
+        ['0101234567','Andi Prasetyo, S.T., M.Kom.','Teknik Informatika','Asisten Ahli','S2','Belum','Aktif'],
+        ['0112345670','Dr. Fauzi Rahman, M.T.','Teknik Informatika','Lektor','S3','Tersertifikasi','Aktif'],
+        ['0123456701','Lina Hartati, S.Sos., M.Si.','Ilmu Komunikasi','Asisten Ahli','S2','Belum','Aktif'],
+    ]
+},
+dsnTidak: {
+    cols:['NIDN','Nama','Home Base','Asal Kampus','Bidang Keahlian','Status'],
+    rows:[
+        ['0210012345','Dr. Purnomo, M.Kom.','Sistem Informasi','Universitas Indonesia','Data Science','Aktif'],
+        ['0210023456','Prof. Wibowo, Ph.D.','Teknik Informatika','ITB','Machine Learning','Aktif'],
+        ['0210034567','Dr. Kusuma Wardani, M.T.','Manajemen','Universitas Gadjah Mada','Bisnis Digital','Aktif'],
+        ['0210045678','Ir. Hartono, M.Sc.','Akuntansi','Universitas Airlangga','Akuntansi Keuangan','Aktif'],
+        ['0210056789','Dr. Suryani, M.Si.','Ilmu Komunikasi','Universitas Padjadjaran','Media Digital','Nonaktif'],
+        ['0210067890','Andi Wijaya, S.Kom., M.Cs.','Teknik Informatika','Universitas Hasanuddin','Cyber Security','Aktif'],
+    ]
+},
+dsnHonorer: {
+    cols:['Nama','Prodi','Bidang Keahlian','Mulai Mengajar','Masa Kontrak','Status'],
+    badge:{5:{'Aktif':'bg-green-50 text-green-700','Berakhir':'bg-red-50 text-red-700'}},
+    rows:[
+        ['Rendi Saputra, S.Kom.','Teknik Informatika','Web Development','2024-09-01','1 Tahun','Aktif'],
+        ['Mega Putri, S.M.','Manajemen','Digital Marketing','2025-02-01','6 Bulan','Aktif'],
+        ['Firman Hidayat, S.Ak.','Akuntansi','Perpajakan','2024-09-01','1 Tahun','Berakhir'],
+        ['Luthfi Rahman, S.I.Kom.','Sistem Informasi','UI/UX Design','2025-02-01','6 Bulan','Aktif'],
+        ['Nur Aini, S.Sos.','Ilmu Komunikasi','Public Relations','2024-09-01','1 Tahun','Aktif'],
+        ['Galih Pratama, S.Kom.','Teknik Informatika','Cloud Computing','2025-02-01','6 Bulan','Aktif'],
+    ]
+},
+mk: {
+    cols:['Kode','Nama Mata Kuliah','SKS','Semester','Jenis','SKS TM','SKS Prak','Prodi'],
+    badge:{4:{'Wajib':'bg-brand-50 text-brand-700','Pilihan':'bg-sky-50 text-sky-700'}},
+    rows:[
+        ['TI101','Pengantar Teknik Informatika','3','1','Wajib','2','1','Teknik Informatika'],
+        ['TI102','Algoritma dan Pemrograman','4','1','Wajib','2','2','Teknik Informatika'],
+        ['TI103','Matematika Diskrit','3','1','Wajib','3','0','Teknik Informatika'],
+        ['TI201','Struktur Data','3','2','Wajib','2','1','Teknik Informatika'],
+        ['TI202','Basis Data','4','2','Wajib','2','2','Teknik Informatika'],
+        ['TI203','Pemrograman Berorientasi Objek','3','3','Wajib','2','1','Teknik Informatika'],
+        ['TI301','Rekayasa Perangkat Lunak','3','5','Wajib','2','1','Teknik Informatika'],
+        ['TI302','Kecerdasan Buatan','3','5','Pilihan','2','1','Teknik Informatika'],
+        ['TI303','Keamanan Informasi','3','5','Pilihan','3','0','Teknik Informatika'],
+        ['SI101','Pengantar Sistem Informasi','3','1','Wajib','3','0','Sistem Informasi'],
+        ['SI201','Analisis Sistem','3','3','Wajib','2','1','Sistem Informasi'],
+        ['SI301','Sistem Pendukung Keputusan','3','5','Pilihan','2','1','Sistem Informasi'],
+        ['MN101','Pengantar Manajemen','3','1','Wajib','3','0','Manajemen'],
+        ['MN201','Manajemen Keuangan','3','3','Wajib','3','0','Manajemen'],
+        ['AK101','Pengantar Akuntansi','4','1','Wajib','3','1','Akuntansi'],
+        ['IK101','Pengantar Ilmu Komunikasi','3','1','Wajib','3','0','Ilmu Komunikasi'],
+        ['IK201','Media Digital','3','3','Pilihan','2','1','Ilmu Komunikasi'],
+        ['TI401','Machine Learning','3','7','Pilihan','2','1','Teknik Informatika'],
+        ['TI402','Cloud Computing','3','7','Pilihan','2','1','Teknik Informatika'],
+        ['SI401','Data Warehouse','3','7','Pilihan','2','1','Sistem Informasi'],
+    ]
+},
+kurikulum: {
+    cols:['Nama Kurikulum','Prodi','Tahun Berlaku','Jumlah MK','Total SKS','SKS Wajib','SKS Pilihan','Status'],
+    badge:{7:{'Aktif':'bg-green-50 text-green-700','Nonaktif':'bg-surface-100 text-surface-500'}},
+    rows:[
+        ['Kurikulum 2024','Teknik Informatika','2024','45','144','120','24','Aktif'],
+        ['Kurikulum 2020','Teknik Informatika','2020','40','140','116','24','Nonaktif'],
+        ['Kurikulum 2024','Sistem Informasi','2024','42','138','114','24','Aktif'],
+        ['Kurikulum 2024','Manajemen','2024','38','132','108','24','Aktif'],
+        ['Kurikulum 2024','Akuntansi','2024','40','140','116','24','Aktif'],
+        ['Kurikulum 2024','Ilmu Komunikasi','2024','36','126','108','18','Aktif'],
+    ]
+},
+kelas: {
+    cols:['Kode Kelas','Mata Kuliah','Dosen','Hari','Jam','Ruang','Prodi','Peserta'],
+    rows:[
+        ['TI-A-2401','Algoritma dan Pemrograman','Ir. Yulianto, M.Kom.','Senin','08:00-11:30','Lab A1','Teknik Informatika','42'],
+        ['TI-A-2402','Basis Data','Andi Prasetyo, S.T., M.Kom.','Selasa','08:00-11:30','Lab A2','Teknik Informatika','38'],
+        ['TI-A-2403','Struktur Data','Dr. Fauzi Rahman, M.T.','Rabu','08:00-10:30','Lab A1','Teknik Informatika','40'],
+        ['SI-A-2401','Analisis Sistem','Dewi Safitri, S.Kom., M.Kom.','Kamis','08:00-10:30','Lab B1','Sistem Informasi','35'],
+        ['SI-A-2402','Sistem Pendukung Keputusan','Dr. Siti Aminah, M.Kom.','Jumat','08:00-10:30','Lab B1','Sistem Informasi','30'],
+        ['MN-A-2401','Manajemen Keuangan','Dra. Ratna Dewi, M.M.','Senin','13:00-15:30','R.201','Manajemen','45'],
+        ['MN-A-2402','Pengantar Manajemen','Dr. Agus Salim, M.Si.','Rabu','13:00-15:30','R.202','Manajemen','48'],
+        ['AK-A-2401','Pengantar Akuntansi','Drs. Joko Widodo, M.Ak.','Selasa','13:00-16:30','R.301','Akuntansi','44'],
+        ['IK-A-2401','Media Digital','Lina Hartati, S.Sos., M.Si.','Kamis','13:00-15:30','R.401','Ilmu Komunikasi','32'],
+        ['TI-A-2404','Kecerdasan Buatan','Dr. Hendra Kusuma, M.T.','Jumat','08:00-10:30','Lab A3','Teknik Informatika','28'],
+        ['TI-A-2405','Rekayasa Perangkat Lunak','Prof. Bambang Susilo, M.Sc.','Senin','08:00-10:30','Lab A1','Teknik Informatika','35'],
+    ]
+},
+penilaian: {
+    cols:['Kode Kelas','Mata Kuliah','Dosen','Total Mhs','Sudah Nilai','Belum Nilai','Persen'],
+    badge:{6:{'Selesai':'bg-green-50 text-green-700','Proses':'bg-amber-50 text-amber-700','Belum':'bg-red-50 text-red-700'}},
+    rows:[
+        ['TI-A-2401','Algoritma dan Pemrograman','Ir. Yulianto, M.Kom.','42','42','0','100%','Selesai'],
+        ['TI-A-2402','Basis Data','Andi Prasetyo, S.T., M.Kom.','38','30','8','79%','Proses'],
+        ['TI-A-2403','Struktur Data','Dr. Fauzi Rahman, M.T.','40','40','0','100%','Selesai'],
+        ['SI-A-2401','Analisis Sistem','Dewi Safitri, S.Kom., M.Kom.','35','20','15','57%','Proses'],
+        ['SI-A-2402','Sistem Pendukung Keputusan','Dr. Siti Aminah, M.Kom.','30','0','30','0%','Belum'],
+        ['MN-A-2401','Manajemen Keuangan','Dra. Ratna Dewi, M.M.','45','45','0','100%','Selesai'],
+        ['MN-A-2402','Pengantar Manajemen','Dr. Agus Salim, M.Si.','48','48','0','100%','Selesai'],
+        ['AK-A-2401','Pengantar Akuntansi','Drs. Joko Widodo, M.Ak.','44','44','0','100%','Selesai'],
+        ['IK-A-2401','Media Digital','Lina Hartati, S.Sos., M.Si.','32','10','22','31%','Proses'],
+        ['TI-A-2404','Kecerdasan Buatan','Dr. Hendra Kusuma, M.T.','28','28','0','100%','Selesai'],
+        ['TI-A-2405','Rekayasa Perangkat Lunak','Prof. Bambang Susilo, M.Sc.','35','35','0','100%','Selesai'],
+        ['TI-A-2406','Machine Learning','Dr. Purnomo, M.Kom.','25','0','25','0%','Belum'],
+    ]
+},
+rplTransfer: {
+    cols:['No. Pengajuan','NIM','Nama','Prodi Asal','MK Diakui','SKS Diajukan','SKS Disetujui','Status'],
+    badge:{7:{'Disetujui':'bg-green-50 text-green-700','Sebagian':'bg-amber-50 text-amber-700','Ditolak':'bg-red-50 text-red-700','Menunggu':'bg-sky-50 text-sky-700'}},
+    rows:[
+        ['RPL-2025-001','2024001001','Ahmad Rizky Pratama','Politeknik Negeri Jakarta','Algoritma, Basis Data','8','6','Disetujui'],
+        ['RPL-2025-002','2023001023','Muhammad Farhan Hakim','Universitas Brawijaya','Struktur Data, OS','6','6','Disetujui'],
+        ['RPL-2025-003','2024001008','Rizky Aditya','Universitas Diponegoro','Pengantar TI, Matematika','6','4','Sebagian'],
+        ['RPL-2025-004','2024002009','Sari Indah','Universitas Padjadjaran','Pengantar Manajemen','3','3','Disetujui'],
+        ['RPL-2025-005','2023001006','Nadia Fitriani','Institut Teknologi Bandung','Basis Data, Jaringan','6','0','Ditolak'],
+        ['RPL-2025-006','2023003001','Lestari Dewi','Universitas Hasanuddin','Pengantar Komunikasi','3','3','Disetujui'],
+        ['RPL-2025-007','2024003003','Dimas Arya','Universitas Mulawarman','Media Digital','3','0','Menunggu'],
+        ['RPL-2025-008','2023002019','Bayu Prasetyo','Universitas Sriwijaya','Pengantar Akuntansi','3','3','Disetujui'],
+    ]
+},
+rplPerolehan: {
+    cols:['No. Penetapan','NIM','Nama','Prodi','Asal Pembelajaran','SKS Dikonversi','Nilai Konversi','Status'],
+    badge:{7:{'Sah':'bg-green-50 text-green-700','Revisi':'bg-amber-50 text-amber-700'}},
+    rows:[
+        ['RPK-2025-001','2024001001','Ahmad Rizky Pratama','Teknik Informatika','Kursus Online Dicoding','6','B','Sah'],
+        ['RPK-2025-002','2023001023','Muhammad Farhan Hakim','Teknik Informatika','Magang di PT. Techindo','8','A-','Sah'],
+        ['RPK-2025-003','2024001008','Rizky Aditya','Teknik Informatika','Sertifikasi CompTIA','4','B+','Sah'],
+        ['RPK-2025-004','2024002009','Sari Indah','Manajemen','Pelatihan UMKM','3','B-','Sah'],
+        ['RPK-2025-005','2023003001','Lestari Dewi','Ilmu Komunikasi','Magang Media TV Lokal','3','B+','Sah'],
+        ['RPK-2025-006','2023002019','Bayu Prasetyo','Akuntansi','Sertifikasi SAP','3','A-','Revisi'],
+    ]
+},
+periode: {
+    cols:['Kode','Nama Periode','Tgl Mulai','Tgl Selesai','Status Feeder','Status'],
+    badge:{5:{'Aktif':'bg-green-50 text-green-700','Nonaktif':'bg-surface-100 text-surface-500','Tutup':'bg-red-50 text-red-700'}},
+    rows:[
+        ['20251','Semester Genap 2024/2025','2025-02-01','2025-07-31','Terbuka','Aktif'],
+        ['20242','Semester Ganjil 2024/2025','2024-08-01','2025-01-31','Terbuka','Aktif'],
+        ['20241','Semester Genap 2023/2024','2024-02-01','2024-07-31','Tutup','Nonaktif'],
+        ['20232','Semester Ganjil 2023/2024','2023-08-01','2024-01-31','Tutup','Nonaktif'],
+        ['20231','Semester Genap 2022/2023','2023-02-01','2023-07-31','Tutup','Nonaktif'],
+        ['20222','Semester Ganjil 2022/2023','2022-08-01','2023-01-31','Tutup','Nonaktif'],
+        ['20221','Semester Genap 2021/2022','2022-02-01','2022-07-31','Tutup','Nonaktif'],
+        ['20212','Semester Ganjil 2021/2022','2021-08-01','2022-01-31','Tutup','Nonaktif'],
+    ]
+}
+};
+
+// Changelog data
+const CL=[
+{k:'Database',i:'fa-database',c:'bg-amber-50 text-amber-700',t:['Penambahan kolom nim_diagram pada tabel mahasiswa','Update index tabel kelas_kuliah untuk performa query','Migrasi skema nilai_konversi ke format v3']},
+{k:'Fitur Baru',i:'fa-star',c:'bg-brand-50 text-brand-700',t:['Modul RPL Transfer SKS dengan validasi otomatis','Dashboard statistik real-time per program studi','Export data dalam format CSV dan Excel (.xlsx)','Integrasi API PDDIKTI versi 2.1']},
+{k:'Perbaikan',i:'fa-wrench',c:'bg-sky-50 text-sky-700',t:['Fix duplikasi data pada sinkronisasi batch','Perbaikan tampilan tabel periode lampau di layar kecil','Koreksi kalkulasi IPS mahasiswa dengan nilai mutu E']},
+{k:'Keamanan',i:'fa-shield-halved',c:'bg-rose-50 text-rose-700',t:['Penambahan rate limiting pada endpoint API','Update library kriptografi untuk enkripsi token']}
+];
+const syncLog=[
+{w:'Baru saja',t:'Full Sync',n:2395,s:'Berhasil',sc:'text-green-600 bg-green-50'},
+{w:'Hari ini, 07:45',t:'Mahasiswa',n:342,s:'Berhasil',sc:'text-green-600 bg-green-50'},
+{w:'Hari ini, 07:42',t:'Dosen',n:186,s:'Berhasil',sc:'text-green-600 bg-green-50'},
+{w:'Kemarin, 16:30',t:'Nilai',n:1847,s:'Berhasil',sc:'text-green-600 bg-green-50'},
+{w:'Kemarin, 16:28',t:'Kelas Kuliah',n:520,s:'Gagal',sc:'text-red-600 bg-red-50'},
+{w:'28 Apr, 09:15',t:'Kurikulum',n:8,s:'Berhasil',sc:'text-green-600 bg-green-50'},
+{w:'27 Apr, 14:00',t:'RPL',n:56,s:'Berhasil',sc:'text-green-600 bg-green-50'}
+];
+const rplBars=[
+{p:'Teknik Informatika',s:48,mx:60},{p:'Sistem Informasi',s:36,mx:60},{p:'Manajemen',s:24,mx:40},{p:'Akuntansi',s:16,mx:40}
+];
+const rplPerBars=[
+{p:'Teknik Informatika',s:38,mx:48},{p:'Sistem Informasi',s:30,mx:36},{p:'Manajemen',s:18,mx:24},{p:'Akuntansi',s:12,mx:16}
+];
+
+// ======================== KOMPONEN UI ========================
+
+// Breadcrumb
+function bc(items){
+    return `<div class="flex items-center gap-1.5 text-[11px] text-surface-400 mb-4 flex-wrap">${items.map((it,i)=>i<items.length-1?`<span>${it}</span><i class="fa-solid fa-chevron-right text-[8px]"></i>`:`<span class="text-surface-700 font-semibold">${it}</span>`).join('')}</div>`;
+}
+
+// Page header
+function ph(title,desc,icon,iconBg='bg-brand-50 text-brand-600'){
+    return `<div class="flex items-start gap-4 mb-6"><div class="w-11 h-11 rounded-xl ${iconBg} flex items-center justify-center flex-shrink-0"><i class="fa-solid ${icon} text-base"></i></div><div><h2 class="font-display font-bold text-surface-900 text-lg leading-tight">${title}</h2><p class="text-surface-400 text-xs mt-0.5">${desc}</p></div></div>`;
+}
+
+// Tabel data dengan search + pagination + actions
+let tblState={};
+function tbl(id,data,pageSize=8){
+    if(!tblState[id]) tblState[id]={page:1,q:''};
+    const st=tblState[id];
+    const {cols,rows,badge}=data;
+    // Filter
+    let filtered=rows;
+    if(st.q){
+        const q=st.q.toLowerCase();
+        filtered=rows.filter(r=>r.some(c=>String(c).toLowerCase().includes(q)));
+    }
+    const total=filtered.length;
+    const pages=Math.max(1,Math.ceil(total/pageSize));
+    if(st.page>pages) st.page=pages;
+    const start=(st.page-1)*pageSize;
+    const pageRows=filtered.slice(start,start+pageSize);
+
+    let html=`<div class="dc"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4"><div class="search-box" style="padding:6px 12px;"><i class="fa-solid fa-magnifying-glass text-surface-400 text-[10px]"></i><input type="text" placeholder="Cari data..." value="${st.q}" oninput="tblSearch('${id}',this.value)"></div><div class="flex items-center gap-2"><span class="text-[11px] text-surface-400">${total} data</span><button class="btn-sm btn-primary" onclick="toast('Fitur tambah data','info')"><i class="fa-solid fa-plus text-[9px]"></i> Tambah</button></div></div>`;
+    html+=`<div class="tbl-wrap"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}<th style="width:120px">Aksi</th></tr></thead><tbody>`;
+    if(pageRows.length===0){
+        html+=`<tr><td colspan="${cols.length+1}" class="text-center py-10 text-surface-400 text-sm"><i class="fa-regular fa-folder-open text-2xl mb-2 block"></i>Tidak ada data ditemukan</td></tr>`;
+    } else {
+        pageRows.forEach((r,ri)=>{
+            html+=`<tr>${r.map((c,ci)=>{if(badge&&badge[ci]&&badge[ci][c])return`<td><span class="tag ${badge[ci][c]}">${c}</span></td>`;return`<td>${c}</td>`;}).join('')}<td><div class="flex items-center gap-1"><button class="btn-sm btn-ghost" onclick="showDetail('${id}',${start+ri})" title="Lihat"><i class="fa-regular fa-eye text-[10px]"></i></button><button class="btn-sm btn-ghost" onclick="toast('Mode edit data','info')" title="Edit"><i class="fa-regular fa-pen-to-square text-[10px]"></i></button><button class="btn-sm btn-danger" onclick="toast('Konfirmasi hapus data','error')" title="Hapus"><i class="fa-regular fa-trash-can text-[10px]"></i></button></div></td></tr>`;
+        });
+    }
+    html+=`</tbody></table></div>`;
+    // Pagination
+    if(pages>1){
+        html+=`<div class="flex items-center justify-between mt-4 pt-3 border-t border-surface-100"><span class="text-[11px] text-surface-400">Hal ${st.page} dari ${pages}</span><div class="flex items-center gap-1"><button class="btn-sm btn-ghost" onclick="tblPage('${id}',${st.page-1})" ${st.page<=1?'disabled style="opacity:.4;pointer-events:none"':''}><i class="fa-solid fa-chevron-left text-[9px]"></i></button>`;
+        for(let i=1;i<=pages;i++){
+            if(pages<=7||i===1||i===pages||Math.abs(i-st.page)<=1){
+                html+=`<button class="btn-sm ${i===st.page?'btn-primary':'btn-ghost'}" onclick="tblPage('${id}',${i})">${i}</button>`;
+            } else if(i===2&&st.page>3||i===pages-1&&st.page<pages-2){
+                html+=`<span class="text-surface-300 text-xs px-1">...</span>`;
+            }
+        }
+        html+=`<button class="btn-sm btn-ghost" onclick="tblPage('${id}',${st.page+1})" ${st.page>=pages?'disabled style="opacity:.4;pointer-events:none"':''}><i class="fa-solid fa-chevron-right text-[9px]"></i></button></div></div>`;
+    }
+    html+=`</div>`;
+    return html;
+}
+function tblSearch(id,q){ tblState[id].q=q; tblState[id].page=1; renderPage(); }
+function tblPage(id,p){ if(p<1)return; tblState[id].page=p; renderPage(); }
+
+// Detail modal
+function showDetail(tblId,rowIdx){
+    const keys={
+        'mhsBio':D.mhsBio, 'mhsReg':D.mhsReg, 'mhsAktif':D.mhsAktif, 'mhsCuti':D.mhsCuti,
+        'mhsKeluar':D.mhsKeluar, 'mhsLulus':D.mhsLulus, 'dsnTetap':D.dsnTetap, 'dsnTidak':D.dsnTidak,
+        'dsnHonorer':D.dsnHonorer, 'mk':D.mk, 'kurikulum':D.kurikulum, 'kelas':D.kelas,
+        'penilaian':D.penilaian, 'rplTransfer':D.rplTransfer, 'rplPerolehan':D.rplPerolehan, 'periode':D.periode
+    };
+    const d=keys[tblId]; if(!d) return;
+    const r=d.rows[rowIdx]; if(!r) return;
+    let html=`<div class="p-6"><div class="flex items-center justify-between mb-5"><h3 class="font-display font-bold text-surface-900 text-base">Detail Data</h3><button onclick="closeModal()" class="w-8 h-8 rounded-lg bg-surface-100 hover:bg-surface-200 flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark text-surface-500 text-xs"></i></button></div><div class="space-y-3">`;
+    d.cols.forEach((c,i)=>{
+        html+=`<div class="flex items-start gap-3 py-2 ${i<d.cols.length-1?'border-b border-surface-100':''}"><span class="text-[11px] font-semibold text-surface-400 w-36 flex-shrink-0 pt-0.5">${c}</span><span class="text-sm text-surface-800">${r[i]||'-'}</span></div>`;
+    });
+    html+=`</div></div>`;
+    document.getElementById('modalBox').innerHTML=html;
+    document.getElementById('modal').classList.add('show');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click',e=>{ if(e.target.id==='modal') closeModal(); });
+
+// ======================== HALAMAN ========================
+const PAGES={};
+
+PAGES.dashboard=()=>{
+    return `<div class="page-in">
+    <section class="relative overflow-hidden rounded-2xl mb-6">
+        <div class="hero-blob w-64 h-64 bg-brand-400 top-[-30px] right-[10%]"></div>
+        <div class="hero-blob w-44 h-44 bg-amber-400 bottom-[-20px] left-[5%]" style="animation-delay:-3s"></div>
+        <div class="relative bg-white border border-surface-200 rounded-2xl overflow-hidden">
+            <div class="flex flex-col lg:flex-row">
+                <div class="hero-illust lg:w-1/2 min-h-[230px] flex items-center justify-center p-8">
+                    <svg viewBox="0 0 320 220" class="w-full max-w-[300px] relative z-10" fill="none"><rect x="40" y="20" width="200" height="130" rx="8" fill="#065f3b" opacity=".9"/><rect x="50" y="30" width="180" height="110" rx="4" fill="#0a5937"/><line x1="70" y1="55" x2="190" y2="55" stroke="#3aed9f" stroke-width="2" stroke-linecap="round" opacity=".7"/><line x1="70" y1="72" x2="170" y2="72" stroke="#b5fcdd" stroke-width="2" stroke-linecap="round" opacity=".5"/><line x1="70" y1="89" x2="200" y2="89" stroke="#3aed9f" stroke-width="2" stroke-linecap="round" opacity=".7"/><line x1="70" y1="106" x2="150" y2="106" stroke="#b5fcdd" stroke-width="2" stroke-linecap="round" opacity=".5"/><line x1="70" y1="123" x2="180" y2="123" stroke="#3aed9f" stroke-width="2" stroke-linecap="round" opacity=".4"/><rect x="160" y="145" width="40" height="12" rx="3" fill="#fbbf24"/><circle cx="90" cy="185" r="16" fill="#0d6b43"/><circle cx="90" cy="180" r="10" fill="#d9ffee"/><rect x="72" y="190" width="36" height="24" rx="6" fill="#065f3b"/><line x1="108" y1="196" x2="140" y2="170" stroke="#d9ffee" stroke-width="3" stroke-linecap="round"/><rect x="160" y="188" width="100" height="6" rx="3" fill="#064e2f" opacity=".6"/><circle cx="185" cy="178" r="8" fill="#b5fcdd"/><rect x="178" y="186" width="14" height="14" rx="4" fill="#0a5937" opacity=".7"/><circle cx="220" cy="178" r="8" fill="#b5fcdd"/><rect x="213" y="186" width="14" height="14" rx="4" fill="#0a5937" opacity=".7"/><circle cx="250" cy="178" r="8" fill="#d9ffee"/><rect x="243" y="186" width="14" height="14" rx="4" fill="#065f3b" opacity=".7"/></svg>
+                </div>
+                <div class="lg:w-1/2 p-8 lg:py-10 lg:pr-10 flex flex-col justify-center">
+                    <span class="tag bg-brand-50 text-brand-700 w-fit mb-3"><i class="fa-solid fa-sparkles text-[8px]"></i> Selamat Datang</span>
+                    <h2 class="font-display font-bold text-surface-900 text-2xl lg:text-[28px] leading-tight mb-2">Sistem Informasi<br>PDDIKTI FEEDER</h2>
+                    <p class="text-surface-500 text-[13px] leading-relaxed mb-5">Kelola data akademik perguruan tinggi secara terintegrasi dengan standar nasional Kemendikbudristek.</p>
+                    <div class="space-y-2.5 text-[13px]">
+                        <div class="flex items-center gap-2.5 text-surface-600"><div class="w-7 h-7 rounded-lg bg-brand-50 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-location-dot text-brand-600 text-[10px]"></i></div>Jl. Pendidikan No. 45, Jakarta Selatan 12345</div>
+                        <div class="flex items-center gap-2.5 text-surface-600"><div class="w-7 h-7 rounded-lg bg-brand-50 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-phone text-brand-600 text-[10px]"></i></div>(021) 7890-1234 ext. 205</div>
+                        <div class="flex items-center gap-2.5 text-surface-600"><div class="w-7 h-7 rounded-lg bg-brand-50 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-envelope text-brand-600 text-[10px]"></i></div>feeder@unima.ac.id</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        ${[['fa-user-graduate','bg-brand-50 text-brand-600','Mahasiswa Aktif',2847,'12%'],['fa-chalkboard-user','bg-amber-50 text-amber-600','Dosen Pengampu',186,'5%'],['fa-book-open','bg-sky-50 text-sky-600','Mata Kuliah',342,'Stabil'],['fa-building-columns','bg-rose-50 text-rose-600','Program Studi',8,'3']].map(([ic,bg,lb,nm,tg])=>`<div class="dc"><div class="flex items-center justify-between mb-2.5"><div class="w-9 h-9 rounded-xl ${bg} flex items-center justify-center"><i class="fa-solid ${ic} text-sm"></i></div><span class="tag ${tg==='Stabil'?'bg-surface-100 text-surface-500':'bg-green-50 text-green-700'}">${tg!=='Stabil'?'<i class="fa-solid fa-arrow-up text-[7px]"></i> ':''}${tg}</span></div><div class="stat-num" data-target="${nm}">0</div><div class="text-surface-400 text-[11px] font-medium mt-1">${lb}</div></div>`).join('')}
+    </section>
+    <section class="grid grid-cols-1 xl:grid-cols-5 gap-5 mb-6">
+        <div class="xl:col-span-3 dc">
+            <div class="flex items-center justify-between mb-4"><div class="flex items-center gap-2.5"><div class="pulse-dot"></div><h3 class="font-display font-bold text-surface-900 text-sm">Change Log Aplikasi</h3><span class="tag bg-brand-50 text-brand-700">v3.0.0</span></div><button onclick="toast('Changelog diunduh','success')" class="text-[11px] text-surface-400 hover:text-brand-600 transition-colors font-medium"><i class="fa-solid fa-download mr-1"></i>Unduh</button></div>
+            <div class="space-y-4 max-h-[300px] overflow-y-auto pr-1">${CL.map(s=>`<div><div class="mb-1.5"><span class="tag ${s.c}"><i class="fa-solid ${s.i} text-[8px]"></i>${s.k}</span></div><ul class="space-y-1 ml-0.5">${s.t.map(t=>`<li class="flex items-start gap-2 text-[12.5px] text-surface-600 leading-relaxed"><i class="fa-solid fa-check text-brand-500 text-[9px] mt-1.5 flex-shrink-0"></i>${t}</li>`).join('')}</ul></div>`).join('')}</div>
+        </div>
+        <div class="xl:col-span-2 dc">
+            <div class="flex items-center justify-between mb-4"><h3 class="font-display font-bold text-surface-900 text-sm">Update Log Sinkronisasi</h3></div>
+            <div class="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">${syncLog.map(l=>`<div class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-surface-50 transition-colors cursor-pointer" onclick="toast('Detail: ${l.t} — ${l.n} record','info')"><div class="w-7 h-7 rounded-lg ${l.sc} flex items-center justify-center flex-shrink-0"><i class="fa-solid ${l.s==='Berhasil'?'fa-check':'fa-xmark'} text-[9px]"></i></div><div class="flex-1 min-w-0"><div class="text-[11px] font-semibold text-surface-700">${l.t}</div><div class="text-[10px] text-surface-400">${l.w} &middot; ${l.n} record</div></div><span class="tag ${l.sc} text-[9px]">${l.s}</span></div>`).join('')}</div>
+        </div>
+    </section>
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div class="dc">
+            <div class="flex items-center gap-2.5 mb-4"><div class="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center"><i class="fa-solid fa-arrow-right-arrow-left text-violet-600 text-sm"></i></div><div><h3 class="font-display font-bold text-surface-900 text-sm">RPL Transfer SKS</h3><p class="text-surface-400 text-[10px]">Pengakuan pembelajaran lampau</p></div></div>
+            <div class="space-y-3" id="rplBars">${rplBars.map(r=>{const p=Math.round(r.s/r.mx*100);return`<div><div class="flex items-center justify-between mb-1"><span class="text-[11px] font-semibold text-surface-700">${r.p}</span><span class="text-[10px] font-mono text-surface-400">${r.s}/${r.mx}</span></div><div class="progress-bar"><div class="progress-fill" style="width:0%" data-w="${p}%"></div></div></div>`;}).join('')}</div>
+            <div class="mt-4 pt-3 border-t border-surface-100 flex items-center justify-between"><span class="text-surface-400 text-[11px]">Total transfer</span><span class="font-display font-bold text-violet-700 text-base">124 SKS</span></div>
+        </div>
+        <div class="dc">
+            <div class="flex items-center gap-2.5 mb-4"><div class="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center"><i class="fa-solid fa-award text-orange-600 text-sm"></i></div><div><h3 class="font-display font-bold text-surface-900 text-sm">RPL Perolehan SKS</h3><p class="text-surface-400 text-[10px]">Hasil konversi pembelajaran</p></div></div>
+            <div class="space-y-3" id="rplPerBars">${rplPerBars.map(r=>{const p=Math.round(r.s/r.mx*100);return`<div><div class="flex items-center justify-between mb-1"><span class="text-[11px] font-semibold text-surface-700">${r.p}</span><span class="text-[10px] font-mono text-surface-400">${r.s}/${r.mx}</span></div><div class="progress-bar"><div class="progress-fill" style="width:0%;background:linear-gradient(90deg,#ea580c,#f97316)" data-w="${p}%"></div></div></div>`;}).join('')}</div>
+            <div class="mt-4 pt-3 border-t border-surface-100 flex items-center justify-between"><span class="text-surface-400 text-[11px]">Total perolehan</span><span class="font-display font-bold text-orange-700 text-base">98 SKS</span></div>
+        </div>
+    </section>
+    </div>`;
+};
+
+// Halaman tabel generik
+function pageTable(key,breadcrumb,title,desc,icon,iconBg,ps){
+    return bc(breadcrumb)+ph(title,desc,icon,iconBg)+tbl(key,D[key],ps||8);
+}
+PAGES['mhs-biodata']=()=>pageTable('mhsBio',['Akademik','Mahasiswa','Biodata Mahasiswa'],'Biodata Mahasiswa','Data lengkap seluruh mahasiswa terdaftar','fa-user-graduate');
+PAGES['mhs-registrasi']=()=>pageTable('mhsReg',['Akademik','Mahasiswa','Registrasi'],'Registrasi Mahasiswa','Status registrasi mahasiswa per semester','fa-clipboard-list','bg-sky-50 text-sky-600');
+PAGES['mhs-aktif']=()=>pageTable('mhsAktif',['Akademik','Mahasiswa','Aktivitas Kuliah'],'Aktivitas Kuliah Mahasiswa','Data SKS dan IPS mahasiswa aktif','fa-book-open-reader','bg-amber-50 text-amber-600');
+PAGES['mhs-cuti']=()=>pageTable('mhsCuti',['Akademik','Mahasiswa','Cuti Akademik'],'Cuti Akademik','Pengajuan cuti akademik mahasiswa','fa-pause-circle','bg-orange-50 text-orange-600',6);
+PAGES['mhs-keluar']=()=>pageTable('mhsKeluar',['Akademik','Mahasiswa','Pengunduran Diri'],'Pengunduran Diri','Pengajuan pengunduran diri mahasiswa','fa-right-from-bracket','bg-red-50 text-red-600',6);
+PAGES['mhs-lulus']=()=>pageTable('mhsLulus',['Akademik','Mahasiswa','Kelulusan'],'Kelulusan Mahasiswa','Data kelulusan dan predikat','fa-graduation-cap','bg-green-50 text-green-600',8);
+PAGES['dsn-tetap']=()=>pageTable('dsnTetap',['Akademik','Dosen','Dosen Tetap'],'Dosen Tetap','Data dosen tetap perguruan tinggi','fa-chalkboard-user','bg-brand-50 text-brand-600',8);
+PAGES['dsn-ttidak']=()=>pageTable('dsnTidak',['Akademik','Dosen','Dosen Tidak Tetap'],'Dosen Tidak Tetap','Dosen dari perguruan tinggi lain','fa-building','bg-sky-50 text-sky-600',6);
+PAGES['dsn-honorer']=()=>pageTable('dsnHonorer',['Akademik','Dosen','Dosen Honorer'],'Dosen Honorer','Dosen honorer / tenaga pengajar kontrak','fa-handshake','bg-orange-50 text-orange-600',6);
+PAGES['mk']=()=>pageTable('mk',['Akademik','Mata Kuliah'],'Mata Kuliah','Daftar seluruh mata kuliah','fa-book-open','bg-brand-50 text-brand-600',10);
+PAGES['kurikulum']=()=>pageTable('kurikulum',['Akademik','Kurikulum'],'Kurikulum','Data kurikulum per program studi','fa-sitemap','bg-sky-50 text-sky-600',6);
+PAGES['kelas']=()=>pageTable('kelas',['Akademik','Kelas Kuliah'],'Kelas Kuliah','Jadwal dan data kelas perkuliahan','fa-users-rectangle','bg-amber-50 text-amber-600',8);
+PAGES['penilaian']=()=>pageTable('penilaian',['Akademik','Penilaian'],'Penilaian','Progres input nilai per kelas','fa-clipboard-check','bg-green-50 text-green-600',8);
+PAGES['rpl-transfer']=()=>pageTable('rplTransfer',['Data & Laporan','RPL','Transfer SKS'],'RPL Transfer SKS','Pengajuan pengakuan pembelajaran lampau','fa-arrow-right-arrow-left','bg-violet-50 text-violet-600',6);
+PAGES['rpl-perolehan']=()=>pageTable('rplPerolehan',['Data & Laporan','RPL','Perolehan SKS'],'RPL Perolehan SKS','Hasil konversi SKS dari pembelajaran','fa-award','bg-orange-50 text-orange-600',6);
+PAGES['periode']=()=>pageTable('periode',['Utama','Periode Perkuliahan'],'Periode Perkuliahan','Daftar semester akademik','fa-calendar','bg-brand-50 text-brand-600',6);
+
+// Halaman khusus: Export Data
+PAGES.export=()=>{
+    const items=[
+        {ic:'fa-user-graduate',bg:'bg-brand-50 text-brand-600',t:'Data Mahasiswa',d:'Export seluruh data mahasiswa aktif, cuti, lulus, dan keluar.',f:['CSV','Excel (XLSX)','PDF'],n:2847},
+        {ic:'fa-chalkboard-user',bg:'bg-amber-50 text-amber-600',t:'Data Dosen',d:'Export data dosen tetap, tidak tetap, dan honorer.',f:['CSV','Excel (XLSX)','PDF'],n:204},
+        {ic:'fa-book-open',bg:'bg-sky-50 text-sky-600',t:'Data Mata Kuliah',d:'Export daftar mata kuliah beserta kurikulum.',f:['CSV','Excel (XLSX)'],n:342},
+        {ic:'fa-clipboard-check',bg:'bg-green-50 text-green-600',t:'Data Nilai',d:'Export nilai per kelas atau per mahasiswa.',f:['CSV','Excel (XLSX)','PDF'],n:12450},
+        {ic:'fa-users-rectangle',bg:'bg-violet-50 text-violet-600',t:'Data Kelas Kuliah',d:'Export jadwal dan peserta kelas kuliah.',f:['CSV','Excel (XLSX)'],n:520},
+        {ic:'fa-graduation-cap',bg:'bg-orange-50 text-orange-600',t:'Data Kelulusan',d:'Export data alumni dan kelulusan.',f:['CSV','Excel (XLSX)','PDF'],n:856},
+    ];
+    return bc(['Data & Laporan','Export Data'])+ph('Export Data','Unduh data akademik dalam berbagai format','fa-file-export','bg-brand-50 text-brand-600')+`<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${items.map(it=>`<div class="dc"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-xl ${it.bg} flex items-center justify-center"><i class="fa-solid ${it.ic}"></i></div><div><div class="text-sm font-semibold text-surface-800">${it.t}</div><div class="text-[10px] text-surface-400">${it.n.toLocaleString()} record</div></div></div><p class="text-[12px] text-surface-500 mb-4 leading-relaxed">${it.d}</p><div class="flex flex-wrap gap-2">${it.f.map(f=>`<button class="btn-sm btn-primary" onclick="toast('Mengunduh ${it.t} format ${f}...','success')"><i class="fa-solid fa-download text-[8px]"></i>${f}</button>`).join('')}</div></div>`).join('')}</div>`;
+};
+
+// Halaman khusus: Kapitulasi
+PAGES.kapitulasi=()=>{
+    const prodi=[
+        {n:'Teknik Informatika',m:620,a:548,l:48,k:24,ipk:'3.52'},
+        {n:'Sistem Informasi',m:510,a:462,l:32,k:16,ipk:'3.41'},
+        {n:'Manajemen',m:720,a:668,l:38,k:14,ipk:'3.38'},
+        {n:'Akuntansi',m:480,a:445,l:28,k:7,ipk:'3.45'},
+        {n:'Ilmu Komunikasi',m:517,a:489,l:20,k:8,ipk:'3.47'},
+    ];
+    const maxM=720;
+    return bc(['Data & Laporan','Kapitulasi'])+ph('Kapitulasi Data','Ringkasan statistik per program studi','fa-chart-pie','bg-brand-50 text-brand-600')+`<div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">${[['Total Mhs','2.847','fa-users','bg-brand-50 text-brand-600'],['Dosen','186','fa-chalkboard-user','bg-amber-50 text-amber-600'],['Mata Kuliah','342','fa-book','bg-sky-50 text-sky-600'],['Lulus 2024','166','fa-graduation-cap','bg-green-50 text-green-600'],['IPK Rata-rata','3.45','fa-chart-line','bg-violet-50 text-violet-600']].map(([l,v,i,b])=>`<div class="dc text-center"><div class="w-9 h-9 rounded-xl ${b} flex items-center justify-center mx-auto mb-2"><i class="fa-solid ${i} text-sm"></i></div><div class="font-display font-bold text-surface-900 text-xl">${v}</div><div class="text-surface-400 text-[10px] font-medium">${l}</div></div>`).join('')}</div><div class="dc"><h3 class="font-display font-bold text-surface-900 text-sm mb-4">Kapitulasi per Program Studi</h3><div class="overflow-x-auto"><table class="w-full text-[12px]"><thead><tr class="border-b-2 border-surface-200"><th class="text-left py-2.5 text-surface-500 font-semibold text-[10px] uppercase">Program Studi</th><th class="text-center py-2.5 text-surface-500 font-semibold text-[10px] uppercase">Mhs</th><th class="text-center py-2.5 text-surface-500 font-semibold text-[10px] uppercase">Aktif</th><th class="text-center py-2.5 text-surface-500 font-semibold text-[10px] uppercase">Lulus</th><th class="text-center py-2.5 text-surface-500 font-semibold text-[10px] uppercase">Keluar</th><th class="text-center py-2.5 text-surface-500 font-semibold text-[10px] uppercase">IPK</th><th class="text-left py-2.5 text-surface-500 font-semibold text-[10px] uppercase" style="min-width:140px">Distribusi</th></tr></thead><tbody>${prodi.map(p=>`<tr class="border-b border-surface-100 hover:bg-surface-50 transition-colors"><td class="py-3 font-semibold text-surface-800">${p.n}</td><td class="py-3 text-center text-surface-600">${p.m}</td><td class="py-3 text-center text-surface-600">${p.a}</td><td class="py-3 text-center text-green-600 font-semibold">${p.l}</td><td class="py-3 text-center text-red-500">${p.k}</td><td class="py-3 text-center font-mono font-semibold text-surface-800">${p.ipk}</td><td class="py-3"><div class="flex gap-0.5 h-5 rounded overflow-hidden"><div class="bg-brand-400 h-full" style="width:${(p.a/p.m*100).toFixed(0)}%" title="Aktif ${p.a}"></div><div class="bg-green-400 h-full" style="width:${(p.l/p.m*100).toFixed(0)}%" title="Lulus ${p.l}"></div><div class="bg-red-300 h-full" style="width:${(p.k/p.m*100).toFixed(0)}%" title="Keluar ${p.k}"></div></div></td></tr>`).join('')}</tbody></table></div><div class="flex items-center gap-4 mt-3 pt-3 border-t border-surface-100"><div class="flex items-center gap-1.5 text-[10px] text-surface-500"><span class="w-3 h-3 rounded bg-brand-400"></span>Aktif</div><div class="flex items-center gap-1.5 text-[10px] text-surface-500"><span class="w-3 h-3 rounded bg-green-400"></span>Lulus</div><div class="flex items-center gap-1.5 text-[10px] text-surface-500"><span class="w-3 h-3 rounded bg-red-300"></span>Keluar</div></div></div>`;
+};
+
+// Halaman khusus: Pengaturan
+PAGES.pengaturan=()=>{
+    return bc(['Sistem','Pengaturan'])+ph('Pengaturan Sistem','Konfigurasi aplikasi dan akun','fa-gear','bg-surface-100 text-surface-600')+`<div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <div class="dc"><h3 class="font-display font-bold text-surface-900 text-sm mb-4"><i class="fa-solid fa-building text-surface-400 mr-2"></i>Identitas Perguruan Tinggi</h3><div class="space-y-3">${[['Nama PT','Universitas Nusantara Mandiri'],['NSPN','0210250'],['Akreditasi','Unggul (SK BAN-PT No. 1234/SK/BAN-PT/Ak-PPJ/)'],['Alamat','Jl. Pendidikan No. 45, Jakarta Selatan'],['Kode Pos','12345'],['Telepon','(021) 7890-1234'],['Fax','(021) 7890-1235'],['Website','www.unima.ac.id'],['Email','info@unima.ac.id']].map(([l,v])=>`<div><label class="text-[11px] font-semibold text-surface-500 block mb-1">${l}</label><input type="text" value="${v}" class="w-full px-3 py-2 text-[12.5px] border border-surface-200 rounded-lg bg-surface-50 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 outline-none transition-all text-surface-800"></div>`).join('')}</div><button class="btn-sm btn-primary mt-4 py-2 px-5" onclick="toast('Identitas PT berhasil disimpan','success')"><i class="fa-solid fa-floppy-disk text-[10px] mr-1"></i>Simpan Perubahan</button></div>
+    <div class="space-y-5">
+        <div class="dc"><h3 class="font-display font-bold text-surface-900 text-sm mb-4"><i class="fa-solid fa-user-shield text-surface-400 mr-2"></i>Akun Pengguna</h3><div class="space-y-3">${[['Username','admin.unima'],['Nama Lengkap','Dr. Ahmad Fauzi, M.Kom.'],['Email','ahmad.fauzi@unima.ac.id'],['Role','Administrator'],['Terakhir Login','05 Mei 2026, 07:30 WIB']].map(([l,v])=>`<div><label class="text-[11px] font-semibold text-surface-500 block mb-1">${l}</label><input type="text" value="${v}" ${l==='Role'||l==='Terakhir Login'?'readonly':''} class="w-full px-3 py-2 text-[12.5px] border border-surface-200 rounded-lg bg-surface-50 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 outline-none transition-all text-surface-800 ${l==='Role'||l==='Terakhir Login'?'opacity-60 cursor-not-allowed':''}"></div>`).join('')}</div><button class="btn-sm btn-primary mt-4 py-2 px-5" onclick="toast('Profil berhasil diperbarui','success')"><i class="fa-solid fa-floppy-disk text-[10px] mr-1"></i>Perbarui Profil</button></div>
+        <div class="dc"><h3 class="font-display font-bold text-surface-900 text-sm mb-4"><i class="fa-solid fa-key text-surface-400 mr-2"></i>Ubah Password</h3><div class="space-y-3">${[['Password Lama','password'],['Password Baru',''],['Konfirmasi Password','']].map(([l,v])=>`<div><label class="text-[11px] font-semibold text-surface-500 block mb-1">${l}</label><input type="${l.includes('Password')?'password':'text'}" value="${v}" placeholder="Masukkan ${l.toLowerCase()}" class="w-full px-3 py-2 text-[12.5px] border border-surface-200 rounded-lg bg-surface-50 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 outline-none transition-all text-surface-800"></div>`).join('')}</div><button class="btn-sm btn-primary mt-4 py-2 px-5" onclick="toast('Password berhasil diubah','success')"><i class="fa-solid fa-lock text-[10px] mr-1"></i>Ubah Password</button></div>
+    </div></div>`;
+};
+
+// Halaman khusus: Bantuan
+PAGES.bantuan=()=>{
+    const faq=[
+        {q:'Bagaimana cara melakukan sinkronisasi data ke PDDIKTI?',a:'Klik tombol "Sync" pada header. Sistem akan mengirim seluruh data yang belum tersinkronisasi ke server PDDIKTI Kemendikbudristek. Pastikan koneksi internet stabil dan periode perkuliahan sudah diatur dengan benar.'},
+        {q:'Mengapa status sinkronisasi saya gagal?',a:'Sinkronisasi dapat gagal karena beberapa hal: koneksi internet terputus, data tidak valid (misalnya NIM sudah terdaftar di PT lain), atau server PDDIKTI sedang maintenance. Periksa log sinkronisasi untuk detail error.'},
+        {q:'Bagaimana cara mengajukan RPL Transfer SKS?',a:'Masuk ke menu RPL > Transfer SKS, klik tombol "Tambah", isi form pengajuan beserta bukti pembelajaran lampau (sertifikat, transkrip, portofolio). Pengajuan akan ditinjau oleh kaprodi.'},
+        {q:'Apa perbedaan Dosen Tetap dan Dosen Tidak Tetap?',a:'Dosen Tetap adalah dosen yang diangkat dan ditempatkan secara tetap oleh perguruan tinggi sesuai ketentuan statuta. Dosen Tidak Tetap adalah dosen dari perguruan tinggi lain yang mengajar di PT Anda. Data Dosen Tidak Tetap memerlukan NIDN dari PT asal.'},
+        {q:'Bagaimana cara export data dalam format Excel?',a:'Masuk ke menu Export Data, pilih jenis data yang ingin diunduh, lalu klik tombol format "Excel (XLSX)". File akan otomatis terunduh ke perangkat Anda.'},
+        {q:'Apakah data yang sudah dikirim ke PDDIKTI bisa diubah?',a:'Data yang sudah terkirim dan diterima oleh PDDIKTI tidak bisa langsung diubah dari Feeder. Perubahan harus dilakukan melalui proses koreksi di PDDIKTI atau menghubungi layanan helpdesk PDDIKTI Kemendikbudristek.'},
+    ];
+    return bc(['Sistem','Bantuan'])+ph('Pusat Bantuan','FAQ dan informasi kontak teknis','fa-circle-question','bg-sky-50 text-sky-600')+`<div class="grid grid-cols-1 lg:grid-cols-3 gap-5"><div class="lg:col-span-2"><div class="dc"><h3 class="font-display font-bold text-surface-900 text-sm mb-4">Pertanyaan yang Sering Diajukan</h3><div class="space-y-2">${faq.map((f,i)=>`<div class="border border-surface-200 rounded-xl overflow-hidden"><button class="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-surface-50 transition-colors" onclick="togFaq(this)"><span class="text-[12.5px] font-semibold text-surface-800 pr-4">${f.q}</span><i class="fa-solid fa-chevron-down text-surface-400 text-[10px] flex-shrink-0 transition-transform duration-200"></i></button><div class="faq-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease"><div class="px-4 pb-3 text-[12px] text-surface-600 leading-relaxed">${f.a}</div></div></div>`).join('')}</div></div></div><div class="space-y-5"><div class="dc"><h3 class="font-display font-bold text-surface-900 text-sm mb-4">Hubungi Kami</h3><div class="space-y-3">${[['fa-phone','Telepon','(021) 7890-1234 ext. 205'],['fa-envelope','Email','feeder@unima.ac.id'],['fa-clock','Jam Operasional','Senin – Jumat, 08:00 – 16:00 WIB'],['fa-headset','Helpdesk PDDIKTI','helpdesk.pddikti.kemdikbud.go.id']].map(([ic,l,v])=>`<div class="flex items-start gap-3"><div class="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center flex-shrink-0 mt-0.5"><i class="fa-solid ${ic} text-brand-600 text-[10px]"></i></div><div><div class="text-[11px] font-semibold text-surface-500">${l}</div><div class="text-[12.5px] text-surface-800">${v}</div></div></div>`).join('')}</div></div><div class="dc bg-brand-950 border-brand-800"><h3 class="font-display font-bold text-white text-sm mb-2">Versi Aplikasi</h3><div class="space-y-1.5 text-[12px]"><div class="flex justify-between text-brand-200"><span>Versi Feeder</span><span class="text-brand-300 font-mono">3.0.0</span></div><div class="flex justify-between text-brand-200"><span>Versi WS</span><span class="text-brand-300 font-mono">2.1.0</span></div><div class="flex justify-between text-brand-200"><span>Terakhir Update</span><span class="text-brand-300">01 Mei 2026</span></div><div class="flex justify-between text-brand-200"><span>Lisensi</span><span class="text-brand-300">Resmi Kemendikbud</span></div></div></div></div></div>`;
+};
+
+// ======================== ROUTER ========================
+let curPage='dashboard';
+function go(pageId,el){
+    // Update sidebar active state
+    document.querySelectorAll('.mi').forEach(m=>m.classList.remove('active'));
+    document.querySelectorAll('.submenu a').forEach(a=>a.classList.remove('active'));
+    if(el){
+        if(el.classList.contains('mi')) el.classList.add('active');
+        else el.classList.add('active');
+        // Juga highlight parent mi
+        if(el.classList.contains('submenu')===false && !el.classList.contains('mi')){
+            const parentMi=el.closest('.submenu')?.previousElementSibling;
+            if(parentMi) parentMi.classList.add('active');
+        }
+    }
+    curPage=pageId;
+    renderPage();
+    closeMob();
+    // Scroll ke atas
+    document.getElementById('pageContent').scrollTo({top:0,behavior:'smooth'});
+    window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderPage(){
+    const container=document.getElementById('pageContent');
+    const fn=PAGES[curPage];
+    if(fn){
+        container.innerHTML=fn();
+        // Animasi counter jika dashboard
+        if(curPage==='dashboard'){
+            setTimeout(()=>{
+                container.querySelectorAll('.stat-num').forEach(el=>{
+                    const target=parseInt(el.dataset.target);
+                    if(!target) return;
+                    const dur=1200;const start=performance.now();
+                    (function upd(now){const p=Math.min((now-start)/dur,1);const e=1-Math.pow(1-p,3);el.textContent=Math.round(e*target).toLocaleString('id-ID');if(p<1)requestAnimationFrame(upd);})(start);
+                });
+                // Animasi progress bar
+                setTimeout(()=>{
+                    container.querySelectorAll('.progress-fill').forEach(b=>{b.style.width=b.dataset.w;});
+                },100);
+            },50);
+        }
+    }
+}
+
+// ======================== SIDEBAR ========================
+function togSB(){
+    const sb=document.getElementById('sidebar'),mw=document.getElementById('mainWrap');
+    if(window.innerWidth<=1024){sb.classList.toggle('mob-open');document.getElementById('mobOverlay').classList.toggle('show');}
+    else{sb.classList.toggle('collapsed');mw.classList.toggle('exp');}
+}
+function closeMob(){document.getElementById('sidebar').classList.remove('mob-open');document.getElementById('mobOverlay').classList.remove('show');}
+function togSub(el){
+    const sub=el.nextElementSibling,arrow=el.querySelector('.mi-arrow');
+    document.querySelectorAll('.submenu.open').forEach(s=>{if(s!==sub){s.classList.remove('open');s.previousElementSibling.querySelector('.mi-arrow')?.classList.remove('open');}});
+    sub.classList.toggle('open');arrow?.classList.toggle('open');
+}
+
+// ======================== UTILITAS ========================
+function toast(msg,type='info'){
+    const c=document.getElementById('toastC'),t=document.createElement('div');t.className='toast';
+    const icons={success:'fa-circle-check text-green-400',info:'fa-circle-info text-sky-400',error:'fa-circle-xmark text-red-400'};
+    t.innerHTML=`<i class="fa-solid ${icons[type]||icons.info}"></i><span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),250);},3200);
+}
+function doSync(){
+    const i=document.getElementById('syncIco'),t=document.getElementById('syncTxt');
+    i.classList.add('fa-spin');t.textContent='Sync...';
+    setTimeout(()=>{i.classList.remove('fa-spin');t.textContent='Sync';toast('Sinkronisasi berhasil: 2.395 record diperbarui','success');syncLog.unshift({w:'Baru saja',t:'Full Sync',n:2395,s:'Berhasil',sc:'text-green-600 bg-green-50'});if(curPage==='dashboard')renderPage();},2200);
+}
+function togFaq(btn){
+    const body=btn.nextElementSibling,ico=btn.querySelector('i');
+    const isOpen=body.style.maxHeight!=='0px'&&body.style.maxHeight!=='';
+    // Tutup semua
+    document.querySelectorAll('.faq-body').forEach(b=>{b.style.maxHeight='0px';});
+    document.querySelectorAll('.faq-body').forEach(b=>{b.parentElement.querySelector('i').style.transform='';});
+    if(!isOpen){body.style.maxHeight=body.scrollHeight+'px';ico.style.transform='rotate(180deg)';}
+}
+function globalSearchHandler(q){
+    if(!q.trim()) return;
+    const ql=q.toLowerCase();
+    // Cari di menu items
+    const allItems=document.querySelectorAll('.mi[data-page], .submenu a[data-page]');
+    for(const item of allItems){
+        const label=item.textContent.trim().toLowerCase();
+        if(label.includes(ql)){
+            const pageId=item.dataset.page;
+            if(pageId && PAGES[pageId]){
+                // Buka submenu parent jika ada
+                const parentSub=item.closest('.submenu');
+                if(parentSub && !parentSub.classList.contains('open')){
+                    parentSub.previousElementSibling?.click();
+                }
+                go(pageId,item);
+                document.getElementById('globalSearch').value='';
+                return;
+            }
+        }
+    }
+}
+
+// ======================== INIT ========================
+document.addEventListener('DOMContentLoaded',()=>{ renderPage(); });
+window.addEventListener('resize',()=>{if(window.innerWidth>1024){closeMob();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+</script>
+</body>
+</html>
