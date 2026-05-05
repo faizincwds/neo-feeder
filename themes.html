@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neo Feeder — Dashboard Akademik</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+<script>
+tailwind.config={theme:{extend:{fontFamily:{display:['Space Grotesk','sans-serif'],body:['Plus Jakarta Sans','sans-serif']}}}}
+</script>
+<style>
+:root{
+  --bg:#f4f7fa;--card:#ffffff;--card-b:#dfe6ee;
+  --tx:#0f172a;--tx2:#64748b;--bdr:#e2e8f0;
+  --acc:#10b981;--acc-d:#059669;--acc-dd:#047857;
+  --sb1:#021a12;--sb2:#0a2e1f;--sb3:#0f3d2a;
+}
+.dark{
+  --bg:#0f172a;--card:#1a2332;--card-b:#2a3a4a;
+  --tx:#e2e8f0;--tx2:#94a3b8;--bdr:#1e2d3d;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--tx);overflow-x:hidden;transition:background .3s,color .3s}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px}
+.dark ::-webkit-scrollbar-thumb{background:#334155}
+
+.sb{width:260px;background:linear-gradient(180deg,var(--sb1),var(--sb2) 50%,var(--sb3));position:fixed;top:0;left:0;bottom:0;z-index:40;overflow-y:auto;overflow-x:hidden;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.sb.cl{transform:translateX(-260px)}
+.sb::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1)}
+.sb-mi{display:flex;align-items:center;padding:8px 14px;margin:1px 8px;border-radius:8px;cursor:pointer;transition:all .15s;color:rgba(209,250,229,.45);font-size:12.5px;font-weight:500;gap:10px;user-select:none}
+.sb-mi:hover{background:rgba(255,255,255,.06);color:#d1fae5}
+.sb-mi.act{background:rgba(16,185,129,.12);color:#ecfdf5;box-shadow:inset 3px 0 0 var(--acc)}
+.sb-mi .mi-i{font-size:18px;flex-shrink:0}
+.sb-mi .mi-l{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-mi .mi-a{font-size:16px;transition:transform .2s;opacity:.3;flex-shrink:0}
+.sb-mi .mi-a.op{transform:rotate(180deg);opacity:.8}
+.sb-sub{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.sb-sub.op{max-height:600px}
+.sb-sub a{display:flex;align-items:center;padding:6px 14px 6px 48px;font-size:11.5px;color:rgba(209,250,229,.28);border-radius:6px;transition:all .12s;cursor:pointer;text-decoration:none;gap:7px;margin:0 8px}
+.sb-sub a:hover{color:#d1fae5;background:rgba(255,255,255,.04)}
+.sb-sub a.act{color:var(--acc);background:rgba(16,185,129,.08)}
+.sb-sub a .dt{width:4px;height:4px;border-radius:50%;background:rgba(209,250,229,.12);flex-shrink:0}
+.sb-sub a.act .dt{background:var(--acc)}
+
+.mw{margin-left:260px;transition:margin-left .3s cubic-bezier(.4,0,.2,1);min-height:100vh;display:flex;flex-direction:column}
+.mw.fl{margin-left:0}
+.hdr{height:56px;background:rgba(255,255,255,.88);backdrop-filter:blur(16px) saturate(1.8);border-bottom:1px solid var(--card-b);position:sticky;top:0;z-index:30;flex-shrink:0;transition:background .3s,border-color .3s}
+.dark .hdr{background:rgba(15,23,42,.9)}
+
+/* overlay — hanya untuk backdrop */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:35;backdrop-filter:blur(2px)}
+.ov.sh{display:block}
+
+.tg{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;white-space:nowrap}
+.tg-p{background:#ecfdf5;color:#047857}
+.tg-n{background:#fef2f2;color:#dc2626}
+.tg-u{background:#f1f5f9;color:#475569}
+.dark .tg-p{background:rgba(16,185,129,.1);color:#34d399}
+.dark .tg-n{background:rgba(239,68,68,.1);color:#f87171}
+.dark .tg-u{background:rgba(100,116,139,.1);color:#94a3b8}
+
+.cd{background:var(--card);border:1px solid var(--card-b);border-radius:12px;padding:18px;transition:box-shadow .2s,background .3s,border-color .3s}
+.cd:hover{box-shadow:0 2px 16px rgba(0,0,0,.04)}
+.dark .cd:hover{box-shadow:0 2px 20px rgba(0,0,0,.2)}
+.sn{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.55rem;line-height:1}
+.tw{overflow-x:auto;border:1px solid var(--card-b);border-radius:10px;background:var(--card);transition:background .3s,border-color .3s}
+.tw table{width:100%;border-collapse:collapse;font-size:11.5px}
+.tw th{background:var(--bg);padding:8px 11px;text-align:left;font-weight:600;color:var(--tx2);border-bottom:2px solid var(--card-b);white-space:nowrap;font-size:10px;text-transform:uppercase;letter-spacing:.4px;transition:background .3s,color .3s}
+.tw td{padding:7px 11px;border-bottom:1px solid var(--bdr);color:var(--tx);transition:border-color .3s}
+.tw tr:last-child td{border-bottom:none}
+.tw tr:hover td{background:var(--bg);transition:background .15s}
+.bt{padding:5px 12px;border-radius:7px;font-size:11px;font-weight:600;border:none;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px;font-family:inherit}
+.bt-p{background:var(--acc);color:#fff}.bt-p:hover{background:var(--acc-d)}
+.bt-g{background:var(--bg);color:var(--tx2);transition:background .3s,color .3s}.bt-g:hover{background:var(--bdr)}
+.bt-d{background:#fef2f2;color:#dc2626}.bt-d:hover{background:#fee2e2}
+.dark .bt-d{background:rgba(239,68,68,.08);color:#f87171}.dark .bt-d:hover{background:rgba(239,68,68,.15)}
+.bt-s{padding:3px 7px;border-radius:5px;font-size:10px;gap:3px}
+.bt:disabled{opacity:.35;pointer-events:none}
+.sx{display:flex;align-items:center;background:var(--bg);border-radius:8px;padding:4px 10px;gap:6px;border:1.5px solid transparent;transition:all .2s,background .3s}
+.sx:focus-within{border-color:var(--acc);background:var(--card);box-shadow:0 0 0 3px rgba(16,185,129,.08)}
+.sx input{background:transparent;outline:none;border:none;font-size:11.5px;color:var(--tx);width:100%;font-family:inherit;transition:color .3s}
+.sx input::placeholder{color:var(--tx2);opacity:.7}
+.pi{animation:pI .22s ease}
+@keyframes pI{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.pb{height:6px;border-radius:99px;background:var(--bdr);overflow:hidden;transition:background .3s}
+.pf{height:100%;border-radius:99px;background:var(--acc);transition:width .8s ease}
+.fi{width:100%;padding:7px 10px;font-size:11.5px;border:1.5px solid var(--card-b);border-radius:8px;background:var(--bg);color:var(--tx);outline:none;transition:all .15s,background .3s,border-color .3s,color .3s;font-family:inherit}
+.fi:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(16,185,129,.08);background:var(--card)}
+.fi[readonly]{opacity:.55;cursor:not-allowed}
+.fl{display:block;font-size:10px;font-weight:600;color:var(--tx2);margin-bottom:3px;transition:color .3s}
+.hb{width:32px;height:32px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;transition:all .15s}
+.hb .material-icons-outlined{font-size:18px;color:var(--tx2);transition:color .3s}
+.hb:hover{background:var(--bdr)}
+.iw{width:32px;height:32px;border-radius:10px;background:rgba(16,185,129,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.iw .material-icons-outlined{font-size:16px;color:var(--acc)}
+.iw-lg{width:36px;height:36px;border-radius:12px}
+.tc{position:fixed;bottom:14px;right:14px;z-index:999;display:flex;flex-direction:column;gap:5px}
+.tt{background:#0f172a;color:#fff;padding:9px 14px;border-radius:9px;font-size:11.5px;display:flex;align-items:center;gap:7px;box-shadow:0 6px 24px rgba(0,0,0,.18);animation:tI .25s ease;max-width:300px}
+@keyframes tI{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.tt.ou{animation:tO .2s ease forwards}
+@keyframes tO{to{opacity:0;transform:translateY(6px) scale(.97)}}
+.mb{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(3px);z-index:50;display:none;align-items:center;justify-content:center}
+.mb.sh{display:flex}
+.mx{background:var(--card);border-radius:14px;max-width:520px;width:92%;max-height:80vh;overflow-y:auto;animation:mI .22s ease;transition:background .3s}
+@keyframes mI{from{opacity:0;transform:scale(.97) translateY(6px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.dd{position:absolute;right:0;top:100%;margin-top:5px;background:var(--card);border:1px solid var(--card-b);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.1);min-width:170px;opacity:0;transform:translateY(-3px);pointer-events:none;transition:all .15s,background .3s,border-color .3s;z-index:50}
+.dark .dd{box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.dd.sh{opacity:1;transform:translateY(0);pointer-events:auto}
+.dd a{display:flex;align-items:center;gap:7px;padding:7px 12px;font-size:11.5px;color:var(--tx2);cursor:pointer;transition:all .1s;text-decoration:none}
+.dd a:hover{background:var(--bg);color:var(--tx)}
+.dd .dv{border-top:1px solid var(--bdr);margin:3px 0}
+.tgl{position:relative;width:36px;height:20px;cursor:pointer;display:inline-block}
+.tgl input{opacity:0;width:0;height:0;position:absolute}
+.tgl .sl{position:absolute;inset:0;background:#cbd5e1;border-radius:99px;transition:background .2s}
+.tgl .sl::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.tgl input:checked+.sl{background:var(--acc)}
+.tgl input:checked+.sl::after{transform:translateX(16px)}
+.dark .tgl .sl{background:#475569}
+
+@media(max-width:1024px){
+  .sb{transform:translateX(-260px)}
+  .sb.sopen{transform:translateX(0)}
+  .mw,.mw.fl{margin-left:0!important}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body class="antialiased">
+
+<!-- overlay backdrop (sebelumnya class .mo, sekarang .ov) -->
+<div class="ov" id="ov" onclick="cmob()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sb" id="sb">
+  <div class="flex items-center gap-2.5 px-4 py-4 border-b border-white/[.07]">
+    <div class="w-8 h-8 rounded-lg bg-white/[.07] flex items-center justify-center flex-shrink-0">
+      <span class="material-icons-outlined text-emerald-400" style="font-size:17px">school</span>
+    </div>
+    <div>
+      <div class="text-white font-display font-bold text-[13.5px] leading-tight tracking-tight">Neo Feeder</div>
+      <div class="text-emerald-400/25 text-[8px] font-semibold tracking-[.12em] uppercase">PDDIKTI v3.0</div>
+    </div>
+  </div>
+  <nav id="sbN" style="padding:8px 0"></nav>
+  <div class="px-4 py-3 border-t border-white/[.07] mt-1">
+    <div class="flex items-center gap-2.5">
+      <img src="https://picsum.photos/seed/neo-usr/40/40.jpg" class="w-7 h-7 rounded-full ring-2 ring-emerald-400/20 object-cover" alt="">
+      <div><div class="text-white text-[10.5px] font-semibold leading-tight">Admin Feeder</div><div class="text-emerald-400/20 text-[8px]">Operator</div></div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="mw" id="mw">
+  <header class="hdr flex items-center justify-between px-4 md:px-5">
+    <div class="flex items-center gap-2.5">
+      <button onclick="tsb()" class="hb" aria-label="Menu"><span class="material-icons-outlined">menu</span></button>
+      <div class="hidden sm:block">
+        <div class="font-display font-bold text-[13px] leading-tight">Universitas Nusantara Mandiri</div>
+        <div class="text-[9.5px] font-medium" style="color:var(--tx2)">Semester Genap 2025/2026</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <div class="sx hidden md:flex" style="width:180px;padding:3px 9px">
+        <span class="material-icons-outlined" style="font-size:15px;color:var(--tx2);opacity:.7">search</span>
+        <input placeholder="Cari menu..." id="gS" onkeyup="gsFn(this.value)">
+      </div>
+      <button onclick="toast('Tidak ada notifikasi baru','info')" class="hb relative" aria-label="Notifikasi">
+        <span class="material-icons-outlined">notifications_none</span>
+        <span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-red-500 rounded-full text-[7px] text-white font-bold flex items-center justify-center ring-2" style="--tw-ring-color:var(--card)">3</span>
+      </button>
+      <button onclick="tdk()" class="hb" aria-label="Tema" id="dkB"><span class="material-icons-outlined" id="dkI">dark_mode</span></button>
+      <div class="relative">
+        <button onclick="tdd()" class="flex items-center gap-1 py-1 px-1.5 rounded-lg" style="transition:background .15s" onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background=''" id="ddB">
+          <img src="https://picsum.photos/seed/neo-usr/40/40.jpg" class="w-7 h-7 rounded-full object-cover" alt="">
+          <span class="material-icons-outlined" style="font-size:14px;color:var(--tx2)">expand_more</span>
+        </button>
+        <div class="dd" id="ddM">
+          <a onclick="nav('profil');cdd()"><span class="material-icons-outlined" style="font-size:15px">person</span>Profil</a>
+          <a onclick="nav('set-periode');cdd()"><span class="material-icons-outlined" style="font-size:15px">settings</span>Pengaturan</a>
+          <div class="dv"></div>
+          <a onclick="toast('Berhasil keluar','info');cdd()"><span class="material-icons-outlined" style="font-size:15px">logout</span>Keluar</a>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main class="p-4 md:p-5 flex-1" id="pg"></main>
+  <footer class="px-5 py-2.5 text-center flex-shrink-0" style="border-top:1px solid var(--bdr)">
+    <p class="text-[9px]" style="color:var(--tx2)">Neo Feeder v3.0.0 — Universitas Nusantara Mandiri &copy; 2026</p>
+  </footer>
+</div>
+
+<div class="mb" id="mdl" onclick="if(event.target===this)cmod()"><div class="mx" id="mxB"></div></div>
+<div class="tc" id="tc"></div>
+
+<script>
+var MN=[
+  {id:'dashboard',ico:'dashboard',lbl:'Dashboard'},
+  {id:'profil',ico:'account_circle',lbl:'Profil'},
+  {ico:'school',lbl:'Mahasiswa',sub:[{id:'mhs-daftar',lbl:'Daftar Mahasiswa'},{id:'mhs-hapus',lbl:'Daftar Mahasiswa Hapus'}]},
+  {ico:'person',lbl:'Dosen',sub:[{id:'dsn-daftar',lbl:'Dosen'},{id:'dsn-penugasan',lbl:'Penugasan Dosen'}]},
+  {ico:'menu_book',lbl:'Perkuliahan',sub:[
+    {id:'kul-mk',lbl:'Mata Kuliah'},{id:'kul-substansi',lbl:'Substansi Kuliah'},{id:'kul-kurikulum',lbl:'Kurikulum'},
+    {id:'kul-kelas',lbl:'Kelas Perkuliahan'},{id:'kul-nilai',lbl:'Nilai Perkuliahan'},
+    {id:'kul-aktif',lbl:'Aktivitas Kuliah Mahasiswa'},{id:'kul-hitung',lbl:'Hitung Aktivitas Perkuliahan'},
+    {id:'kul-aktifmhs',lbl:'Aktivitas Mahasiswa'},{id:'kul-konversi',lbl:'Konversi Aktivitas Mahasiswa'},
+    {id:'kul-lulusdo',lbl:'Daftar Mahasiswa Lulus / Dropout'},{id:'kul-transkripang',lbl:'Perhitungan Transkrip Angkatan'},
+    {id:'kul-cektrans',lbl:'Cek Transkrip Mahasiswa'}
+  ]},
+  {ico:'tune',lbl:'Pelengkap',sub:[{id:'pel-skala',lbl:'Skala Nilai'},{id:'pel-periode',lbl:'Pengaturan Periode Perkuliahan'}]},
+  {ico:'assessment',lbl:'Rekapitulasi',sub:[
+    {id:'rek-pelaporan',lbl:'Rekap Pelaporan'},{id:'rek-dosen',lbl:'Jumlah Dosen'},{id:'rek-mhs',lbl:'Jumlah Mahasiswa'},
+    {id:'rek-ips',lbl:'Rekap IPS Mahasiswa'},{id:'rek-krs',lbl:'KRS Mahasiswa'},{id:'rek-khs',lbl:'KHS Mahasiswa'},
+    {id:'rek-status',lbl:'Laporan Status Mahasiswa'},{id:'rek-sksdosen',lbl:'Laporan SKS Dosen Mengajar'},
+    {id:'rek-pddikti',lbl:'Rekap Pelaporan PDDIKTI Per Checkpoint'}
+  ]},
+  {ico:'settings',lbl:'Pengaturan',sub:[
+    {id:'set-sandbox',lbl:'Sandbox'},{id:'set-periode',lbl:'Pengaturan Periode'},{id:'set-transkrip',lbl:'Pengaturan Transkrip'},
+    {id:'set-validasi',lbl:'Validasi Feeder'},{id:'set-kode',lbl:'Update Kode Registrasi'},
+    {id:'set-update',lbl:'Update Aplikasi'},{id:'set-log',lbl:'Log Feeder'}
+  ]},
+  {ico:'file_download',lbl:'Export Data',sub:[
+    {id:'exp-mhs',lbl:'Mahasiswa'},{id:'exp-nilaitransfer',lbl:'Nilai Transfer'},{id:'exp-penugasan',lbl:'Penugasan Dosen'},
+    {id:'exp-mk',lbl:'Mata Kuliah'},{id:'exp-kelas',lbl:'Kelas Perkuliahan'},
+    {id:'exp-kelasren',lbl:'Kelas Perkuliahan Rencana Evaluasi'},{id:'exp-krs',lbl:'KRS Mahasiswa'},
+    {id:'exp-nilaikev',lbl:'Nilai Komponen Evaluasi'},{id:'exp-aktifdosen',lbl:'Aktivitas Mengajar Dosen'},
+    {id:'exp-aktifkul',lbl:'Aktivitas Kuliah'},{id:'exp-lulusdo',lbl:'Mahasiswa Lulus / DO'},
+    {id:'exp-transkrip',lbl:'Transkip'}
+  ]},
+  {ico:'sync',lbl:'Sinkronisasi',sub:[
+    {id:'syn-pddikti',lbl:'Sinkronisasi PDDIKTI'},{id:'syn-pengguna',lbl:'Sinkronisasi Pengguna'},
+    {id:'syn-table',lbl:'Sinkronisasi PDDIKTI Table'},{id:'syn-faq',lbl:'FAQ PDDIKTI'}
+  ]}
+];
+
+var D={
+mhsD:{c:['NIM','Nama','Prodi','Smt','IPK','SKS','Status'],b:{6:{'Aktif':'tg-p','Cuti':'tg-u','Lulus':'tg-u','DO':'tg-n'}},r:[
+['2024001001','Ahmad Rizky Pratama','Teknik Informatika','4','3.72','86','Aktif'],['2024001002','Siti Nurhaliza Putri','Sistem Informasi','4','3.65','78','Aktif'],['2023001023','Muhammad Farhan Hakim','Teknik Informatika','6','3.81','110','Aktif'],['2023001045','Dewi Anggraini','Manajemen','6','3.45','102','Aktif'],['2022002011','Budi Santoso','Akuntansi','8','3.58','138','Cuti'],['2024002003','Rina Wulandari','Manajemen','4','3.33','80','Aktif'],['2023002008','Fajar Nugroho','Akuntansi','6','3.27','96','Aktif'],['2022003005','Anisa Rahma','Ilmu Komunikasi','8','3.91','140','Aktif'],['2021004012','Dian Permana','Teknik Informatika','10','3.55','148','Lulus'],['2024003007','Hendra Wijaya','Ilmu Komunikasi','4','3.10','72','Aktif'],['2023003001','Lestari Dewi','Ilmu Komunikasi','6','3.48','98','Aktif'],['2024001008','Rizky Aditya','Teknik Informatika','4','3.60','84','Aktif'],['2022001009','Putri Maharani','Sistem Informasi','8','3.74','136','Aktif'],['2023002015','Yoga Pratama','Manajemen','6','3.15','0','DO'],['2024002009','Sari Indah','Manajemen','4','3.42','82','Aktif'],['2021002005','Maya Sari','Manajemen','10','3.87','146','Lulus'],['2023002019','Bayu Prasetyo','Akuntansi','6','3.51','100','Aktif'],['2024003003','Dimas Arya','Ilmu Komunikasi','4','3.20','76','Aktif'],['2022003010','Andi Saputra','Ilmu Komunikasi','8','3.38','130','Aktif'],['2023001006','Nadia Fitriani','Sistem Informasi','6','3.69','104','Aktif']]},
+mhsH:{c:['NIM','Nama','Prodi','Smt','Alasan Hapus','Tgl Hapus'],r:[['2022004020','Rizal Firmansyah','Teknik Informatika','6','Pindah PT lain','2024-09-15'],['2023003008','Indah Permata','Ilmu Komunikasi','4','Mengundurkan diri','2025-01-20'],['2023001005','Dani Setiawan','Sistem Informasi','4','Tidak memenuhi syarat','2024-12-10'],['2024002006','Rahma Aulia','Manajemen','2','Pindah prodi','2025-03-05']]},
+dsnD:{c:['NIDN','Nama','Home Base','Jabatan','Pendidikan','Sertifikasi','Status'],b:{5:{'Tersertifikasi':'tg-p','Belum':'tg-u'}},r:[['0012345678','Prof. Dr. Ir. Bambang Susilo, M.Sc.','TI','Guru Besar','S3','Tersertifikasi','Aktif'],['0023456789','Dr. Siti Aminah, M.Kom.','SI','Lektor Kepala','S3','Tersertifikasi','Aktif'],['0034567890','Dr. Hendra Kusuma, M.T.','TI','Lektor Kepala','S3','Tersertifikasi','Aktif'],['0045678901','Ir. Yulianto Prabowo, M.Kom.','TI','Lektor','S2','Tersertifikasi','Aktif'],['0056789012','Dra. Ratna Dewi, M.M.','MN','Lektor Kepala','S2','Tersertifikasi','Aktif'],['0067890123','Dr. Agus Salim, M.Si.','MN','Lektor','S3','Tersertifikasi','Aktif'],['0078901234','Drs. Joko Widodo, M.Ak.','AK','Lektor Kepala','S2','Tersertifikasi','Aktif'],['0089012345','Dr. Rina Marlina, M.I.Kom.','IK','Lektor','S3','Belum','Aktif'],['0090123456','Dewi Safitri, S.Kom., M.Kom.','SI','Asisten Ahli','S2','Belum','Aktif'],['0101234567','Andi Prasetyo, S.T., M.Kom.','TI','Asisten Ahli','S2','Belum','Aktif']]},
+dsnP:{c:['ID Penugasan','NIDN','Nama Dosen','Prodi','Semester','SKS','Kelas'],r:[['PG-001','0012345678','Prof. Bambang Susilo','TI','Genap 2025/2026','8','2'],['PG-002','0023456789','Dr. Siti Aminah','SI','Genap 2025/2026','10','3'],['PG-003','0034567890','Dr. Hendra Kusuma','TI','Genap 2025/2026','6','2'],['PG-004','0045678901','Ir. Yulianto','TI','Genap 2025/2026','8','2'],['PG-005','0056789012','Dra. Ratna Dewi','MN','Genap 2025/2026','12','3'],['PG-006','0067890123','Dr. Agus Salim','MN','Genap 2025/2026','10','3'],['PG-007','0078901234','Drs. Joko Widodo','AK','Genap 2025/2026','12','3'],['PG-008','0089012345','Dr. Rina Marlina','IK','Genap 2025/2026','6','2']]},
+mkD:{c:['Kode','Nama MK','SKS','Smt','Jenis','TM/Prak/Lab','Prodi'],b:{4:{'Wajib':'tg-u','Pilihan':'tg-u'}},r:[['TI101','Pengantar Teknik Informatika','3','1','Wajib','2/0/1','TI'],['TI102','Algoritma dan Pemrograman','4','1','Wajib','2/2/0','TI'],['TI201','Struktur Data','3','2','Wajib','2/0/1','TI'],['TI202','Basis Data','4','2','Wajib','2/2/0','TI'],['TI301','Rekayasa Perangkat Lunak','3','5','Wajib','2/0/1','TI'],['TI302','Kecerdasan Buatan','3','5','Pilihan','2/0/1','TI'],['SI101','Pengantar Sistem Informasi','3','1','Wajib','3/0/0','SI'],['SI201','Analisis Sistem','3','3','Wajib','2/0/1','SI'],['MN101','Pengantar Manajemen','3','1','Wajib','3/0/0','MN'],['AK101','Pengantar Akuntansi','4','1','Wajib','3/0/1','AK'],['IK101','Pengantar Ilmu Komunikasi','3','1','Wajib','3/0/0','IK']]},
+subD:{c:['ID','Kode MK','Nama Substansi','SKS','Urutan'],r:[['SUB-001','TI102','Pengenalan Algoritma','1','1'],['SUB-002','TI102','Percabangan & Perulangan','1','2'],['SUB-003','TI102','Array & String','1','3'],['SUB-004','TI102','Fungsi & Prosedur','1','4'],['SUB-001','TI201','Array Static & Dynamic','1','1'],['SUB-002','TI201','Stack & Queue','1','2'],['SUB-003','TI201','Linked List','1','3'],['SUB-001','TI202','ER Model & Normalisasi','1','1'],['SUB-002','TI202','SQL & DDL','1','2'],['SUB-003','TI202','Query Lanjutan','1','3'],['SUB-004','TI202','Praktikum Basis Data','1','4']]},
+kurD:{c:['ID','Nama','Prodi','Tahun','Jml MK','Total SKS','Wajib','Pilihan','Status'],b:{8:{'Aktif':'tg-p','Nonaktif':'tg-u'}},r:[['KR-001','Kurikulum 2024','TI','2024','45','144','120','24','Aktif'],['KR-002','Kurikulum 2020','TI','2020','40','140','116','24','Nonaktif'],['KR-003','Kurikulum 2024','SI','2024','42','138','114','24','Aktif'],['KR-004','Kurikulum 2024','MN','2024','38','132','108','24','Aktif'],['KR-005','Kurikulum 2024','AK','2024','40','140','116','24','Aktif'],['KR-006','Kurikulum 2024','IK','2024','36','126','108','18','Aktif']]},
+kelD:{c:['Kode Kelas','Mata Kuliah','Dosen','Hari','Jam','Ruang','Prodi','Peserta'],r:[['TI-A-2401','Algoritma dan Pemrograman','Ir. Yulianto','Senin','08:00-11:30','Lab A1','TI','42'],['TI-A-2402','Basis Data','Andi Prasetyo','Selasa','08:00-11:30','Lab A2','TI','38'],['TI-A-2403','Struktur Data','Dr. Fauzi Rahman','Rabu','08:00-10:30','Lab A1','TI','40'],['SI-A-2401','Analisis Sistem','Dewi Safitri','Kamis','08:00-10:30','Lab B1','SI','35'],['SI-A-2402','SPK','Dr. Siti Aminah','Jumat','08:00-10:30','Lab B1','SI','30'],['MN-A-2401','Manajemen Keuangan','Dra. Ratna Dewi','Senin','13:00-15:30','R.201','MN','45'],['AK-A-2401','Pengantar Akuntansi','Drs. Joko Widodo','Selasa','13:00-16:30','R.301','AK','44'],['IK-A-2401','Media Digital','Dr. Rina Marlina','Kamis','13:00-15:30','R.401','IK','32']]},
+nilD:{c:['Kode Kelas','Mata Kuliah','Dosen','Total','Sudah','Belum','%','Status'],b:{7:{'Selesai':'tg-p','Proses':'tg-u','Belum':'tg-n'}},r:[['TI-A-2401','Algoritma','Ir. Yulianto','42','42','0','100%','Selesai'],['TI-A-2402','Basis Data','Andi Prasetyo','38','30','8','79%','Proses'],['TI-A-2403','Struktur Data','Dr. Fauzi Rahman','40','40','0','100%','Selesai'],['SI-A-2401','Analisis Sistem','Dewi Safitri','35','20','15','57%','Proses'],['SI-A-2402','SPK','Dr. Siti Aminah','30','0','30','0%','Belum'],['MN-A-2401','Manaj. Keuangan','Dra. Ratna Dewi','45','45','0','100%','Selesai'],['AK-A-2401','Pengantar Akt.','Drs. Joko Widodo','44','44','0','100%','Selesai'],['IK-A-2401','Media Digital','Dr. Rina Marlina','32','10','22','31%','Proses']]},
+ldoD:{c:['NIM','Nama','Prodi','Smt','Status','Tgl','IPK'],b:{4:{'Lulus':'tg-p','Dropout':'tg-n'}},r:[['2021004012','Dian Permana','TI','10','Lulus','2025-02-15','3.55'],['2021002005','Maya Sari','MN','10','Lulus','2025-02-15','3.87'],['2020001015','Rahmat Hidayat','TI','8','Lulus','2024-09-20','3.92'],['2023002015','Yoga Pratama','MN','6','Dropout','2025-01-20','3.15'],['2022004020','Rizal Firmansyah','TI','6','Dropout','2024-09-15','2.98']]},
+sklD:{c:['Huruf','Bobot','Rentang','Keterangan'],r:[['A','4.00','85 - 100','Sangat Baik'],['A-','3.70','80 - 84.99','Sangat Baik'],['B+','3.30','75 - 79.99','Baik'],['B','3.00','70 - 74.99','Baik'],['B-','2.70','65 - 69.99','Cukup Baik'],['C+','2.30','60 - 64.99','Cukup'],['C','2.00','55 - 59.99','Cukup'],['D','1.00','40 - 54.99','Kurang'],['E','0.00','0 - 39.99','Tidak Lulus']]},
+sLog:[
+{w:'Baru saja',t:'Full Sync',n:2395,s:'Berhasil',sc:'tg-p'},
+{w:'Hari ini, 07:45',t:'Mahasiswa',n:342,s:'Berhasil',sc:'tg-p'},
+{w:'Hari ini, 07:42',t:'Dosen',n:186,s:'Berhasil',sc:'tg-p'},
+{w:'Kemarin, 16:30',t:'Nilai',n:1847,s:'Berhasil',sc:'tg-p'},
+{w:'Kemarin, 16:28',t:'Kelas Kuliah',n:520,s:'Gagal',sc:'tg-n'},
+{w:'28 Apr, 09:15',t:'Kurikulum',n:8,s:'Berhasil',sc:'tg-p'}
+]};
+
+function bc(a){return '<div class="flex items-center gap-1 text-[10.5px] mb-3 flex-wrap" style="color:var(--tx2)">'+a.map(function(t,i){return i<a.length-1?'<span>'+t+'</span><span class="material-icons-outlined" style="font-size:11px">chevron_right</span>':'<span style="color:var(--tx);font-weight:600">'+t+'</span>'}).join('')+'</div>'}
+function ph(t,d,ico){return '<div class="flex items-start gap-3 mb-5"><div class="iw iw-lg"><span class="material-icons-outlined" style="font-size:19px">'+ico+'</span></div><div><h2 class="font-display font-bold text-[15px] leading-tight">'+t+'</h2><p class="text-[10.5px] mt-0.5" style="color:var(--tx2)">'+d+'</p></div></div>'}
+function fi(lb,v,ro){return '<div><label class="fl">'+lb+'</label><input class="fi" value="'+v+'"'+(ro?' readonly':'')+'></div>'}
+
+var TS={};
+function tbl(id,d,ps){
+  ps=ps||8;if(!TS[id])TS[id]={p:1,q:''};
+  var s=TS[id],cols=d.c,rows=d.r,bdg=d.b||{};
+  var f=rows;if(s.q){var q=s.q.toLowerCase();f=rows.filter(function(r){return r.some(function(c){return String(c).toLowerCase().indexOf(q)!==-1})})}
+  var tot=f.length,pgs=Math.max(1,Math.ceil(tot/ps));if(s.p>pgs)s.p=pgs;
+  var st=(s.p-1)*ps,pr=f.slice(st,st+ps),hasAct=cols.indexOf('Aksi')===-1;
+  var h='<div class="cd"><div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3"><div class="sx" style="padding:4px 9px"><span class="material-icons-outlined" style="font-size:14px;color:var(--tx2);opacity:.7">search</span><input placeholder="Cari..." value="'+s.q+'" oninput="tS(\''+id+'\',this.value)"></div><div class="flex items-center gap-2"><span class="text-[10px]" style="color:var(--tx2)">'+tot+' data</span><button class="bt bt-p bt-s" onclick="toast(\'Fitur tambah data\',\'info\')"><span class="material-icons-outlined" style="font-size:12px">add</span>Tambah</button></div></div>';
+  h+='<div class="tw"><table><thead><tr>'+cols.map(function(c){return '<th>'+c+'</th>'}).join('')+'</tr></thead><tbody>';
+  if(!pr.length){h+='<tr><td colspan="'+cols.length+'" class="text-center py-8" style="color:var(--tx2)"><span class="material-icons-outlined block text-3xl mb-1">folder_open</span>Tidak ada data</td></tr>'}
+  else{pr.forEach(function(r,ri){h+='<tr>';r.forEach(function(c,ci){if(bdg[ci]&&bdg[ci][c]){h+='<td><span class="tg '+bdg[ci][c]+'">'+c+'</span></td>'}else{h+='<td>'+c+'</td>'}});if(hasAct){h+='<td><div class="flex gap-1"><button class="bt bt-g bt-s" onclick="sDet(\''+id+'\','+(st+ri)+')" title="Lihat"><span class="material-icons-outlined" style="font-size:12px">visibility</span></button><button class="bt bt-g bt-s" onclick="toast(\'Mode edit\',\'info\')" title="Edit"><span class="material-icons-outlined" style="font-size:12px">edit</span></button><button class="bt bt-d bt-s" onclick="toast(\'Konfirmasi hapus\',\'error\')" title="Hapus"><span class="material-icons-outlined" style="font-size:12px">delete</span></button></div></td>'}h+='</tr>'})}
+  h+='</tbody></table></div>';
+  if(pgs>1){h+='<div class="flex items-center justify-between mt-3 pt-2.5" style="border-top:1px solid var(--bdr)"><span class="text-[10px]" style="color:var(--tx2)">Hal '+s.p+' dari '+pgs+'</span><div class="flex gap-0.5"><button class="bt bt-g bt-s" onclick="tP(\''+id+'\','+(s.p-1)+')"'+(s.p<=1?' disabled':'')+'><span class="material-icons-outlined" style="font-size:13px">chevron_left</span></button>';for(var i=1;i<=pgs;i++){if(pgs<=7||i===1||i===pgs||Math.abs(i-s.p)<=1){h+='<button class="bt '+(i===s.p?'bt-p':'bt-g')+' bt-s" onclick="tP(\''+id+'\','+i+')">'+i+'</button>'}else if((i===2&&s.p>3)||(i===pgs-1&&s.p<pgs-2)){h+='<span style="color:var(--tx2)" class="text-[10px] px-0.5">...</span>'}}h+='<button class="bt bt-g bt-s" onclick="tP(\''+id+'\','+(s.p+1)+')"'+(s.p>=pgs?' disabled':'')+'><span class="material-icons-outlined" style="font-size:13px">chevron_right</span></button></div></div>'}
+  return h+'</div>';
+}
+function tS(id,q){TS[id].q=q;TS[id].p=1;ren()}
+function tP(id,p){if(p<1)return;TS[id].p=p;ren()}
+
+function sDet(tid,ri){
+  var map={mhsD:D.mhsD,mhsH:D.mhsH,dsnD:D.dsnD,dsnP:D.dsnP,mkD:D.mkD,subD:D.subD,kurD:D.kurD,kelD:D.kelD,nilD:D.nilD,ldoD:D.ldoD,sklD:D.sklD};
+  var d=map[tid];if(!d)return;var r=d.r[ri];if(!r)return;
+  var h='<div class="p-5"><div class="flex items-center justify-between mb-4"><h3 class="font-display font-bold text-sm">Detail Data</h3><button onclick="cmod()" class="hb" style="width:28px;height:28px"><span class="material-icons-outlined" style="font-size:15px">close</span></button></div><div class="space-y-0">';
+  d.c.forEach(function(c,i){h+='<div class="flex items-start gap-3 py-2.5" style="'+(i<d.c.length-1?'border-bottom:1px solid var(--bdr)':'')+'"><span class="text-[10px] font-semibold w-28 flex-shrink-0 pt-0.5" style="color:var(--tx2)">'+c+'</span><span class="text-[11.5px]">'+(r[i]||'-')+'</span></div>'});
+  h+='</div></div>';document.getElementById('mxB').innerHTML=h;document.getElementById('mdl').classList.add('sh');
+}
+function cmod(){document.getElementById('mdl').classList.remove('sh')}
+
+function pgT(key,ba,t,de,ico,ps){return bc(ba)+ph(t,de,ico)+tbl(key,D[key],ps)}
+function pgI(ba,t,de,ico,ct){return bc(ba)+ph(t,de,ico)+ct}
+
+function pgE(t,de,ico){
+  return bc(['Export Data',t])+ph(t,de,ico)
+    +'<div class="cd mb-3"><p class="text-[11px] mb-3" style="color:var(--tx2)">'+de+'</p>'
+    +'<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-3">'
+    +'<div><label class="fl">Format</label><select class="fi"><option>CSV</option><option>Excel (XLSX)</option></select></div>'
+    +'<div><label class="fl">Periode</label><select class="fi"><option>Semester Genap 2025/2026</option><option>Semester Ganjil 2024/2025</option></select></div>'
+    +'<div><label class="fl">Prodi</label><select class="fi"><option>Semua Prodi</option><option>Teknik Informatika</option><option>Sistem Informasi</option><option>Manajemen</option><option>Akuntansi</option><option>Ilmu Komunikasi</option></select></div>'
+    +'<div><label class="fl">Status</label><select class="fi"><option>Semua Status</option><option>Aktif</option><option>Lulus</option></select></div></div></div>'
+    +'<div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">'
+    +'<button class="cd flex items-center gap-3 cursor-pointer" style="border:1px solid var(--card-b)" onclick="toast(\'Mengunduh '+t+' CSV...\',\'success\')"><div class="iw"><span class="material-icons-outlined" style="font-size:18px">download</span></div><div><div class="text-[12.5px] font-semibold">CSV</div><div class="text-[9.5px]" style="color:var(--tx2)">Comma Separated</div></div></button>'
+    +'<button class="cd flex items-center gap-3 cursor-pointer" style="border:1px solid var(--card-b)" onclick="toast(\'Mengunduh '+t+' Excel...\',\'success\')"><div class="iw"><span class="material-icons-outlined" style="font-size:18px">table_chart</span></div><div><div class="text-[12.5px] font-semibold">Excel</div><div class="text-[9.5px]" style="color:var(--tx2)">.xlsx Format</div></div></button>'
+    +'<button class="cd flex items-center gap-3 cursor-pointer" style="border:1px solid var(--card-b)" onclick="toast(\'Mengunduh '+t+' PDF...\',\'success\')"><div class="iw" style="background:var(--bg)"><span class="material-icons-outlined" style="font-size:18px;color:var(--tx2)">picture_as_pdf</span></div><div><div class="text-[12.5px] font-semibold">PDF</div><div class="text-[9.5px]" style="color:var(--tx2)">Document Format</div></div></button>'
+    +'</div>';
+}
+
+function faqHtml(items){return '<div class="cd space-y-2">'+items.map(function(qa){return '<div style="border:1px solid var(--card-b)" class="rounded-xl overflow-hidden"><button class="w-full flex items-center justify-between px-3.5 py-2.5 text-left" style="transition:background .15s" onmouseenter="this.style.background=\'var(--bg)\'" onmouseleave="this.style.background=\'\'" onclick="tFaq(this)"><span class="text-[11.5px] font-semibold pr-3">'+qa[0]+'</span><span class="material-icons-outlined transition-transform duration-200 flex-shrink-0" style="font-size:15px;color:var(--tx2)">expand_more</span></button><div class="fb" style="max-height:0;overflow:hidden;transition:max-height .3s ease"><div class="px-3.5 pb-2.5 text-[11px] leading-relaxed" style="color:var(--tx2)">'+qa[1]+'</div></div></div>'}).join('')+'</div>'}
+function tFaq(btn){var b=btn.nextElementSibling,ic=btn.querySelector('.material-icons-outlined');var o=b.style.maxHeight&&b.style.maxHeight!=='0px';document.querySelectorAll('.fb').forEach(function(x){x.style.maxHeight='0px';x.parentElement.querySelector('.material-icons-outlined').style.transform=''});if(!o){b.style.maxHeight=b.scrollHeight+'px';ic.style.transform='rotate(180deg)'}}
+
+var PG={};
+PG.dashboard=function(){return '<div class="pi">'
++'<section class="relative overflow-hidden rounded-2xl mb-5"><div class="absolute w-52 h-52 rounded-full -top-10 right-[8%] opacity-20 blur-[70px]" style="background:var(--acc)"></div><div class="absolute w-36 h-36 rounded-full -bottom-8 left-[3%] opacity-10 blur-[50px]" style="background:var(--acc)"></div>'
++'<div class="relative rounded-2xl overflow-hidden" style="background:var(--card);border:1px solid var(--card-b)"><div class="flex flex-col lg:flex-row">'
++'<div class="lg:w-5/12 min-h-[190px] flex items-center justify-center p-6" style="background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(16,185,129,.02))">'
++'<svg viewBox="0 0 300 200" class="w-full max-w-[260px]" fill="none"><rect x="30" y="15" width="190" height="120" rx="7" fill="#047857" opacity=".85"/><rect x="38" y="23" width="174" height="104" rx="4" fill="#059669"/><line x1="58" y1="45" x2="175" y2="45" stroke="#6ee7b7" stroke-width="1.5" stroke-linecap="round" opacity=".6"/><line x1="58" y1="60" x2="160" y2="60" stroke="#a7f3d0" stroke-width="1.5" stroke-linecap="round" opacity=".45"/><line x1="58" y1="75" x2="185" y2="75" stroke="#6ee7b7" stroke-width="1.5" stroke-linecap="round" opacity=".6"/><line x1="58" y1="90" x2="140" y2="90" stroke="#a7f3d0" stroke-width="1.5" stroke-linecap="round" opacity=".45"/><line x1="58" y1="105" x2="170" y2="105" stroke="#6ee7b7" stroke-width="1.5" stroke-linecap="round" opacity=".35"/><rect x="140" y="132" width="36" height="10" rx="3" fill="#fbbf24"/><circle cx="80" cy="168" r="14" fill="#065f46"/><circle cx="80" cy="163" r="9" fill="#d1fae5"/><rect x="64" y="172" width="32" height="20" rx="5" fill="#047857"/><line x1="96" y1="178" x2="125" y2="155" stroke="#d1fae5" stroke-width="2.5" stroke-linecap="round"/><rect x="155" y="170" width="90" height="5" rx="2.5" fill="#047857" opacity=".5"/><circle cx="178" cy="160" r="7" fill="#a7f3d0"/><rect x="172" y="167" width="12" height="12" rx="3" fill="#059669" opacity=".6"/><circle cx="210" cy="160" r="7" fill="#a7f3d0"/><rect x="204" y="167" width="12" height="12" rx="3" fill="#059669" opacity=".6"/><circle cx="242" cy="160" r="7" fill="#d1fae5"/><rect x="236" y="167" width="12" height="12" rx="3" fill="#047857" opacity=".6"/></svg></div>'
++'<div class="lg:w-7/12 p-5 lg:p-7 flex flex-col justify-center">'
++'<span class="tg tg-p w-fit mb-2"><span class="material-icons-outlined" style="font-size:10px">auto_awesome</span> Selamat Datang</span>'
++'<h2 class="font-display font-bold text-xl lg:text-[22px] leading-tight mb-1.5">Dashboard Akademik<br>Neo Feeder PDDIKTI</h2>'
++'<p class="text-[12px] leading-relaxed mb-3" style="color:var(--tx2)">Kelola data akademik perguruan tinggi terintegrasi dengan standar nasional Kemendikbudristek.</p>'
++'<div class="space-y-1.5 text-[11.5px]">'
++'<div class="flex items-center gap-2"><span class="material-icons-outlined" style="font-size:14px;color:var(--acc)">location_on</span>Jl. Pendidikan No. 45, Jakarta Selatan 12345</div>'
++'<div class="flex items-center gap-2"><span class="material-icons-outlined" style="font-size:14px;color:var(--acc)">phone</span>(021) 7890-1234 ext. 205</div>'
++'<div class="flex items-center gap-2"><span class="material-icons-outlined" style="font-size:14px;color:var(--acc)">email</span>feeder@unima.ac.id</div>'
++'</div></div></div></div></section>'
++'<section class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">'
++[['school','Mahasiswa Aktif','2847','12%'],['person','Dosen Pengampu','186','5%'],['menu_book','Mata Kuliah','342','Stabil'],['apartment','Program Studi','8','3%']].map(function(x){return '<div class="cd"><div class="flex items-center justify-between mb-2"><div class="iw"><span class="material-icons-outlined">'+x[0]+'</span></div><span class="tg '+(x[3]==='Stabil'?'tg-u':'tg-p')+'">'+(x[3]!=='Stabil'?'<span class="material-icons-outlined" style="font-size:8px">arrow_upward</span> ':'')+x[3]+'</span></div><div class="sn" style="color:var(--acc)" data-target="'+x[2]+'">0</div><div class="text-[10px] font-medium mt-0.5" style="color:var(--tx2)">'+x[1]+'</div></div>'}).join('')
++'</section>'
++'<section class="grid grid-cols-1 xl:grid-cols-5 gap-3.5 mb-5">'
++'<div class="xl:col-span-3 cd"><div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full animate-pulse" style="background:var(--acc)"></div><h3 class="font-display font-bold text-[13px]">Log Sinkronisasi</h3></div><button class="bt bt-p bt-s" onclick="dSync()"><span class="material-icons-outlined" style="font-size:12px">sync</span>Sync</button></div>'
++'<div class="space-y-1 max-h-[240px] overflow-y-auto pr-1">'+D.sLog.map(function(l){return '<div class="flex items-center gap-2 p-1.5 rounded-lg cursor-pointer" onmouseenter="this.style.background=\'var(--bg)\'" onmouseleave="this.style.background=\'\'" onclick="toast(\''+l.t+': '+l.n+' record\',\'info\')"><div class="iw" style="width:24px;height:24px;border-radius:6px"><span class="material-icons-outlined" style="font-size:13px">'+(l.s==='Berhasil'?'check':'close')+'</span></div><div class="flex-1 min-w-0"><div class="text-[10.5px] font-semibold">'+l.t+'</div><div class="text-[9.5px]" style="color:var(--tx2)">'+l.w+' &middot; '+l.n+' record</div></div><span class="tg '+l.sc+' text-[9px]">'+l.s+'</span></div>'}).join('')+'</div></div>'
++'<div class="xl:col-span-2 cd"><h3 class="font-display font-bold text-[13px] mb-3">Perkuliahan Hari Ini</h3>'
++'<div class="space-y-1">'+D.kelD.r.slice(0,5).map(function(k){return '<div class="flex items-center gap-2.5 p-1.5 rounded-lg cursor-pointer" onmouseenter="this.style.background=\'var(--bg)\'" onmouseleave="this.style.background=\'\'"><div class="iw" style="width:28px;height:28px;border-radius:8px"><span class="material-icons-outlined" style="font-size:14px">event</span></div><div class="flex-1 min-w-0"><div class="text-[10.5px] font-semibold truncate">'+k[1]+'</div><div class="text-[9.5px]" style="color:var(--tx2)">'+k[3]+', '+k[4]+' &middot; '+k[5]+'</div></div><span class="tg tg-u">'+k[7]+' mhs</span></div>'}).join('')+'</div></div></section>'
++'<section class="grid grid-cols-1 lg:grid-cols-2 gap-3.5">'
++'<div class="cd"><h3 class="font-display font-bold text-[13px] mb-3">Distribusi Mahasiswa per Prodi</h3>'
++[['Teknik Informatika',620,.86],['Sistem Informasi',510,.71],['Manajemen',720,1],['Akuntansi',480,.67],['Ilmu Komunikasi',517,.72]].map(function(x){return '<div class="mb-2.5"><div class="flex items-center justify-between mb-1"><span class="text-[10.5px] font-semibold">'+x[0]+'</span><span class="text-[9.5px] font-mono" style="color:var(--tx2)">'+x[1]+'</span></div><div class="pb"><div class="pf" style="width:0%;opacity:'+x[2]+'" data-w="'+Math.round(x[2]*100)+'%"></div></div></div>'}).join('')
++'</div>'
++'<div class="cd"><h3 class="font-display font-bold text-[13px] mb-3">Status Penilaian</h3>'
++'<div class="grid grid-cols-3 gap-2 mb-3">'+[['Selesai','6','tg-p'],['Proses','3','tg-u'],['Belum','1','tg-n']].map(function(x){return '<div class="text-center p-2.5 rounded-xl" style="background:var(--bg)"><div class="font-display font-bold text-lg">'+x[1]+'</div><div class="tg '+x[2]+' mt-0.5">'+x[0]+'</div></div>'}).join('')+'</div>'
++'<div class="pb" style="height:8px"><div class="pf" style="width:0%" data-w="60%"></div></div>'
++'<div class="flex justify-between mt-1.5 text-[9.5px]" style="color:var(--tx2)"><span>Progress Input Nilai</span><span class="font-semibold" style="color:var(--tx)">60%</span></div></div>'
++'</section></div>'};
+
+PG['mhs-daftar']=function(){return pgT('mhsD',['Mahasiswa','Daftar Mahasiswa'],'Daftar Mahasiswa','Data lengkap seluruh mahasiswa terdaftar','school')};
+PG['mhs-hapus']=function(){return pgT('mhsH',['Mahasiswa','Daftar Mahasiswa Hapus'],'Daftar Mahasiswa Hapus','Riwayat data mahasiswa yang dihapus','delete_forever')};
+PG['dsn-daftar']=function(){return pgT('dsnD',['Dosen','Dosen'],'Data Dosen','Daftar seluruh dosen perguruan tinggi','person')};
+PG['dsn-penugasan']=function(){return pgT('dsnP',['Dosen','Penugasan Dosen'],'Penugasan Dosen','Data penugasan mengajar dosen','assignment_ind')};
+PG['kul-mk']=function(){return pgT('mkD',['Perkuliahan','Mata Kuliah'],'Mata Kuliah','Daftar mata kuliah','menu_book',10)};
+PG['kul-substansi']=function(){return pgT('subD',['Perkuliahan','Substansi Kuliah'],'Substansi Kuliah','Komponen substansi dalam mata kuliah','view_list')};
+PG['kul-kurikulum']=function(){return pgT('kurD',['Perkuliahan','Kurikulum'],'Kurikulum','Data kurikulum per program studi','account_tree',6)};
+PG['kul-kelas']=function(){return pgT('kelD',['Perkuliahan','Kelas Perkuliahan'],'Kelas Perkuliahan','Jadwal dan peserta kelas','groups')};
+PG['kul-nilai']=function(){return pgT('nilD',['Perkuliahan','Nilai Perkuliahan'],'Nilai Perkuliahan','Progres input nilai per kelas','grading')};
+PG['kul-aktif']=function(){return pgI(['Perkuliahan','Aktivitas Kuliah Mahasiswa'],'Aktivitas Kuliah Mahasiswa','Data kehadiran dan aktivitas kuliah','fact_check','<div class="cd text-center py-8" style="color:var(--tx2)"><span class="material-icons-outlined block text-4xl mb-1">event_available</span><p class="text-sm font-medium">Fitur Aktivitas Kuliah Mahasiswa</p><p class="text-[11px] mt-1">Data kehadiran, izin, dan sakit per mahasiswa</p></div>')};
+PG['kul-hitung']=function(){return pgI(['Perkuliahan','Hitung Aktivitas Perkuliahan'],'Hitung Aktivitas Perkuliahan','Perhitungan otomatis aktivitas','calculate','<div class="cd"><div class="flex items-center gap-3 p-3 rounded-xl mb-3" style="background:rgba(16,185,129,.06)"><div class="iw"><span class="material-icons-outlined" style="font-size:22px">info</span></div><div><p class="text-[12px] font-semibold">Perhitungan Otomatis</p><p class="text-[10.5px]" style="color:var(--tx2)">Menghitung ulang persentase kehadiran dari data aktivitas.</p></div></div><div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">'+[['Genap 2025/2026','Aktif','tg-p'],['Ganjil 2024/2025','Nonaktif','tg-u'],['Genap 2023/2024','Nonaktif','tg-u']].map(function(x){return '<div class="cd text-center"><p class="text-[11px] font-semibold">'+x[0]+'</p><span class="tg '+x[2]+' mt-1">'+x[1]+'</span></div>'}).join('')+'</div><button class="bt bt-p" onclick="toast(\'Perhitungan dimulai...\',\'success\')"><span class="material-icons-outlined" style="font-size:14px">play_arrow</span>Mulai Perhitungan</button></div>')};
+PG['kul-aktifmhs']=function(){return pgI(['Perkuliahan','Aktivitas Mahasiswa'],'Aktivitas Mahasiswa','Riwayat aktivitas per mahasiswa','history','<div class="cd"><div class="tw"><table><thead><tr><th>NIM</th><th>Nama</th><th>Kelas</th><th>Hadir</th><th>Izin</th><th>Sakit</th><th>Alpa</th><th>%</th></tr></thead><tbody>'+[['2024001001','Ahmad Rizky Pratama','TI-A-2401','14','1','0','1','87.5%'],['2024001002','Siti Nurhaliza','SI-A-2401','15','0','1','0','93.8%'],['2023001023','M. Farhan Hakim','TI-A-2403','13','2','0','1','81.3%'],['2023001045','Dewi Anggraini','MN-A-2401','16','0','0','0','100%'],['2024002003','Rina Wulandari','MN-A-2401','12','1','2','1','75%']].map(function(r){return '<tr>'+r.map(function(c,i){return i===r.length-1?'<td><span class="tg '+(parseFloat(c)>=80?'tg-p':'tg-n')+'">'+c+'</span></td>':'<td>'+c+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table></div></div>')};
+PG['kul-konversi']=function(){return pgI(['Perkuliahan','Konversi Aktivitas Mahasiswa'],'Konversi Aktivitas Mahasiswa','Konversi nilai aktivitas ke bobot penilaian','swap_horiz','<div class="cd text-center py-8" style="color:var(--tx2)"><span class="material-icons-outlined block text-4xl mb-1">swap_horiz</span><p class="text-sm font-medium">Konversi Aktivitas Mahasiswa</p><p class="text-[11px] mt-1">Konversi data aktivitas kuliah menjadi komponen nilai.</p></div>')};
+PG['kul-lulusdo']=function(){return pgT('ldoD',['Perkuliahan','Mahasiswa Lulus / Dropout'],'Daftar Mahasiswa Lulus / Dropout','Data mahasiswa lulus dan dropout','school')};
+PG['kul-transkripang']=function(){return pgI(['Perkuliahan','Perhitungan Transkrip Angkatan'],'Perhitungan Transkrip Angkatan','Rekap transkrip nilai per angkatan','summarize','<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">'+[['2021','TI','42','3.55'],['2021','SI','38','3.42'],['2021','MN','45','3.67'],['2022','TI','48','3.61'],['2022','SI','40','3.50'],['2022','MN','50','3.48']].map(function(r){return '<div class="cd"><div class="flex items-center justify-between mb-1"><span class="text-[10.5px] font-semibold">Angkatan '+r[0]+'</span><span class="tg tg-u">'+r[1]+'</span></div><div class="flex justify-between text-[10.5px]"><span style="color:var(--tx2)">'+r[2]+' lulus</span><span class="font-display font-bold">IPK '+r[3]+'</span></div></div>'}).join('')+'</div>')};
+PG['kul-cektrans']=function(){return pgI(['Perkuliahan','Cek Transkrip Mahasiswa'],'Cek Transkrip Mahasiswa','Verifikasi transkrip nilai individual','verified','<div class="cd"><div class="sx mb-3"><span class="material-icons-outlined" style="font-size:16px;color:var(--tx2);opacity:.7">search</span><input placeholder="Masukkan NIM untuk cek transkrip..." id="cNim" onkeydown="if(event.key===\'Enter\')ckT()"></div><div id="tRes"><div class="text-center py-6 text-[11px]" style="color:var(--tx2)">Masukkan NIM lalu tekan Enter</div></div></div>')};
+PG['pel-skala']=function(){return pgT('sklD',['Pelengkap','Skala Nilai'],'Skala Nilai','Konversi angka ke huruf mutu','tune',9)};
+PG['pel-periode']=function(){return pgI(['Pelengkap','Pengaturan Periode Perkuliahan'],'Pengaturan Periode Perkuliahan','Konfigurasi semester akademik','calendar_month','<div class="cd">'+[['Kode Periode','20251'],['Nama','Semester Genap 2025/2026'],['Tanggal Mulai','2025-02-01'],['Tanggal Selesai','2025-07-31'],['Status Feeder','Terbuka'],['Tgl Mulai Isi KRS','2025-01-15'],['Tgl Selesai Isi KRS','2025-02-14']].map(function(x){return fi(x[0],x[1])}).join('')+'<div class="flex gap-2 mt-3"><button class="bt bt-p" onclick="toast(\'Periode disimpan\',\'success\')"><span class="material-icons-outlined" style="font-size:13px">save</span>Simpan</button><button class="bt bt-g" onclick="toast(\'Form direset\',\'info\')"><span class="material-icons-outlined" style="font-size:13px">refresh</span>Reset</button></div></div>')};
+PG['rek-pelaporan']=function(){return pgI(['Rekapitulasi','Rekap Pelaporan'],'Rekap Pelaporan','Ringkasan pelaporan data ke PDDIKTI','assessment','<div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-3">'+[['Total Record','12.450','tg-u'],['Terkirim','11.832','95%','tg-p'],['Gagal','328','2.6%','tg-n'],['Belum','290','2.3%','tg-u']].map(function(x){return '<div class="cd text-center"><div class="text-xl font-display font-bold">'+x[1]+'</div>'+(x[3]?'<div class="tg '+x[3]+' mt-0.5">'+x[2]+'</div>':'')+'<div class="text-[10px] mt-0.5" style="color:var(--tx2)">'+x[0]+'</div></div>'}).join('')+'</div><div class="cd"><div class="tw"><table><thead><tr><th>Tabel</th><th>Record</th><th>Terkirim</th><th>Gagal</th><th>Status</th></tr></thead><tbody>'+[['Mahasiswa','2.847','2.847','0','Selesai'],['Dosen','186','186','0','Selesai'],['Mata Kuliah','342','342','0','Selesai'],['Kelas Kuliah','520','502','18','Proses'],['Nilai','8.450','8.010','310','Proses'],['Kurikulum','6','6','0','Selesai'],['Penugasan','48','48','0','Selesai'],['Aktivitas','51','41','0','Selesai']].map(function(r){return '<tr>'+r.slice(0,3).map(function(c){return '<td>'+c+'</td>'}).join('')+'<td>'+r[3]+'</td><td><span class="tg '+(r[4]==='Selesai'?'tg-p':'tg-u')+'">'+r[4]+'</span></td></tr>'}).join('')+'</tbody></table></div></div>')};
+PG['rek-dosen']=function(){return pgI(['Rekapitulasi','Jumlah Dosen'],'Jumlah Dosen','Rekapitulasi dosen per kategori','people','<div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-3">'+[['Total Dosen','186'],['Dosen Tetap','120'],['Dosen Tidak Tetap','42'],['Dosen Honorer','24']].map(function(x){return '<div class="cd text-center"><div class="text-xl font-display font-bold" style="color:var(--acc)">'+x[1]+'</div><div class="text-[10px] mt-0.5" style="color:var(--tx2)">'+x[0]+'</div></div>'}).join('')+'</div><div class="cd"><div class="tw"><table><thead><tr><th>Prodi</th><th>Tetap</th><th>Tidak Tetap</th><th>Honorer</th><th>Total</th><th>Rasio</th></tr></thead><tbody>'+[['Teknik Informatika','38','15','8','61','1:4.6'],['Sistem Informasi','28','12','6','46','1:4.8'],['Manajemen','30','8','5','43','1:6.2'],['Akuntansi','14','4','3','21','1:6.7'],['Ilmu Komunikasi','10','3','2','15','1:6.8']].map(function(r){return '<tr>'+r.map(function(c,i){return i===5?'<td><span class="tg tg-u">'+c+'</span></td>':'<td>'+c+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table></div></div>')};
+PG['rek-mhs']=function(){return pgI(['Rekapitulasi','Jumlah Mahasiswa'],'Jumlah Mahasiswa','Rekapitulasi mahasiswa per prodi','groups','<div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-3">'+[['Total','2.847'],['Aktif','2.775'],['Cuti','15'],['Lulus/DO','57']].map(function(x){return '<div class="cd text-center"><div class="text-xl font-display font-bold" style="color:var(--acc)">'+x[1]+'</div><div class="text-[10px] mt-0.5" style="color:var(--tx2)">'+x[0]+'</div></div>'}).join('')+'</div><div class="cd"><div class="tw"><table><thead><tr><th>Prodi</th><th>Aktif</th><th>Cuti</th><th>Lulus</th><th>DO</th><th>Total</th></tr></thead><tbody>'+[['TI','578','4','28','10','620'],['SI','478','2','22','8','510'],['MN','688','5','18','9','720'],['AK','458','2','14','6','480'],['IK','473','2','8','2','517']].map(function(r){return '<tr>'+r.map(function(c){return '<td>'+c+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table></div></div>')};
+PG['rek-ips']=function(){return pgI(['Rekapitulasi','Rekap IPS Mahasiswa'],'Rekap IPS Mahasiswa','Rekapitulasi Indeks Prestasi Semester','trending_up','<div class="cd"><div class="sx mb-3"><span class="material-icons-outlined" style="font-size:14px;color:var(--tx2);opacity:.7">search</span><input placeholder="Filter NIM atau Prodi..." class="text-[11px]"></div><div class="tw"><table><thead><tr><th>NIM</th><th>Nama</th><th>Prodi</th><th>Smt</th><th>SKS</th><th>IPS</th><th>Predikat</th></tr></thead><tbody>'+[['2024001001','Ahmad Rizky Pratama','TI','4','22','3.72','Sangat Memuaskan'],['2024001002','Siti Nurhaliza','SI','4','20','3.65','Sangat Memuaskan'],['2023001023','M. Farhan Hakim','TI','6','24','3.81','Sangat Memuaskan'],['2023001045','Dewi Anggraini','MN','6','22','3.45','Memuaskan'],['2024002003','Rina Wulandari','MN','4','21','3.33','Memuaskan'],['2023002008','Fajar Nugroho','AK','6','22','2.45','Cukup']].map(function(r){var ip=parseFloat(r[5]);return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+r[4]+'</td><td><span class="font-display font-bold" style="color:var(--acc)">'+r[5]+'</span></td><td><span class="tg '+(r[6]==='Sangat Memuaskan'?'tg-p':'tg-u')+'">'+r[6]+'</span></td></tr>'}).join('')+'</tbody></table></div></div>')};
+PG['rek-krs']=function(){return pgI(['Rekapitulasi','KRS Mahasiswa'],'KRS Mahasiswa','Rekapitulasi Kartu Rencana Studi','description','<div class="cd text-center py-6" style="color:var(--tx2)"><span class="material-icons-outlined block text-3xl mb-1">description</span><p class="text-[12px] font-medium">Rekap KRS Mahasiswa</p><p class="text-[10.5px] mt-1">Lihat dan verifikasi KRS yang telah diisi mahasiswa.</p><button class="bt bt-p mt-3" onclick="toast(\'Memuat data KRS...\',\'info\')"><span class="material-icons-outlined" style="font-size:13px">download</span>Download Rekap</button></div>')};
+PG['rek-khs']=function(){return pgI(['Rekapitulasi','KHS Mahasiswa'],'KHS Mahasiswa','Rekapitulasi Kartu Hasil Studi','grade','<div class="cd text-center py-6" style="color:var(--tx2)"><span class="material-icons-outlined block text-3xl mb-1">grade</span><p class="text-[12px] font-medium">Rekap KHS Mahasiswa</p><p class="text-[10.5px] mt-1">KHS yang telah diproses dan diverifikasi.</p><button class="bt bt-p mt-3" onclick="toast(\'Memuat data KHS...\',\'info\')"><span class="material-icons-outlined" style="font-size:13px">download</span>Download Rekap</button></div>')};
+PG['rek-status']=function(){return pgI(['Rekapitulasi','Laporan Status Mahasiswa'],'Laporan Status Mahasiswa','Rekap status mahasiswa','pie_chart','<div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">'+[['Aktif','2.775','tg-p'],['Cuti','15','tg-u'],['Lulus','42','tg-u'],['Dropout','15','tg-n']].map(function(x){return '<div class="cd text-center"><div class="tg '+x[2]+' mx-auto mb-1.5 text-[11px] px-3 py-1">'+Math.round(parseInt(x[1])/2847*100)+'%</div><div class="text-base font-display font-bold">'+parseInt(x[1]).toLocaleString()+'</div><div class="text-[10px]" style="color:var(--tx2)">'+x[0]+'</div></div>'}).join('')+'</div>')};
+PG['rek-sksdosen']=function(){return pgI(['Rekapitulasi','Laporan SKS Dosen Mengajar'],'Laporan SKS Dosen Mengajar','Rekapitulasi beban mengajar dosen','work_history','<div class="cd"><div class="tw"><table><thead><tr><th>NIDN</th><th>Nama Dosen</th><th>Prodi</th><th>Kelas</th><th>Total SKS</th><th>Max</th><th>Status</th></tr></thead><tbody>'+[['0012345678','Prof. Bambang Susilo','TI','2','8','12','Normal'],['0023456789','Dr. Siti Aminah','SI','3','10','12','Normal'],['0056789012','Dra. Ratna Dewi','MN','3','12','12','Penuh'],['0078901234','Drs. Joko Widodo','AK','3','12','12','Penuh'],['0034567890','Dr. Hendra Kusuma','TI','2','6','12','Normal'],['0045678901','Ir. Yulianto','TI','2','8','12','Normal']].map(function(r){return '<tr><td class="font-mono text-[10.5px]">'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+r[4]+'</td><td>'+r[5]+'</td><td><span class="tg tg-u">'+r[6]+'</span></td></tr>'}).join('')+'</tbody></table></div></div>')};
+PG['rek-pddikti']=function(){return pgI(['Rekapitulasi','Rekap Pelaporan PDDIKTI Per Checkpoint'],'Rekap Pelaporan PDDIKTI','Monitoring pelaporan per checkpoint','cloud_upload','<div class="cd"><div class="flex items-center gap-3 p-3 rounded-xl mb-3" style="background:rgba(16,185,129,.06)"><div class="iw"><span class="material-icons-outlined" style="font-size:20px">info</span></div><div><p class="text-[11px] font-semibold">Checkpoint Saat Ini: <span class="font-display">Checkpoint 3 (30 Juni 2026)</span></p><p class="text-[10px]" style="color:var(--tx2)">Pastikan seluruh data tersinkronisasi sebelum deadline.</p></div></div><div class="tw"><table><thead><tr><th>Checkpoint</th><th>Deadline</th><th>Mahasiswa</th><th>Nilai</th><th>Dosen</th><th>Status</th></tr></thead><tbody>'+[['CP1','31 Okt 2025','2.847','0','186','Selesai'],['CP2','31 Jan 2026','2.847','0','186','Selesai'],['CP3','30 Jun 2026','2.847','8.450','186','Proses'],['CP4','31 Okt 2026','-','-','-','Belum']].map(function(r){return '<tr><td class="font-semibold">'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+r[4]+'</td><td><span class="tg '+(r[5]==='Selesai'?'tg-p':'tg-u')+'">'+r[5]+'</span></td></tr>'}).join('')+'</tbody></table></div></div>')};
+PG['set-sandbox']=function(){return pgI(['Pengaturan','Sandbox'],'Sandbox','Mode sandbox untuk pengujian','science','<div class="cd"><div class="flex items-center justify-between p-3 rounded-xl mb-3" style="background:var(--bg)"><div class="flex items-center gap-2.5"><div class="iw"><span class="material-icons-outlined" style="font-size:20px">warning</span></div><div><p class="text-[11px] font-semibold">Mode Sandbox</p><p class="text-[10px]" style="color:var(--tx2)">Data tidak mempengaruhi produksi PDDIKTI.</p></div></div><label class="tgl"><input type="checkbox" checked onchange="toast(this.checked?\'Sandbox aktif\':\'Sandbox nonaktif\',\'info\')"><span class="sl"></span></label></div>'+fi('URL Sandbox','https://sandbox-api.pddikti.kemdikbud.go.id',true)+fi('Token Sandbox','eyJhbGciOiJIUzI1NiIs...',true)+fi('Mode','Testing',true)+'</div>')};
+PG['set-periode']=function(){return pgI(['Pengaturan','Pengaturan Periode'],'Pengaturan Periode','Set periode perkuliahan aktif','calendar_month','<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">'+[['20251','Genap 2025/2026','2025-02-01','2025-07-31',true],['20242','Ganjil 2024/2025','2024-08-01','2025-01-31',false],['20241','Genap 2023/2024','2024-02-01','2024-07-31',false]].map(function(x){return '<div class="p-3 rounded-xl cursor-pointer transition-colors" style="border:2px solid '+(x[4]?'var(--acc)':'var(--card-b)')+';background:'+(x[4]?'rgba(16,185,129,.04)':'')+'" onclick="toast(\'Periode dipilih\',\'info\')"><div class="flex items-center justify-between mb-0.5"><span class="text-[9.5px] font-mono" style="color:var(--tx2)">'+x[0]+'</span>'+(x[4]?'<span class="tg tg-p">Aktif</span>':'')+'</div><p class="text-[11px] font-semibold">Semester '+x[1]+'</p><p class="text-[9.5px] mt-0.5" style="color:var(--tx2)">'+x[2]+' s/d '+x[3]+'</p></div>'}).join('')+'</div>')};
+PG['set-transkrip']=function(){return pgI(['Pengaturan','Pengaturan Transkrip'],'Pengaturan Transkrip','Konfigurasi format transkrip','article','<div class="cd">'+[['Format IPK','2 desimal'],['Format Predikat','Teks'],['Tampilkan SKS Tempuh','Ya'],['Tampilkan SKS Wajib/Pilihan','Ya'],['Template Header','Universitas Nusantara Mandiri'],['Template Footer','Transkrip resmi, dicetak dengan sistem']].map(function(x){return fi(x[0],x[1])}).join('')+'<button class="bt bt-p mt-3" onclick="toast(\'Disimpan\',\'success\')"><span class="material-icons-outlined" style="font-size:13px">save</span>Simpan</button></div>')};
+PG['set-validasi']=function(){return pgI(['Pengaturan','Validasi Feeder'],'Validasi Feeder','Validasi kesesuaian data','fact_check','<div class="cd"><button class="bt bt-p mb-3" onclick="toast(\'Validasi selesai: 2 warning\',\'success\')"><span class="material-icons-outlined" style="font-size:13px">play_arrow</span>Jalankan Validasi</button><div class="space-y-1.5">'+[['Mahasiswa — NIM duplikat','0 error','tg-p'],['Dosen — NIDN tidak valid','0 error','tg-p'],['Nilai — SKS melebihi batas','0 error','tg-p'],['Kelas — Dosen belum ditugaskan','2 warning','tg-u'],['Kurikulum — MK tanpa substansi','0 error','tg-p']].map(function(x){return '<div class="flex items-center justify-between p-2 rounded-lg" style="background:var(--bg)"><span class="text-[10.5px]">'+x[0]+'</span><span class="tg '+x[2]+'">'+x[1]+'</span></div>'}).join('')+'</div></div>')};
+PG['set-kode']=function(){return pgI(['Pengaturan','Update Kode Registrasi'],'Update Kode Registrasi','Perbarui kode registrasi PT','vpn_key','<div class="cd">'+[['Kode PT','0210250'],['Kode Prodi TI','21201'],['Kode Prodi SI','22201'],['Kode Prodi MN','23201'],['Kode Prodi AK','24201'],['Kode Prodi IK','25201']].map(function(x){return fi(x[0],x[1])}).join('')+'<button class="bt bt-p mt-3" onclick="toast(\'Kode diperbarui\',\'success\')"><span class="material-icons-outlined" style="font-size:13px">save</span>Simpan</button></div>')};
+PG['set-update']=function(){return pgI(['Pengaturan','Update Aplikasi'],'Update Aplikasi','Cek dan terapkan pembaruan','system_update','<div class="cd"><div class="flex items-center gap-3 p-3 rounded-xl mb-3" style="background:rgba(16,185,129,.06)"><div class="iw"><span class="material-icons-outlined" style="font-size:28px">verified</span></div><div><p class="text-[12px] font-bold">Aplikasi Terbaru</p><p class="text-[10.5px]" style="color:var(--tx2)">Versi 3.0.0 — Anda menggunakan versi terbaru.</p></div></div><div class="space-y-1.5">'+[['3.0.0','01 Mei 2026','RPL, kurikulum 2024, API v2.1'],['2.9.0','15 Jan 2026','Perbaikan sinkronisasi batch'],['2.8.5','01 Nov 2025','Update skema database nilai']].map(function(x){return '<div class="flex items-center gap-2.5 p-2 rounded-lg" onmouseenter="this.style.background=\'var(--bg)\'" onmouseleave="this.style.background=\'\'"><span class="font-display font-bold text-[10.5px] w-10">v'+x[0]+'</span><span class="w-24 text-[10px]" style="color:var(--tx2)">'+x[1]+'</span><span class="text-[10.5px]">'+x[2]+'</span></div>'}).join('')+'</div></div>')};
+PG['set-log']=function(){return pgI(['Pengaturan','Log Feeder'],'Log Feeder','Riwayat aktivitas sistem','receipt_long','<div class="cd"><div class="tw"><table><thead><tr><th>Waktu</th><th>Tipe</th><th>Pesan</th><th>Status</th></tr></thead><tbody>'+[['05/05 08:00','INFO','Aplikasi dimulai','OK'],['05/05 07:45','INFO','Sync mahasiswa: 342 record','OK'],['05/05 07:42','INFO','Sync dosen: 186 record','OK'],['04/05 16:28','ERROR','Gagal sync kelas: timeout','Error'],['04/05 16:30','INFO','Sync nilai: 1.847 record','OK'],['28/04 09:15','INFO','Sync kurikulum: 8 record','OK']].map(function(r){return '<tr><td class="font-mono text-[10.5px]">'+r[0]+'</td><td><span class="tg '+(r[1]==='ERROR'?'tg-n':'tg-u')+'">'+r[1]+'</span></td><td>'+r[2]+'</td><td><span class="tg '+(r[3]==='OK'?'tg-p':'tg-n')+'">'+r[3]+'</span></td></tr>'}).join('')+'</tbody></table></div></div>')};
+PG['exp-mhs']=function(){return pgE('Mahasiswa','Data biodata dan status mahasiswa','school')};
+PG['exp-nilaitransfer']=function(){return pgE('Nilai Transfer','Data nilai mahasiswa transfer','swap_horiz')};
+PG['exp-penugasan']=function(){return pgE('Penugasan Dosen','Data penugasan mengajar','assignment_ind')};
+PG['exp-mk']=function(){return pgE('Mata Kuliah','Daftar mata kuliah','menu_book')};
+PG['exp-kelas']=function(){return pgE('Kelas Perkuliahan','Data kelas dan peserta','groups')};
+PG['exp-kelasren']=function(){return pgE('Kelas Perkuliahan Rencana Evaluasi','Rencana evaluasi per kelas','fact_check')};
+PG['exp-krs']=function(){return pgE('KRS Mahasiswa','Kartu Rencana Studi','description')};
+PG['exp-nilaikev']=function(){return pgE('Nilai Komponen Evaluasi','Nilai per komponen evaluasi','grading')};
+PG['exp-aktifdosen']=function(){return pgE('Aktivitas Mengajar Dosen','Rekap aktivitas mengajar','work_history')};
+PG['exp-aktifkul']=function(){return pgE('Aktivitas Kuliah','Data kehadiran kuliah','event_available')};
+PG['exp-lulusdo']=function(){return pgE('Mahasiswa Lulus / DO','Data kelulusan dan dropout','school')};
+PG['exp-transkrip']=function(){return pgE('Transkip','Transkrip nilai mahasiswa','article')};
+PG['syn-pddikti']=function(){return pgI(['Sinkronisasi','Sinkronisasi PDDIKTI'],'Sinkronisasi PDDIKTI','Kirim data ke server PDDIKTI','cloud_upload','<div class="cd"><div class="flex items-center gap-2.5 p-3 rounded-xl mb-3" style="background:rgba(16,185,129,.06)"><div class="iw"><span class="material-icons-outlined" style="font-size:22px">cloud_done</span></div><div><p class="text-[11px] font-semibold">Koneksi PDDIKTI Aktif</p><p class="text-[10px]" style="color:var(--tx2)">api.pddikti.kemdikbud.go.id &middot; Online</p></div></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">'+[['Mahasiswa','2.847','2.847',true],['Dosen','186','186',true],['Mata Kuliah','342','342',true],['Kelas','520','502',false],['Nilai','8.450','8.140',false],['Kurikulum','6','6',true],['Penugasan','48','48',true],['Aktivitas','51','51',true]].map(function(x){return '<div class="flex items-center gap-2 p-2 rounded-lg" style="background:var(--bg)"><span class="material-icons-outlined" style="font-size:16px;color:'+(x[3]?'var(--acc)':'#f87171')+'">'+(x[3]?'check_circle':'error')+'</span><div><div class="text-[10px] font-semibold">'+x[0]+'</div><div class="text-[9.5px]" style="color:var(--tx2)">'+x[2]+'/'+x[1]+'</div></div></div>'}).join('')+'</div><button class="bt bt-p" onclick="dSync()"><span class="material-icons-outlined" style="font-size:13px">sync</span>Sinkronisasi Sekarang</button></div>')};
+PG['syn-pengguna']=function(){return pgI(['Sinkronisasi','Sinkronisasi Pengguna'],'Sinkronisasi Pengguna','Sinkronisasi data pengguna','group','<div class="cd"><div class="tw"><table><thead><tr><th>Username</th><th>Nama</th><th>Role</th><th>Sync</th><th>Status</th></tr></thead><tbody>'+[['admin.unima','Dr. Ahmad Fauzi','Admin','05 Mei 2026','Synced'],['operator1','Siti Rahmawati','Operator','05 Mei 2026','Synced'],['kaprodi.ti','Prof. Bambang Susilo','Kaprodi','04 Mei 2026','Pending']].map(function(r){return '<tr><td class="font-mono text-[10.5px]">'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td><span class="tg '+(r[4]==='Synced'?'tg-p':'tg-u')+'">'+r[4]+'</span></td></tr>'}).join('')+'</tbody></table></div><button class="bt bt-p mt-3" onclick="toast(\'Sinkronisasi pengguna dimulai\',\'success\')"><span class="material-icons-outlined" style="font-size:13px">sync</span>Sync Pengguna</button></div>')};
+PG['syn-table']=function(){return pgI(['Sinkronisasi','Sinkronisasi PDDIKTI Table'],'Sinkronisasi PDDIKTI Table','Sinkronisasi per tabel','table_chart','<div class="cd"><div class="tw"><table><thead><tr><th>Tabel</th><th>Lokal</th><th>Feeder</th><th>Selisih</th><th>Aksi</th></tr></thead><tbody>'+[['mahasiswa','2.847','2.847','0'],['dosen','186','186','0'],['mata_kuliah','342','342','0'],['kelas_kuliah','520','502','18'],['nilai','8.450','8.140','310'],['kurikulum','6','6','0']].map(function(r){var d=parseInt(r[3])===0;return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td><span class="tg '+(d?'tg-p':'tg-n')+'">'+r[3]+'</span></td><td><button class="bt bt-p bt-s" onclick="toast(\'Sync '+r[0]+'...\',\'success\')">Sync</button></td></tr>'}).join('')+'</tbody></table></div></div>')};
+PG['syn-faq']=function(){return pgI(['Sinkronisasi','FAQ PDDIKTI'],'FAQ PDDIKTI','Pertanyaan seputar sinkronisasi','help',faqHtml([['Bagaimana cara sinkronisasi?','Klik tombol "Sinkronisasi Sekarang". Pastikan koneksi internet stabil dan periode perkuliahan sudah diatur.'],['Mengapa sinkronisasi gagal?','Koneksi terputus, data tidak valid, atau server PDDIKTI sedang maintenance. Periksa log feeder.'],['Data bisa diubah setelah tersinkronisasi?','Tidak langsung. Perubahan melalui proses koreksi di PDDIKTI atau hubungi helpdesk.'],['Frekuensi yang disarankan?','Minimal sekali per checkpoint, namun bisa lebih sering untuk konsistensi data.'],['Apa itu checkpoint?','Batas waktu pelaporan: CP1 (31 Okt), CP2 (31 Jan), CP3 (30 Jun), CP4 (31 Okt).'],['Data duplikat bagaimana?','Hapus duplikat di level lokal sebelum sinkronisasi ulang.']]))};
+PG.profil=function(){return pgI(['Profil'],'Profil Perguruan Tinggi','Informasi identitas PT','account_circle','<div class="grid grid-cols-1 lg:grid-cols-2 gap-3.5"><div class="cd"><h3 class="text-[13px] font-bold mb-3">Identitas PT</h3>'+[['Nama','Universitas Nusantara Mandiri'],['NSPN','0210250'],['Akreditasi','Unggul'],['Tanggal Berdiri','15 Agustus 1985'],['Alamat','Jl. Pendidikan No. 45, Jakarta Selatan'],['Kode Pos','12345'],['Telepon','(021) 7890-1234'],['Fax','(021) 7890-1235'],['Website','www.unima.ac.id'],['Email','info@unima.ac.id']].map(function(x){return fi(x[0],x[1])}).join('')+'<button class="bt bt-p mt-3" onclick="toast(\'Profil PT disimpan\',\'success\')"><span class="material-icons-outlined" style="font-size:13px">save</span>Simpan</button></div><div class="space-y-3.5"><div class="cd"><h3 class="text-[13px] font-bold mb-3">Akun Pengguna</h3><div class="flex items-center gap-2.5 mb-3"><img src="https://picsum.photos/seed/neo-usr/80/80.jpg" class="w-12 h-12 rounded-xl object-cover"><div><div class="text-[12px] font-bold">Dr. Ahmad Fauzi, M.Kom.</div><div class="text-[10px]" style="color:var(--tx2)">Administrator</div></div></div>'+fi('Username','admin.unima')+fi('Email','ahmad.fauzi@unima.ac.id')+fi('Role','Administrator',true)+fi('Login Terakhir','05 Mei 2026, 07:30 WIB',true)+'</div><div class="cd"><h3 class="text-[13px] font-bold mb-3">Ubah Password</h3>'+fi('Password Lama','','password')+fi('Password Baru','','password')+fi('Konfirmasi Password','','password')+'<button class="bt bt-p mt-3" onclick="toast(\'Password diubah\',\'success\')"><span class="material-icons-outlined" style="font-size:13px">lock</span>Ubah Password</button></div></div></div>')};
+
+/* ===== SIDEBAR ===== */
+function buildSB(){
+  var nav=document.getElementById('sbN'),h='';
+  MN.forEach(function(m){
+    if(m.sub){
+      h+='<div class="sb-mi" onclick="tSub(this)"><span class="material-icons-outlined mi-i">'+m.ico+'</span><span class="mi-l">'+m.lbl+'</span><span class="material-icons-outlined mi-a">expand_more</span></div>';
+      h+='<div class="sb-sub">'+m.sub.map(function(s){return '<a data-page="'+s.id+'" onclick="nav(\''+s.id+'\',this)"><span class="dt"></span>'+s.lbl+'</a>'}).join('')+'</div>';
+    }else{
+      h+='<div class="sb-mi" data-page="'+m.id+'" onclick="nav(\''+m.id+'\',this)"><span class="material-icons-outlined mi-i">'+m.ico+'</span><span class="mi-l">'+m.lbl+'</span></div>';
+    }
+  });
+  nav.innerHTML=h;
+}
+
+/* ===== ROUTING ===== */
+var curPg='dashboard';
+function nav(pid,el){
+  document.querySelectorAll('.sb-mi').forEach(function(m){m.classList.remove('act')});
+  document.querySelectorAll('.sb-sub a').forEach(function(a){a.classList.remove('act')});
+  if(el){if(el.classList.contains('sb-mi')){el.classList.add('act')}else{el.classList.add('act');var pm=el.closest('.sb-sub');if(pm){var mi=pm.previousElementSibling;if(mi)mi.classList.add('act')}}}
+  curPg=pid;
+  var ae=document.querySelector('[data-page="'+pid+'"]');if(ae)ae.scrollIntoView({behavior:'smooth',block:'nearest'});
+  ren();cmob();window.scrollTo({top:0,behavior:'smooth'});
+}
+function ren(){var c=document.getElementById('pg'),fn=PG[curPg];if(fn){c.innerHTML='<div class="pi">'+fn()+'</div>';if(curPg==='dashboard')setTimeout(aDash,30)}}
+function aDash(){
+  var el=document.getElementById('pg');if(!el)return;
+  el.querySelectorAll('.sn[data-target]').forEach(function(e){var t=parseInt(e.dataset.target),d=1000,s=performance.now();(function u(n){var p=Math.min((n-s)/d,1);e.textContent=Math.round((1-Math.pow(1-p,3))*t).toLocaleString('id-ID');if(p<1)requestAnimationFrame(u)})(s)});
+  setTimeout(function(){el.querySelectorAll('.pf').forEach(function(b){b.style.width=b.dataset.w})},80);
+}
+
+/* ===== SIDEBAR INTERAKSI — class .sopen untuk mobile, .cl untuk desktop ===== */
+function tsb(){
+  var sb=document.getElementById('sb'),mw=document.getElementById('mw');
+  if(window.innerWidth<=1024){
+    /* mobile: toggle class .sopen pada sidebar + .sh pada overlay */
+    sb.classList.toggle('sopen');
+    document.getElementById('ov').classList.toggle('sh');
+  }else{
+    /* desktop: toggle collapse */
+    sb.classList.toggle('cl');
+    mw.classList.toggle('fl');
+  }
+}
+function cmob(){
+  document.getElementById('sb').classList.remove('sopen');
+  document.getElementById('ov').classList.remove('sh');
+}
+function tSub(el){var sub=el.nextElementSibling,arr=el.querySelector('.mi-a');document.querySelectorAll('.sb-sub.op').forEach(function(s){if(s!==sub){s.classList.remove('op');s.previousElementSibling.querySelector('.mi-a').classList.remove('op')}});sub.classList.toggle('op');arr.classList.toggle('op')}
+
+/* ===== DARK MODE ===== */
+function tdk(){document.documentElement.classList.toggle('dark');var d=document.documentElement.classList.contains('dark');localStorage.setItem('nf-dk',d?'1':'0');document.getElementById('dkI').textContent=d?'light_mode':'dark_mode'}
+function iDk(){if(localStorage.getItem('nf-dk')==='1'){document.documentElement.classList.add('dark');document.getElementById('dkI').textContent='light_mode'}}
+
+/* ===== UTILITAS ===== */
+function tdd(){document.getElementById('ddM').classList.toggle('sh')}
+function cdd(){document.getElementById('ddM').classList.remove('sh')}
+document.addEventListener('click',function(e){if(!e.target.closest('#ddB')&&!e.target.closest('#ddM'))cdd()});
+function toast(msg,type){type=type||'info';var c=document.getElementById('tc'),t=document.createElement('div');t.className='tt';var ic={success:'check_circle',info:'info',error:'error'},cl={success:'color:#34d399',info:'color:#60a5fa',error:'color:#f87171'};t.innerHTML='<span class="material-icons-outlined" style="font-size:17px;'+(cl[type]||cl.info)+'">'+(ic[type]||ic.info)+'</span><span>'+msg+'</span>';c.appendChild(t);setTimeout(function(){t.classList.add('ou');setTimeout(function(){t.remove()},200)},2800)}
+function dSync(){toast('Sinkronisasi dimulai...','info');setTimeout(function(){toast('Berhasil: 2.395 record diperbarui','success')},2200)}
+function ckT(){var nim=document.getElementById('cNim'),r=document.getElementById('tRes');if(!nim||!nim.value){r.innerHTML='<div class="text-center py-4 text-[11px]" style="color:var(--tx2)">Masukkan NIM</div>';return}r.innerHTML='<div style="border:1px solid var(--card-b)" class="rounded-xl overflow-hidden"><div class="p-2.5 flex items-center justify-between" style="background:var(--bg)"><div><div class="text-[12px] font-bold">Ahmad Rizky Pratama</div><div class="text-[9.5px]" style="color:var(--tx2)">NIM: '+nim.value+' &middot; TI &middot; IPK: 3.72</div></div><span class="tg tg-p">Lengkap</span></div><div class="tw" style="border:none;border-radius:0"><table><thead><tr><th>Smt</th><th>Kode</th><th>Mata Kuliah</th><th>SKS</th><th>Nilai</th><th>Mutu</th></tr></thead><tbody>'+[['3','TI101','Pengantar TI','3','A','4.00'],['3','TI102','Algoritma','4','A-','3.70'],['3','TI103','Matematika Diskrit','3','B+','3.30'],['4','TI201','Struktur Data','3','A','4.00'],['4','TI202','Basis Data','4','A-','3.70'],['4','TI203','PBO','3','B+','3.30']].map(function(r){return '<tr>'+r.map(function(c){return '<td>'+c+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table></div></div>'}
+function gsFn(q){if(!q.trim())return;var ql=q.toLowerCase();for(var i=0;i<MN.length;i++){var m=MN[i];if(m.id&&PG[m.id]&&m.lbl.toLowerCase().indexOf(ql)!==-1){nav(m.id);document.getElementById('gS').value='';return}if(m.sub){for(var j=0;j<m.sub.length;j++){if(m.sub[j].lbl.toLowerCase().indexOf(ql)!==-1){nav(m.sub[j].id);document.getElementById('gS').value='';return}}}}}
+
+/* ===== INIT ===== */
+document.addEventListener('DOMContentLoaded',function(){iDk();buildSB();ren()});
+window.addEventListener('resize',function(){if(window.innerWidth>1024)cmob()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){cmod();cdd()}});
+</script>
+</body>
+</html>
