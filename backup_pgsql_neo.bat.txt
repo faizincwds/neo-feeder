@@ -1,0 +1,132 @@
+## Cara Pakai backup file:
+1. Sebelum installasi Login dulu ke PDDIKTI Admin, kemudian pilih menu Pelaporan->Geneate Prefill
+2. Pada list perguruan tinggi pilih Aksi Generate (jangan pilih update kode)
+3. Setelah selesai generate, Download file tersebut
+4. Download dan install fresh neo feeder
+5. Copy Paste file prefill ke Folder prefill_pddikti
+5. Initialisasi data dan masukkan Kode Registrasi (xxxxxxx disesuaikan dengan yg ada di Pddikti admin)
+6. Login ke Neo Feeder, jika berhasil login langsung keluar
+7. hapus folder pgsql pada Instalasi Folder Neo Feeder
+8. copypaste backup pgsql yg dimiliki ke Folder Neo Feeder
+9. Download dan Install PATCH Neo Feeder
+10. Silahkan login Kembali ke Neo Feeder dan cek data-datanya apakah sudah masuk
+11. Lakukan sinkronasi 
+12. Selesai
+
+@echo off
+title Autobackup
+echo           =BACKUP NEO FEEDER=
+echo           =-=Faizin Ahmad=-=
+echo SET BackupDir= D:\PDDIKTI\BACKUP_NEOFEEDER\pgsql
+echo.
+
+:: Variables
+:: Be sure there's no trailing slash!
+
+:: Dimana lokasi Direktori yang ingin di backup?
+SET Directory=C:\NEO FEEDER\pgsql
+
+:: Dimana lokasi Direktori untuk menyiman backup?
+SET BackupDir=D:\PDDIKTI\BACKUP_NEOFEEDER\pgsql
+
+:: WinRAR atau 7Zip?
+SET CompressionProgram=WinRAR
+
+:: Dimana lokasi Direktori dari Program specified WinRAR atau 7Zip?
+SET CompressionProgramDir=C:\Program Files\WinRAR
+
+:: The name of the folder inside the zip
+SET ZipFolderName=BACKUP_PGSQL_NEOFEDEER
+
+
+::==========================================================::
+:: Jangan edit kode di bawah ini, tapi jika ingin, silakan! ::
+::==========================================================::
+
+:: Berhentikan Layanan NEO FEEDER DB
+sc stop NEO_FEEDER_DB
+
+
+
+:: Buat Timestamp backup.
+:: Credit: 7DaysToDie's server script
+FOR /F "skip=1 tokens=1-6" %%G IN ('WMIC Path Win32_LocalTime Get Day^,Hour^,Minute^,Month^,Second^,Year /Format:table') DO (
+	IF "%%~L"=="" goto s_done
+	SET _yyyy=%%L
+	SET _mm=00%%J
+	SET _dd=00%%G
+	SET _hour=00%%H
+	SET _minute=00%%I
+	SET _second=00%%K
+)
+:s_done
+
+SET _mm=%_mm:~-2%
+SET _dd=%_dd:~-2%
+SET _hour=%_hour:~-2%
+SET _minute=%_minute:~-2%
+SET _second=%_second:~-2%
+
+SET LOGTIMESTAMP=__%_yyyy%-%_mm%-%_dd%__%_hour%_%_minute%_%_second%
+
+:: The copy command has errors suppressed
+:: This is so the copy command won't stop if you have a plugin 
+:: such as PLSTimedSpy or a plugin that moves (Hopefully not too important) files
+:: This is also a good place to run prebackup procedures (Such as BES)
+
+:: Salin file ke direktori sementara
+echo.
+echo Memulai salin file pada %TIME% - %DATE%
+echo.
+
+:: If you need to copy some other folders, just copy paste this line!
+:: Make sure you include a trailing slash if it's a directory!
+
+xcopy "%Directory%" "temp\%ZipFolderName%\" /e /v /c /q
+
+echo  Selesai salin file pada %TIME% - %DATE%
+
+echo.
+echo Memulai kompresi pada %TIME% - %DATE%
+if %CompressionProgram%==WinRAR ( goto StartWinRAR )
+if %CompressionProgram%==7Zip ( goto Start7Zip ) else ( goto NoProgram )
+
+:StartWinRAR
+:: If you want to password protect your backups, just add this to the parameters:
+:: -hp(YourPassword)
+:: If you have spaces or any special characters, be sure to include quotes!
+"%CompressionProgramDir%"\Rar.exe a -m5 -r -s -t -ep1 -inul "%BackupDir%\backup_pgsql%LOGTIMESTAMP%.rar" "temp\%ZipFolderName%\"
+goto end
+
+:Start7Zip
+:: If you want to password protect your backups, just add this to the parameters:
+:: -p(YourPassword) -mhe
+:: If you have spaces or any special characters, be sure to include quotes!
+"%CompressionProgramDir%"\7z.exe a -m0=lzma2 -mx -r -bb0 "%BackupDir%\BACKUP_NEOFEEDER_pgsql%LOGTIMESTAMP%.7z" ".\temp\%ZipFolderName%\"
+goto end
+
+
+:NoProgram
+cls
+echo.
+echo Program kompresi tidak ditemukan.
+echo.
+pause >nul
+goto end
+
+:: Hapus direktori sementara
+:: This is also a good place to run any postbackup procedures (Such as BES)
+:end
+if exist temp\%ZipFolderName%\ (
+	rmdir /s /q temp\%ZipFolderName%\
+)
+
+echo.
+echo Finished at %TIME% - %DATE%
+echo.
+
+:: Jalankan lagi Layanan NEO FEEDER DB
+sc start NEO_FEEDER_DB
+
+
+exit
